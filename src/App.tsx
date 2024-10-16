@@ -1,12 +1,18 @@
 import React from "react";
-import HelloWorld from "./components/HelloWorld";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LoginScreen from "./pages/LoginScreen";
+import HomeScreen from "./pages/HomeScreen";
 
 const App: React.FC = () => {
-  const [value, setValue] = React.useState<string>("zatial nic");
-
   return (
     <>
-      <HelloWorld value={value} setValue={setValue} />
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<HomeScreen />} />
+          <Route path="/login" element={<LoginScreen />} />
+          <Route path="*" element={<HomeScreen />} />
+        </Routes>
+      </BrowserRouter>
     </>
   );
 };
