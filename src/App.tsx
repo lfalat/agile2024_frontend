@@ -1,26 +1,20 @@
-import { Button } from '@mui/material';
-import React from 'react';
-import axios from 'axios';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LoginScreen from "./pages/LoginScreen";
+import HomeScreen from "./pages/HomeScreen";
 
 const App: React.FC = () => {
-  const [value, setValue] = React.useState<string>("zatial nic");
-
-  const getData = () => {
-    axios.get('/helloworld')
-      .then((res) => {
-        setValue(res.data)
-      })
-      .catch((err) => {
-        console.error(err)
-      })
-  }
-
   return (
     <>
-      {value}
-      <Button variant='contained' onClick={() => {getData()}}>Get data</Button>
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<HomeScreen />} />
+          <Route path="/login" element={<LoginScreen />} />
+          <Route path="*" element={<HomeScreen />} />
+        </Routes>
+      </BrowserRouter>
     </>
-  )
-}
+  );
+};
 
 export default App;
