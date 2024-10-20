@@ -6,20 +6,22 @@ export default function LogoHeader() {
     <Box
   sx={{
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    mb: 2,
+    mb: 4,
+    textAlign: 'center'
   }}
 >
   <img
     src="/SHLogo.png"
     alt="Logo"
-    style={{ width: '150px', height: 'auto', marginRight: '16px' }}
+    style={{ width: '350px', height: 'auto', marginTop: '20px', marginRight: '16px' }}
   />
   <Typography
     component="h1"
     variant="h4"
-    sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+    sx={{ width: '100%', fontSize: 'clamp(2.5rem, 10vw, 3rem)' , fontWeight: 'bold', marginTop: '40px',}}
   >
     Talent Hub
   </Typography>

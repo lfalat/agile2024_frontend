@@ -39,7 +39,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       }}
     >
       <FormControl>
-        <FormLabel htmlFor="email">Email</FormLabel>
+        <FormLabel htmlFor="email">Emailová adresa</FormLabel>
         <TextField
           error={emailError}
           helperText={emailErrorMessage}
@@ -58,7 +58,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         />
       </FormControl>
       <FormControl>
-        <FormLabel htmlFor="password">Password</FormLabel>
+        <FormLabel htmlFor="password">Heslo</FormLabel>
         <TextField
           error={passwordError}
           helperText={passwordErrorMessage}
@@ -83,8 +83,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </Typography>
       )}
       
-      <Button type="submit" fullWidth variant="contained">
-        Login
+      <Button type="submit" fullWidth variant="contained" sx={{ backgroundColor: '#CC5500', color: 'white' }}>
+        Prihlásiť sa
       </Button>
     </Box>
   );
