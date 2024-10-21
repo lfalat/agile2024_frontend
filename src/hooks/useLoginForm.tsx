@@ -46,9 +46,9 @@ export const useLoginForm = () => {
 
       if (apiError.response && apiError.response.data) {
         if (apiError.response.data.message === 'email_not_found') {   
-          setErrorMessage('E-mail nebol rozpoznaný.'); 
+          setErrorMessage('Nerozpoznaná emailová adresa.'); 
         } else if (apiError.response.data.message === 'incorrect_password') {
-          setErrorMessage('Heslo je nesprávne.'); 
+          setErrorMessage('Nesprávne heslo.'); 
         } else {
           setErrorMessage('Prihlásenie zlyhalo.');
         }

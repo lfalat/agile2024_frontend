@@ -5,7 +5,7 @@ interface ValidationResult {
   emailErrorMessage: string;
   passwordError: boolean;
   passwordErrorMessage: string;
-  passwordStrength: 'strong' | 'medium' | 'weak';
+  passwordStrength: 'silné' | 'stredné' | 'slabé';
   validateInputs: (email: string, password: string) => boolean;
   checkPasswordStrength: (password: string) => void;
 }
@@ -15,7 +15,7 @@ const useValidation = (): ValidationResult => {
   const [emailErrorMessage, setEmailErrorMessage] = useState<string>('');
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState<string>('');
-  const [passwordStrength, setPasswordStrength] = useState<'strong' | 'medium' | 'weak'>('weak');
+  const [passwordStrength, setPasswordStrength] = useState<'silné' | 'stredné' | 'slabé'>('slabé');
 
   
   const validateInputs = (email: string, password: string): boolean => {
@@ -24,19 +24,19 @@ const useValidation = (): ValidationResult => {
     
     if (!email) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter your email address.');
+      setEmailErrorMessage('Prosím zadajte emailovú adresu.');
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address (e.g., user@example.com).');
+      setEmailErrorMessage('Prosím zadajte emailovú adresu v platnom formáte (pouzivatel@email.com).');
       isValid = false;
     } else if (/\.{2,}/.test(email)) {
       setEmailError(true);
-      setEmailErrorMessage('Email cannot contain consecutive dots.');
+      setEmailErrorMessage('Emailová adresa nesmie obsahovať viacej bodiek za sebou.');
       isValid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email with a valid domain name.');
+      setEmailErrorMessage('Prosím zadajte emailovú adresu s platným doménovým menom.');
       isValid = false;
     } else {
       setEmailError(false);
@@ -46,31 +46,27 @@ const useValidation = (): ValidationResult => {
     
     if (!password) {
       setPasswordError(true);
-      setPasswordErrorMessage('Please enter your password.');
-      isValid = false;
-    } else if (/\s/.test(password)) {
-      setPasswordError(true);
-      setPasswordErrorMessage('Password cannot contain spaces.');
+      setPasswordErrorMessage('Prosím zadajte heslo.');
       isValid = false;
     } else if (password.length < 13) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 13 characters long.');
+      setPasswordErrorMessage('Heslo musí mať minimálne 13 znakov.');
       isValid = false;
     } else if (!/[A-Z]/.test(password)) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must contain at least one uppercase letter (A-Z).');
+      setPasswordErrorMessage('Heslo musí obsahovať aspoň jedno veľké písmeno (A-Z).');
       isValid = false;
     } else if (!/[a-z]/.test(password)) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must contain at least one lowercase letter (a-z).');
+      setPasswordErrorMessage('Heslo musí obsahovať aspoň jedno malé písmeno (a-z).');
       isValid = false;
     } else if (!/\d/.test(password)) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must contain at least one digit (0-9).');
+      setPasswordErrorMessage('Heslo musí obsahovať aspoň jednu číslicu (0-9).');
       isValid = false;
     } else if (!/[!@#$%^&*]/.test(password)) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must contain at least one special character (e.g., !@#$%^&*).');
+      setPasswordErrorMessage('Heslo musí obsahovať aspoň jeden špeciálny znak (napr. !@#$%^&*).');
       isValid = false;
     } else {
       setPasswordError(false);
@@ -94,11 +90,11 @@ const useValidation = (): ValidationResult => {
       /\d/.test(password) &&
       /[!@#$%^&*]/.test(password)
     ) {
-      setPasswordStrength('strong');
+      setPasswordStrength('silné');
     } else if (password.length >= 13) {
-      setPasswordStrength('medium');
+      setPasswordStrength('stredné');
     } else {
-      setPasswordStrength('weak');
+      setPasswordStrength('slabé');
     }
   };
 

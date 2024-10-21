@@ -10,7 +10,7 @@ interface LoginFormProps {
   emailErrorMessage: string;
   passwordError: boolean;
   passwordErrorMessage: string;
-  passwordStrength: 'strong' | 'medium' | 'weak';
+  passwordStrength: 'silné' | 'stredné' | 'slabé';
   errorMessage: string;
 }
 
@@ -46,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           id="email"
           type="email"
           name="email"
-          placeholder="your@email.com"
+          placeholder="pouzivatel@email.com"
           autoComplete="email"
           autoFocus
           required

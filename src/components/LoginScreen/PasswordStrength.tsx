@@ -2,16 +2,16 @@ import React from 'react';
 import { Typography } from '@mui/material';
 
 interface PasswordStrengthProps {
-  strength: 'strong' | 'medium' | 'weak';
+  strength: 'silné' | 'stredné' | 'slabé';
 }
 
 const PasswordStrength: React.FC<PasswordStrengthProps> = ({ strength }) => {
   return (
     <Typography
       variant="caption"
-      color={strength === 'weak' ? 'error' : 'text.secondary'}
+      color={strength === 'slabé' ? 'error' : 'text.secondary'}
     >
-      Password strength: {strength}
+      Sila hesla: {strength} heslo
     </Typography>
   );
 };
