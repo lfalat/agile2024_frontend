@@ -1,8 +1,8 @@
 import * as React from "react";
 import { styled } from "@mui/material/styles";
 
-import Sidebar from "../components/SideBar";
-import Header from "../components/Header";
+import Sidebar from "../components/HomeScreen/SideBar";
+import Header from "../components/HomeScreen/Header";
 import { Box } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
