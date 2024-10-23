@@ -1,16 +1,17 @@
 import * as React from "react";
-import { styled, useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
+import { styled } from "@mui/material/styles";
 
 import Sidebar from "../components/SideBar";
 import Header from "../components/Header";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import CssBaseline from "@mui/material/CssBaseline";
 
 const drawerWidth = 240;
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
-}>(({ theme, open }) => ({
+}>(({ theme }) => ({
   flexGrow: 1,
   padding: theme.spacing(3),
   transition: theme.transitions.create("margin", {
@@ -18,50 +19,71 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
     duration: theme.transitions.duration.leavingScreen,
   }),
   marginLeft: `-${drawerWidth}px`,
-  ...(open && {
-    marginLeft: 0,
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
+  variants: [
+    {
+      props: ({ open }) => open,
+      style: {
+        transition: theme.transitions.create("margin", {
+          easing: theme.transitions.easing.easeOut,
+          duration: theme.transitions.duration.enteringScreen,
+        }),
+        marginLeft: 0,
+      },
+    },
+  ],
+}));
+
+const DrawerHeader = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  padding: theme.spacing(0, 1),
+  // necessary for content to be below app bar
+  ...theme.mixins.toolbar,
+  justifyContent: "flex-end",
 }));
 
 const HomeScreen: React.FC = () => {
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
-    null
-  );
+  const [drawerIsOpen, setDrawerIsOpen] = React.useState(false);
 
   const handleDrawerOpen = () => {
-    setOpen(true);
+    setDrawerIsOpen(true);
   };
 
   const handleDrawerClose = () => {
-    setOpen(false);
-  };
-
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
+    setDrawerIsOpen(false);
   };
 
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
       <Header
-        open={open}
+        drawerIsOpen={drawerIsOpen}
         handleDrawerOpen={handleDrawerOpen}
-        anchorElUser={anchorElUser}
-        handleOpenUserMenu={handleOpenUserMenu}
-        handleCloseUserMenu={handleCloseUserMenu}
+        drawerWidth={drawerWidth}
       />
-      <Sidebar open={open} onClose={handleDrawerClose} />
-      <Main open={open}>Hello</Main>
+      <Sidebar
+        drawerIsOpen={drawerIsOpen}
+        onClose={handleDrawerClose}
+        drawerWidth={drawerWidth}
+      />
+      <Main open={drawerIsOpen}>
+        <DrawerHeader />
+        <Typography sx={{ marginBottom: 2 }}>Vitajte, Joze Mrkvička</Typography>
+        <Typography sx={{ marginBottom: 2 }}>
+          Consequat mauris nunc congue nisi vitae suscipit. Fringilla est
+          ullamcorper eget nulla facilisi etiam dignissim diam. Pulvinar
+          elementum integer enim neque volutpat ac tincidunt. Ornare suspendisse
+          sed nisi lacus sed viverra tellus. Purus sit amet volutpat consequat
+          mauris. Elementum eu facilisis sed odio morbi. Euismod lacinia at quis
+          risus sed vulputate odio. Morbi tincidunt ornare massa eget egestas
+          purus viverra accumsan in. In hendrerit gravida rutrum quisque non
+          tellus orci ac. Pellentesque nec nam aliquam sem et tortor. Habitant
+          morbi tristique senectus et. Adipiscing elit duis tristique
+          sollicitudin nibh sit. Ornare aenean euismod elementum nisi quis
+          eleifend. Commodo viverra maecenas accumsan lacus vel facilisis. Nulla
+          posuere sollicitudin aliquam ultrices sagittis orci a.
+        </Typography>
+      </Main>
     </Box>
   );
 };

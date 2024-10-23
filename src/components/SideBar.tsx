@@ -17,8 +17,6 @@ import BusinessIcon from "@mui/icons-material/Business";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 
-const drawerWidth = 240;
-
 const menuOptions = [
   {
     label: "Vytvoriť nového používateľa",
@@ -57,11 +55,16 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 }));
 
 interface SidebarProps {
-  open: boolean;
+  drawerIsOpen: boolean;
   onClose: () => void;
+  drawerWidth: number;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  drawerIsOpen,
+  onClose,
+  drawerWidth,
+}) => {
   const theme = useTheme();
 
   return (
@@ -76,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       }}
       variant="persistent"
       anchor="left"
-      open={open}
+      open={drawerIsOpen}
     >
       <DrawerHeader>
         <IconButton onClick={onClose}>
