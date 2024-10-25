@@ -4,13 +4,7 @@ import LogoHeader from '../components/LoginScreen/LogoHeader';
 import CustomCard from '../components/LoginScreen/CustomCard';
 import LoginForm from '../components/LoginScreen/LoginForm';
 import { useLoginForm } from '../hooks/useLoginForm';
-
-const SignInContainer = {
-  minHeight: '100vh',
-  padding: 2,
-  justifyContent: 'center',  
-  alignItems: 'center',      
-};
+import ResponsiveComponent from '../components/ResponsiveComponent';
 
 const LoginScreen: React.FC = () => {
   const {
@@ -23,31 +17,44 @@ const LoginScreen: React.FC = () => {
     passwordErrorMessage,
     passwordStrength,
     errorMessage,
-} = useLoginForm();
+  } = useLoginForm();
 
   return (
-    <>
-      <CssBaseline />
-      <Stack direction="column" sx={SignInContainer}>
-        <LogoHeader />
+    <ResponsiveComponent>
+      {({ size }) => (
+        <>
+          <CssBaseline />
+          <Stack
+            direction="column"
+            sx={{
+              minHeight: '100vh',
+              padding: size === 'xs' ? 2 : 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: size === 'xs' ? '#f9f9f9' : '#fff',
+            }}
+          >
+            <LogoHeader size={size} />
 
-        <CustomCard variant="outlined">
-          <Box sx={{ width: '100%' }}>
-            <LoginForm
-              handleSubmit={handleSubmit}
-              handleEmailChange={handleEmailChange}  
-              handlePasswordChange={handlePasswordChange} 
-              emailError={emailError}
-              emailErrorMessage={emailErrorMessage}
-              passwordError={passwordError}
-              passwordErrorMessage={passwordErrorMessage}
-              passwordStrength={passwordStrength}
-              errorMessage={errorMessage}
-            />
-          </Box>
-        </CustomCard>
-      </Stack>
-    </>
+            <CustomCard variant="outlined" sx={{ width: size === 'xs' ? '100%' : '50%', maxWidth: 600 }}>
+              <Box sx={{ width: '100%' }}>
+                <LoginForm
+                  handleSubmit={handleSubmit}
+                  handleEmailChange={handleEmailChange}
+                  handlePasswordChange={handlePasswordChange}
+                  emailError={emailError}
+                  emailErrorMessage={emailErrorMessage}
+                  passwordError={passwordError}
+                  passwordErrorMessage={passwordErrorMessage}
+                  passwordStrength={passwordStrength}
+                  errorMessage={errorMessage}
+                />
+              </Box>
+            </CustomCard>
+          </Stack>
+        </>
+      )}
+    </ResponsiveComponent>
   );
 };
 
