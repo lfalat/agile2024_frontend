@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextField, Button, Typography, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, LinearProgress, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-
 const NewUserScreen: React.FC = () => {
     const [email, setEmail] = useState<string>('');
     const [isValid, setIsValid] = useState<boolean>(true);
@@ -28,7 +27,12 @@ const NewUserScreen: React.FC = () => {
         number: false,
         specialChar: false,
     });
-
+    interface Role{
+        id_Role: number;
+        label: string;
+        description: string;
+    }
+    const [roles, setRoles] = useState<Role[]>([]);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordsMatch = password === confirmPassword;
 
@@ -109,6 +113,18 @@ const NewUserScreen: React.FC = () => {
         setError(false);
     };
 
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await fetch('https://localhost:5092/api/Role');
+                const data = await response.json();
+                setRoles(data);
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+            }
+        };
+        fetchRoles();
+    }, []);
     return (
         <form onSubmit={handleSubmit} style={{ maxWidth: '600px', margin: '0 auto' }}>
             <Typography variant="h4" gutterBottom>
@@ -128,7 +144,6 @@ const NewUserScreen: React.FC = () => {
                 margin="normal"
             />
 
-            {/* TODO načítat z databazy */}
             <FormControl fullWidth margin="normal">
                 <InputLabel id="role-select-label">Rola</InputLabel>
                 <Select
@@ -138,10 +153,11 @@ const NewUserScreen: React.FC = () => {
                     label="Rola"
                     onChange={handleRoleChange}
                 >
-                    <MenuItem value={0}>Správca</MenuItem>
-                    <MenuItem value={1}>Výkonný použivateľ</MenuItem>
-                    <MenuItem value={2}>Vedúci zamestnanec</MenuItem>
-                    <MenuItem value={3}>Zamestnanec</MenuItem>
+                   {roles.map((role_item) => (
+                        <MenuItem key={role_item.id_Role} value={role_item.id_Role}>
+                        {role_item.label}
+                        </MenuItem>
+                    ))} 
                 </Select>
             </FormControl>
 
