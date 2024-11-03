@@ -7,9 +7,13 @@ type Props = {
 
 const ProtectedRoute = ({allowedRoles}: Props) => {
     const auth = useAuth();
-    console.log(allowedRoles[0] + ' ' + auth?.cookies.user?.role)
+    const role = auth.userProfile?.role
 
-    return allowedRoles.includes(auth?.cookies.user?.role) ? <Outlet /> : <Navigate to='/unauthorized' replace />
+    if (role === undefined) {
+        return <></>
+    }
+
+    return allowedRoles.includes(role) ? <Outlet /> : <Navigate to='/unauthorized' replace />
 }
 
 export default ProtectedRoute

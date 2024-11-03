@@ -7,7 +7,7 @@ export const themeOptions: ThemeOptions = {
       main: '#ba4400',
     },
     secondary: {
-      main: '#f50057',
+      main: '#dedede',
     },
   },
 };

@@ -1,75 +1,52 @@
-import { createContext, ReactNode, useContext, useMemo } from "react"
-import LoginResponse from "../types/responses/LoginResponse";
-import { useCookies } from "react-cookie";
-import { AxiosError } from "axios";
-import api from "../api/api";
+import {
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import StatusResponse from "../types/responses/StatusResponse";
-
-type Props = {
-    children?: ReactNode;
-}
+import { AxiosError } from "axios";
+import UserProfile from "../types/UserProfile";
+import api from "../app/api";
 
 type IAuthContext = {
-    cookies: {[x: string]: any}
-    login: (email: string, password: string) => Promise<StatusResponse>;
-    logout: () => void
-}
+    userProfile: UserProfile | undefined;
+    setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | undefined>>
+};
 
 const init: IAuthContext = {
-    cookies: {},
-    login: async () => {return {statusCode: 0, message: ""}},
-    logout: () => {}
-}
+    userProfile: undefined,
+    setUserProfile: () => {}
+};
 
 const AuthContext = createContext<IAuthContext>(init);
 
-export const AuthProvider = ( { children }: Props) => {
-    const [cookies, setCookies, removeCookie] = useCookies();
+export const AuthProvider = ({ children }: any) => {
+    const [userProfile, setUserProfile] = useState<UserProfile>();
 
-    const login = async (email: string, password: string): Promise<StatusResponse> => {
-        var statusResponse: StatusResponse = {statusCode: 0, message: "init"}
+    useEffect(() => {
+        if (localStorage.getItem("accessToken")) {
+            api.get("User/Me")
+                .then((res) => {
+                    var data: UserProfile = res.data;
 
-        await api.post('/Login', {
-            Email: email,
-            Password: password 
-        }).then((res) => {
-            if(res.status === 200) {
-                const data: LoginResponse = res.data
-                setCookies('user', data)
-            } 
-
-            statusResponse.statusCode = res.status
-            statusResponse.message = res.data
-        }).catch((er: AxiosError) => {
-            console.error(er)
-
-            statusResponse.statusCode = er.response?.status
-            statusResponse.message = er.response?.data as string
-        })
-
-        return statusResponse
-    };
-
-    const logout = () => {
-        removeCookie('user');
-    }
-
-    const value = useMemo(
-        () => ({
-            cookies,
-            login,
-            logout
-        }),
-        [cookies]
-    );
+                    setUserProfile(data);
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        }
+    }, []);
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ userProfile, setUserProfile }}>
             {children}
         </AuthContext.Provider>
-    )
-}
+    );
+};
 
 export const useAuth = () => {
     return useContext(AuthContext);
-}
+};
