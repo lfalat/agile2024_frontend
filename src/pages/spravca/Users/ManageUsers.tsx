@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../../components/Layout";
+import Layout from "../../../components/Layout";
 import { Box, Button, Typography } from "@mui/material";
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
-import UserProfile from "../../types/UserProfile";
-import api from "../../app/api";
+import UserProfile from "../../../types/UserProfile";
+import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
 
 const ManageUsers: React.FC = () => {

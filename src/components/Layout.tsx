@@ -60,31 +60,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {
             role: Roles.Spravca,
             label: "Správa orginazácie",
-            path: "/spravaOrganizacie",
+            path: "/manageOrganizations",
         },
         {
             role: Roles.Spravca,
             label: "Správa oddelení",
-            path: "/spravaOddeleni",
+            path: "/manageDivisions",
         },
         {
             role: Roles.Spravca,
             label: "Správa lokalít",
-            path: "/spravaLokalit",
+            path: "/manageLocations",
         },
         {
             role: Roles.Spravca,
             label: "Správa pracovných pozícií",
-            path: "/spravaPracovnychPozicii",
+            path: "/manageWorkPositions",
         },
-        {
-            label: "Ciele a rozvoj môjho tímu",
-            path: "/cieleRozvojTimu",
-        },
-        {
-            label: "Moje ciele a rozvoj",
-            path: "/cieleRozvojMoje",
-        },
+        // {
+        //     label: "Ciele a rozvoj môjho tímu",
+        //     path: "/cieleRozvojTimu",
+        // },
+        // {
+        //     label: "Moje ciele a rozvoj",
+        //     path: "/cieleRozvojMoje",
+        // },
     ];
 
     return (
