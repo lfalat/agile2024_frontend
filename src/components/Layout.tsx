@@ -135,7 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             <MenuList>
                                 <ListItemText>{userProfile?.role}</ListItemText>
                                 <ListItemText>
-                                    {userProfile?.titleBefore || ".."} {userProfile?.firstName || ".."} {userProfile?.lastName || ".."} {userProfile?.titleAfter || ".."}
+                                    {userProfile?.titleBefore} {userProfile?.firstName} {userProfile?.lastName} {userProfile?.titleAfter}
                                 </ListItemText>
 
                                 <MenuItem onClick={() => nav("/profile")}>
