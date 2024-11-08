@@ -17,7 +17,7 @@ const ManageOrganizations: React.FC = () => {
                     color="primary"
                     sx={{ marginBottom: 2 }}
                     onClick={() => {
-                        nav("/registerUser");
+                        nav("/newOrganization");
                     }}
                 >
                     Pridať novu organizáciu
