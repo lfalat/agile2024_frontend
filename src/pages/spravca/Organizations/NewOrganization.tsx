@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import api from "../../../app/api";
 import LocationResponse from "../../../types/responses/LocationResponse";
+import LoadingButton from '@mui/lab/LoadingButton';
 
 const schema = z
     .object({
@@ -26,6 +27,7 @@ const NewOrganization: React.FC = () => {
     const [locationOptions, setLocationOptions] = useState<{ id: string; label: string }[]>([]);
     const nav = useNavigate();
     const [error, setError] = useState<string>();
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         api.get("/Location/Locations")
@@ -57,6 +59,7 @@ const NewOrganization: React.FC = () => {
     });
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
+        setLoading(true);
         api.post("/Organization/Register", data)
             .then((res) => {
                 nav(-1);
@@ -64,7 +67,10 @@ const NewOrganization: React.FC = () => {
             .catch((err) => {
                 setError(err.response?.data);
                 console.error(err);
-            });
+            })
+            .finally(() => {
+                setLoading(false);
+        });
     };
 
     return (
@@ -101,9 +107,15 @@ const NewOrganization: React.FC = () => {
                         )}
                     />
                     <Stack direction="row" gap={3}>
-                        <Button type="submit" variant="contained" color="primary">
+                        <LoadingButton 
+                            type="submit" 
+                            variant="contained"
+                            color="primary"
+                            loading={loading}  
+                            loadingPosition="start"
+                        >
                             Pridať organizáciu
-                        </Button>
+                        </LoadingButton>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav(-1)}>
                             Zrušiť
                         </Button>
