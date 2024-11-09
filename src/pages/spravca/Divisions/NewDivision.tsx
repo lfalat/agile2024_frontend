@@ -31,6 +31,8 @@ const NewDivision: React.FC = () => {
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
+    const [successMessage, setSuccessMessage] = useState<string>(); // State for success message
+
 
     useEffect(() => {
         api.get("/Organization/Organizations")
@@ -73,21 +75,23 @@ const NewDivision: React.FC = () => {
         return false;
     };
 
-    const onSubmit: SubmitHandler<FormData> = (data) => {
+    const onSubmit: SubmitHandler<FormData> = async (data) => {
         console.log("clicked")
         console.log("odosielane:", data)
-        const hasCycleWithParent = validateCycle(data.parentDepartment, data.subordinateDepartments || []);
-        const hasCycleWithSubordinate = data.subordinateDepartments?.some(subId =>
-            validateCycle(subId, [data.parentDepartment || ""]));
+        // const hasCycleWithParent = validateCycle(data.parentDepartment, data.subordinateDepartments || []);
+        // const hasCycleWithSubordinate = data.subordinateDepartments?.some(subId =>
+        //     validateCycle(subId, [data.parentDepartment || ""]));
 
-        if (hasCycleWithParent || hasCycleWithSubordinate) {
-            setError("Nemožno vybrať toto oddelenie kvôli cyklickému odkazu.");
-            return;
-        }
+        // if (hasCycleWithParent || hasCycleWithSubordinate) {
+        //     setError("Nemožno vybrať toto oddelenie kvôli cyklickému odkazu.");
+        //     return;
+        // }
 
-        api.post("/Department/Create", data)
-            .then(() => {
-                console.log("data:", data)
+        await api.post("/Department/Create", data)
+            .then((res) => {
+                console.log("res:", res)
+                //setSuccessMessage("Oddelenie bolo úspešne vytvorené!"); // Set success message
+                nav('/manageDivisions'); 
                 //alert("Zmeny boli úspešne uložené!");
             })
             .catch((err) => {
@@ -108,6 +112,13 @@ const NewDivision: React.FC = () => {
                             {error}
                         </Alert>
                     )}
+
+                    {successMessage && (
+                        <Alert severity="success" variant="filled">
+                            {successMessage}
+                        </Alert>
+                    )}
+
                     <TextField label="Názov oddelenia" required fullWidth  {...create("name")} error={!!errors.name} helperText={errors.name?.message} />
                     <TextField label="Kód oddelenia" required fullWidth  {...create("code")} error={!!errors.code} helperText={errors.code?.message}  />                                    
                     <Autocomplete fullWidth options={organizationOptions}
