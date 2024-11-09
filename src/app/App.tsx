@@ -9,6 +9,7 @@ import "./App.css";
 import Roles from "../types/Roles";
 import RegisterUser from "../pages/spravca/Users/RegisterUser";
 import ManageUsers from "../pages/spravca/Users/ManageUsers";
+import ChangeUser from "../pages/spravca/Users/ChangeUser";
 import ManageOrganizations from "../pages/spravca/Organizations/ManageOrganizations";
 import NewOrganization from "../pages/spravca/Organizations/NewOrganization";
 import ManageDivisions from "../pages/spravca/Divisions/ManageDivisions";
@@ -43,6 +44,7 @@ const App: React.FC = () => {
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Spravca]} />}>
                             <Route path="/manageUsers" element={<ManageUsers />} />
                             <Route path="/registerUser" element={<RegisterUser />} />
+                            <Route path="/changeUser/:email" element={<ChangeUser />} />
 
                             <Route path="/manageOrganizations" element={<ManageOrganizations />} />
                             <Route path="/newOrganization" element={<NewOrganization />} />
