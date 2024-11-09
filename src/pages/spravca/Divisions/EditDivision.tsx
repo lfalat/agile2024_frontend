@@ -4,7 +4,7 @@ import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert } from "
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../app/api";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -25,12 +25,33 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 
-const NewDivision: React.FC = () => {
-
+const EditDivision: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const nav = useNavigate();
+    const [department, setDepartment] = useState<Department | null>(null);
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
+
+    useEffect(() => {
+        api.get(`/Department/${id}`)
+            .then((res) => {
+                console.log("prijate data:", res.data);
+                const departmentData = res.data;
+                setDepartment(departmentData);
+
+                setDepartment(res.data);
+
+                setValue("name", departmentData.name);
+                setValue("code", departmentData.code);
+                /*setValue("organization", departmentData.organizationName || "");
+                setValue("parentDepartment", departmentData.parentDepartment || "");
+                setValue("subordinateDepartments", departmentData.subordinateDepartments || []);*/
+            })
+            .catch((err) => {
+                console.error("Error loading department:", err);
+            });
+    }, [id]);
 
     useEffect(() => {
         api.get("/Organization/Organizations")
@@ -69,12 +90,23 @@ const NewDivision: React.FC = () => {
         resolver: zodResolver(schema),
     });
 
+    const validateCycle = (selectedDepartmentId: string | undefined, otherDepartmentIds: string[]) => {
+        return false;
+    };
+
     const onSubmit: SubmitHandler<FormData> = (data) => {
         console.log("clicked")
         console.log("odosielane:", data)
-        
+        const hasCycleWithParent = validateCycle(data.parentDepartment, data.subordinateDepartments || []);
+        const hasCycleWithSubordinate = data.subordinateDepartments?.some(subId =>
+            validateCycle(subId, [data.parentDepartment || ""]));
 
-        api.post("/Department/Create", data)
+        if (hasCycleWithParent || hasCycleWithSubordinate) {
+            setError("Nemožno vybrať toto oddelenie kvôli cyklickému odkazu.");
+            return;
+        }
+
+        api.post("/Department/Edit", data)
             .then(() => {
                 console.log("data:", data)
                 //alert("Zmeny boli úspešne uložené!");
@@ -89,7 +121,7 @@ const NewDivision: React.FC = () => {
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Vytvoriť nové oddelenie
+                    Upraviť oddelenie
                 </Typography>
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)} >
                     {error && (
@@ -127,7 +159,7 @@ const NewDivision: React.FC = () => {
                     </LocalizationProvider>
                     <Stack direction="row" gap={3}>
                         <Button type="submit" variant="contained" color="primary">
-                            Pridať oddelenie
+                            Uložiť
                         </Button>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageDivisions')}>
                             Zrušiť
@@ -139,4 +171,4 @@ const NewDivision: React.FC = () => {
     );
 }
 
-export default NewDivision
+export default EditDivision
