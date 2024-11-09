@@ -17,8 +17,8 @@ const schema = z.object({
     name: z.string().min(1, "Názov oddelenia je povinný!"),
     code: z.string().min(1, "Kód oddelenia je povinný!"),
     organization: z.string().min(1, "Príslušná organizácia je povinná!"),
-    parentDepartment: z.string().optional(),
-    subordinateDepartments: z.array(z.string()).optional(),
+    parentDepartmentId: z.string().optional(),
+    childDepartments: z.array(z.string()).optional(),
     //created: z.instanceof(Dayjs).optional(),
 });
 
@@ -74,15 +74,29 @@ const NewDivision: React.FC = () => {
         console.log("odosielane:", data)
         
 
-        api.post("/Department/Create", data)
+        /*api.post("/Department/Create", data)
             .then(() => {
                 console.log("data:", data)
                 //alert("Zmeny boli úspešne uložené!");
+                nav('/manageDivisions')
             })
             .catch((err) => {
                 setError(err.response?.data);
                 console.error(err);
-            });
+            });*/
+
+            api.post("/Department/Create", {
+                ...data,
+                childDepartments: data.childDepartments || [], 
+            })
+                .then(() => {
+                    console.log("Data successfully sent:", data);
+                    nav('/manageDivisions');
+                })
+                .catch((err) => {
+                    setError(err.response?.data);
+                    console.error(err);
+                });
     };
 
     return (
@@ -100,23 +114,23 @@ const NewDivision: React.FC = () => {
                     <TextField label="Názov oddelenia" required fullWidth  {...create("name")} error={!!errors.name} helperText={errors.name?.message} />
                     <TextField label="Kód oddelenia" required fullWidth  {...create("code")} error={!!errors.code} helperText={errors.code?.message}  />                                    
                     <Autocomplete fullWidth options={organizationOptions}
-                        onChange={(e, value) => setValue("organization", value?.label || "")}                 
-                        renderInput={(params) => <TextField {...params} label="Príslušná organizácia" error={!!errors.organization} helperText={errors.organization?.message ?? ""}/>}
+                        onChange={(e, value) => setValue("organization", value?.id || "")}                 
+                        renderInput={(params) => <TextField {...params} label="Príslušná organizácia *" error={!!errors.organization} helperText={errors.organization?.message ?? ""}/>}
                     />
 
                     <Autocomplete
                         fullWidth
                         options={departmentOptions}
-                        onChange={(e, value) => setValue("parentDepartment", value?.label)}
-                        renderInput={(params) => <TextField {...params} label="Nadradené oddelenie" error={!!errors.parentDepartment} helperText={errors.parentDepartment?.message ?? ""} />}
+                        onChange={(e, value) => setValue("parentDepartmentId", value?.id)}
+                        renderInput={(params) => <TextField {...params} label="Nadradené oddelenie" error={!!errors.parentDepartmentId} helperText={errors.parentDepartmentId?.message ?? ""} />}
                     />
 
                     <Autocomplete
                         fullWidth
                         multiple
                         options={departmentOptions}
-                        onChange={(e, value) => setValue("subordinateDepartments", value.map(v => v.label))}
-                        renderInput={(params) => <TextField {...params} label="Podradené oddelenia" error={!!errors.subordinateDepartments} helperText={errors.subordinateDepartments?.message ?? ""} />}
+                        onChange={(e, value) => setValue("childDepartments", value.map((v) => v.id))}
+                        renderInput={(params) => <TextField {...params} label="Podradené oddelenia" error={!!errors.childDepartments} helperText={errors.childDepartments?.message ?? ""} />}
                     
                     />
                      <LocalizationProvider dateAdapter={AdapterDayjs}>
