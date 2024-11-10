@@ -142,6 +142,7 @@ const ChangeUser: React.FC = () => {
                         disablePortal
                         options={roleOptions}
                         value={roleOptions.find(option => option.label === watch("role")) || null}
+                        onChange={(e, value) => setValue("role", value?.label || "" )}
                         renderInput={(params) => <TextField {...params} required label="Používateľská rola" {...register("role")}  error={!!errors.role} helperText={errors.role?.message ?? ""} />}
                     />
                     <TextField label="Meno" required fullWidth {...register("name")} value={watch("name")} error={!!errors.name} helperText={errors.name?.message ?? ""} />
