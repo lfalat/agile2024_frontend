@@ -7,6 +7,8 @@ import api from "../../../app/api";
 import { Location }  from "../../../types/Location";
 import { Archive, Delete } from "@mui/icons-material";
 import DeleteDialog from "../../../components/DeleteDialog";
+import { dataGridStyles } from "../../../styles/gridStyle"; 
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
 
 const ManageLocations: React.FC = () => {
@@ -16,6 +18,7 @@ const ManageLocations: React.FC = () => {
     const [isSnackbarOpen, setSnackbarOpen] = useState(false);
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+    const [refresh, setRefresh] = useState(false);
 
 
     useEffect(() => {
@@ -29,7 +32,7 @@ const ManageLocations: React.FC = () => {
                 setLocationRows([]);
                 console.error(err);
             });
-    }, []);
+    }, [refresh]);
 
     const handleRowDoubleClick = (params: any) => {
         // Získame ID lokality z riadku
@@ -43,6 +46,7 @@ const ManageLocations: React.FC = () => {
     const archiveLocation = async (id: string) => {
         try {
             await api.put(`/Location/Archive/${id}`, { archived: true }); 
+            setRefresh((prev) => !prev);
             setLocationRows((prevRows) =>
                 prevRows.map((location) =>
                     location.id === id ? { ...location, archived: true } : location
@@ -57,6 +61,7 @@ const ManageLocations: React.FC = () => {
     const unArchiveLocation = async (id: string) => {
         try {
             await api.put(`/Location/Unarchive/${id}`, { archived: false }); 
+            setRefresh((prev) => !prev);
             setLocationRows((prevRows) =>
                 prevRows.map((location) =>
                     location.id === id ? { ...location, archived: false } : location
@@ -146,7 +151,8 @@ const ManageLocations: React.FC = () => {
             renderCell: (params) => (
                 <>
                     <IconButton
-                        color="primary"
+                        aria-label="unarchive"
+                        size="large"
                         onClick={() => {
                             console.log("Archive action for:", params.row.id);
                             archiveLocation(params.row.id);
@@ -156,13 +162,14 @@ const ManageLocations: React.FC = () => {
                         <Archive />
                     </IconButton>
                     <IconButton
-                        color="secondary"
+                        aria-label="unarchive"
+                        size="large"
                         onClick={() => {
                             console.log("Unarchive action for:", params.row.id);
                             unArchiveLocation(params.row.id);
                         }}
                     >
-                        <Archive />
+                        <UnarchiveIcon />
                     </IconButton>
                     <IconButton
                         color="primary"
@@ -194,6 +201,11 @@ const ManageLocations: React.FC = () => {
                     <DataGridPro
                         columns={columns}
                         rows={locationRows}
+                        isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
+                        getRowClassName={(params) => 
+                            params.row.archived ? 'archived-row' : ''
+                        }
+                        sx={dataGridStyles}
                         initialState={{
                             pagination: {
                                 paginationModel: {
