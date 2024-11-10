@@ -4,9 +4,9 @@ const ax = axios.create();
 const api = axios.create();
 
 //var apiUrl = "https://localhost:5092/api";
-var apiUrl = "ingprojektapi.azurewebsites.net/api";
+var apiUrl = "https://ingprojektapi.azurewebsites.net/api";
 
-api.defaults.baseURL = "apiUrl";
+api.defaults.baseURL = apiUrl;
 api.defaults.headers.common["Content-Type"] = "application/json";
 
 api.interceptors.request.use(
