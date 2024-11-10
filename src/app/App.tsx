@@ -13,6 +13,7 @@ import ManageOrganizations from "../pages/spravca/Organizations/ManageOrganizati
 import NewOrganization from "../pages/spravca/Organizations/NewOrganization";
 import ManageDivisions from "../pages/spravca/Divisions/ManageDivisions";
 import NewDivision from "../pages/spravca/Divisions/NewDivision";
+import EditDivision from "../pages/spravca/Divisions/EditDivision";
 import ManageLocations from "../pages/spravca/Locations/ManageLocations";
 import NewLocation from "../pages/spravca/Locations/NewLocation";
 import ManageWorkPositions from "../pages/spravca/Work_Positions/ManageWorkPositions";
@@ -49,7 +50,8 @@ const App: React.FC = () => {
                             <Route path="/newOrganization" element={<NewOrganization />} />
 
                             <Route path="/manageDivisions" element={<ManageDivisions />} />
-                            <Route path="/newDivisions" element={<NewDivision />} />
+                            <Route path="/newDivision" element={<NewDivision />} />
+                            <Route path="/editDivision/:id" element={<EditDivision />} />
 
                             <Route path="/manageLocations" element={<ManageLocations />} />
                             <Route path="/newLocation" element={<NewLocation />} />
