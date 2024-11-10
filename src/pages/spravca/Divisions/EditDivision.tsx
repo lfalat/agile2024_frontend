@@ -18,6 +18,7 @@ const schema = z.object({
     code: z.string().min(1, "Kód oddelenia je povinný!"),
     organization: z.string().min(1, "Príslušná organizácia je povinná!").default(""),
     organizationName: z.string().min(1, "Príslušná organizácia je povinná!").default(""),
+    parentDepartmentName: z.string().optional(),
     parentDepartmentId: z.string().optional(),
     childDepartments: z.array(z.string()).optional(),
     created: z.string().optional(),
@@ -67,14 +68,25 @@ const EditDivision: React.FC = () => {
                 setValue("code", departmentData.code);
                 setValue("organization", departmentData.organizationId || "");
                 setValue("organizationName", departmentData.organizationName || "");
+                
+                
+
+                if (departmentData.organizationId) {
+                    fetchDepartmentsForOrganization(departmentData.organizationId);
+                }
+
                 setValue("parentDepartmentId", departmentData.parentDepartmentId || "");
+                setValue("parentDepartmentName", departmentData.parentDepartmentName || "");
                 setValue("childDepartments", childDepartments);
                 setCreatedDate(dayjs(departmentData.created));
             })
             .catch((err) => {
                 console.error("Error loading department:", err);
             });
-    }, [id, setValue]); // závislosť iba na `id`
+
+
+            
+    }, [id, setValue]);
 
     useEffect(() => {
         api.get("/Organization/UnarchivedOrganizations")
@@ -107,9 +119,11 @@ const EditDivision: React.FC = () => {
         event: React.SyntheticEvent,
         value: { id: string; label: string } | null
     ) => {
+        const organizationName = value?.label || "";
         const organizationId = value?.id || "";
-        setSelectedOrganization(organizationId);
+        setSelectedOrganization(organizationName);
         setValue("organization", value?.id || "");
+        setValue("organizationName", value?.label || "");
         if (organizationId) {
             fetchDepartmentsForOrganization(organizationId);
         } else {
@@ -173,13 +187,10 @@ const EditDivision: React.FC = () => {
                     
                     )}
                     <TextField label="Názov oddelenia" required fullWidth  {...create("name")} value={watch("name")}error={!!errors.name} helperText={errors.name?.message} slotProps={{ inputLabel: { shrink: true } }}/>
-                    <TextField label="Kód oddelenia" required fullWidth  {...create("code")} value={watch("code")} error={!!errors.code} helperText={errors.code?.message}  />                                    
+                    <TextField label="Kód oddelenia" required fullWidth  {...create("code")} value={watch("code")} error={!!errors.code} helperText={errors.code?.message} slotProps={{ inputLabel: { shrink: true } }}  />                                    
                     <Autocomplete fullWidth options={organizationOptions}  
                         //
-                        value={organizationOptions.find((opt) => opt.label === watch("organization")) || null}               
-                        /*onChange={(event, newValue) => {
-                            setValue("organization", newValue?.label || "");  // Ukladá id organizácie do formulára
-                        }}*/
+                        value={organizationOptions.find((opt) => opt.label === watch("organizationName")) || null}               
                             onChange={handleOrganizationChange} 
                         renderInput={(params) => <TextField {...params} label="Príslušná organizácia *" error={!!errors.organization} helperText={errors.organization?.message ?? ""}/>}
                     />
@@ -187,8 +198,11 @@ const EditDivision: React.FC = () => {
                     <Autocomplete
                         fullWidth
                         options={departmentOptions}
-                        value={departmentOptions.find((opt) => opt.label === watch("parentDepartmentId")) || null}
-                        onChange={(e, value) => setValue("parentDepartmentId", value?.id)}
+                        value={departmentOptions.find((opt) => opt.label === watch("parentDepartmentName")) || null}
+                        onChange={(e, value) => {
+                            setValue("parentDepartmentId", value?.id); 
+                            setValue("parentDepartmentName", value?.label || ""); 
+                        }}
                         renderInput={(params) => <TextField {...params} label="Nadradené oddelenie" error={!!errors.parentDepartmentId} helperText={errors.parentDepartmentId?.message ?? ""} />}
                     />
 
