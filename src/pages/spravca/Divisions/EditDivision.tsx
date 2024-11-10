@@ -4,7 +4,7 @@ import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert, Autocom
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../app/api";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -17,7 +17,10 @@ const schema = z.object({
     name: z.string().min(1, "Názov oddelenia je povinný!"),
     code: z.string().min(1, "Kód oddelenia je povinný!"),
     organization: z.string().min(1, "Príslušná organizácia je povinná!").default(""),
+    organizationName: z.string().min(1, "Príslušná organizácia je povinná!").default(""),
+    parentDepartmentName: z.string().optional(),
     parentDepartmentId: z.string().optional(),
+    childDepartmentsId: z.array(z.string()).optional(),
     childDepartments: z.array(z.string()).optional(),
     created: z.string().optional(),
 });
@@ -25,8 +28,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 
-const NewDivision: React.FC = () => {
-
+const EditDivision: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const nav = useNavigate();
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ id: string; label: string }[]>([]);
@@ -34,15 +37,50 @@ const NewDivision: React.FC = () => {
     const [selectedOrganization, setSelectedOrganization] = useState<string>();
     const [createdDate, setCreatedDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [department, setDepartment] = useState<Department | null>(null);
     const {
         register: create,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors },
     } = useForm<FormData>({
         resolver: zodResolver(schema),
     });
 
+
+    useEffect(() => {
+        api.get(`/Department/${id}`)
+            .then((res) => {
+                console.log("prijate data:", res.data);
+                const departmentData = res.data;
+                const childDepartments = departmentData.childDepartments;
+                setDepartment({
+                    ...departmentData,
+                    childDepartments,
+                });
+    
+                setValue("name", departmentData.name);
+                setValue("code", departmentData.code);
+                setValue("organization", departmentData.organizationId || "");
+                setValue("organizationName", departmentData.organizationName || "");                
+
+                if (departmentData.organizationId) {
+                    fetchDepartmentsForOrganization(departmentData.organizationId);
+                }
+
+                setValue("parentDepartmentId", departmentData.parentDepartmentId || "");
+                setValue("parentDepartmentName", departmentData.parentDepartmentName || "");
+                setValue("childDepartments", childDepartments);
+                setCreatedDate(dayjs(departmentData.created));
+            })
+            .catch((err) => {
+                console.error("Error loading department:", err);
+            });
+
+
+            
+    }, [id, setValue]);
 
     useEffect(() => {
         api.get("/Organization/UnarchivedOrganizations")
@@ -75,9 +113,11 @@ const NewDivision: React.FC = () => {
         event: React.SyntheticEvent,
         value: { id: string; label: string } | null
     ) => {
+        const organizationName = value?.label || "";
         const organizationId = value?.id || "";
-        setSelectedOrganization(organizationId);
-        setValue("organization", organizationId);
+        setSelectedOrganization(organizationName);
+        setValue("organization", value?.id || "");
+        setValue("organizationName", value?.label || "");
         if (organizationId) {
             fetchDepartmentsForOrganization(organizationId);
         } else {
@@ -86,12 +126,8 @@ const NewDivision: React.FC = () => {
     };
     
 
-    const handleDateChange = (newValue: Dayjs | null) => {
+    const handleDateChange = (newValue: Dayjs | null, context: any) => {
         setCreatedDate(newValue);
-        console.log(newValue)  ; 
-        const adjustedDate = newValue ? newValue.startOf('day') : null;
-        console.log("tostring", adjustedDate?.toISOString());
-        //setValue("created", adjustedDate ? adjustedDate.toISOString() : undefined);
         if (newValue) {
             const adjustedDate = newValue.startOf('day'); 
             const localDate = adjustedDate.toDate();
@@ -99,15 +135,14 @@ const NewDivision: React.FC = () => {
             localDate.setMinutes(localDate.getMinutes() - timezoneOffset);
             const isoString = localDate.toISOString();
             setValue("created", isoString);
-            console.log("Adjusted Date:", adjustedDate.format('YYYY-MM-DD'));
-            console.log("Local Adjusted ISO String:", isoString);
         }
     };
 
+    
+
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
-
-            api.post("/Department/Create", {
+            api.put(`/Department/Edit/${id}`, {
                 
                 ...data,
                 childDepartments: data.childDepartments || [], 
@@ -115,7 +150,7 @@ const NewDivision: React.FC = () => {
                 .then(() => {
                     
                     console.log("Data successfully sent:", data);
-                    setSuccessMessage("Oddelenie bolo úspešne pridané");
+                    setSuccessMessage("Zmeny sa uložili");
                     //nav('/manageDivisions');
                 })
                 .catch((err) => {
@@ -128,7 +163,7 @@ const NewDivision: React.FC = () => {
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Vytvoriť nové oddelenie
+                    Upraviť oddelenie
                 </Typography>
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)} >
                 {error && (
@@ -142,17 +177,23 @@ const NewDivision: React.FC = () => {
                         </Alert>
                     
                     )}
-                    <TextField label="Názov oddelenia" required fullWidth  {...create("name")} error={!!errors.name} helperText={errors.name?.message} />
-                    <TextField label="Kód oddelenia" required fullWidth  {...create("code")} error={!!errors.code} helperText={errors.code?.message}  />                                    
+                    <TextField label="Názov oddelenia" required fullWidth  {...create("name")} value={watch("name")}error={!!errors.name} helperText={errors.name?.message} slotProps={{ inputLabel: { shrink: true } }}/>
+                    <TextField label="Kód oddelenia" required fullWidth  {...create("code")} value={watch("code")} error={!!errors.code} helperText={errors.code?.message} slotProps={{ inputLabel: { shrink: true } }}  />                                    
                     <Autocomplete fullWidth options={organizationOptions}  
-                        onChange={handleOrganizationChange}               
+                        //
+                        value={organizationOptions.find((opt) => opt.label === watch("organizationName")) || null}               
+                            onChange={handleOrganizationChange} 
                         renderInput={(params) => <TextField {...params} label="Príslušná organizácia *" error={!!errors.organization} helperText={errors.organization?.message ?? ""}/>}
                     />
 
                     <Autocomplete
                         fullWidth
                         options={departmentOptions}
-                        onChange={(e, value) => setValue("parentDepartmentId", value?.id)}
+                        value={departmentOptions.find((opt) => opt.label === watch("parentDepartmentName")) || null}
+                        onChange={(e, value) => {
+                            setValue("parentDepartmentId", value?.id); 
+                            setValue("parentDepartmentName", value?.label || ""); 
+                        }}
                         renderInput={(params) => <TextField {...params} label="Nadradené oddelenie" error={!!errors.parentDepartmentId} helperText={errors.parentDepartmentId?.message ?? ""} />}
                     />
 
@@ -160,21 +201,29 @@ const NewDivision: React.FC = () => {
                         fullWidth
                         multiple
                         options={departmentOptions}
-                        onChange={(e, value) => setValue("childDepartments", value.map((v) => v.id))}
+                        
+                        value={watch("childDepartments")?.map((id: string) => ({
+                            id,
+                            label: departmentOptions.find((option) => option.id === id)?.label || id,
+                        })) || []}
+                        onChange={(e, value) => {
+                            setValue("childDepartmentsId", value.map((v) => v.id));
+                            setValue("childDepartments", value.map((v) => v.label))
+
+                        }}
                         renderInput={(params) => <TextField {...params} label="Podradené oddelenia" error={!!errors.childDepartments} helperText={errors.childDepartments?.message ?? ""} />}
                     
                     />
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
+                     <LocalizationProvider dateAdapter={AdapterDayjs}>
+                     <DatePicker
                             label="Dátum vytvorenia oddelenia"
                             value={createdDate}
-                            onChange={(newValue) => handleDateChange(newValue)}
+                            onChange={(newValue, context) => { handleDateChange(newValue, context);}}
                         />
-                                
                     </LocalizationProvider>
                     <Stack direction="row" gap={3}>
                         <Button type="submit" variant="contained" color="primary">
-                            Pridať oddelenie
+                            Uložiť oddelenie
                         </Button>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageDivisions')}>
                             Zrušiť
@@ -186,4 +235,4 @@ const NewDivision: React.FC = () => {
     );
 }
 
-export default NewDivision
+export default EditDivision
