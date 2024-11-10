@@ -55,22 +55,15 @@ const EditDivision: React.FC = () => {
                 console.log("prijate data:", res.data);
                 const departmentData = res.data;
                 const childDepartments = departmentData.childDepartments;
-                if (department && department.id === departmentData.id) {
-                    return;
-                }
-                // Aktualizácia stavu s novými dátami
                 setDepartment({
                     ...departmentData,
                     childDepartments,
                 });
     
-                // Nastavovanie hodnôt pre formulár
                 setValue("name", departmentData.name);
                 setValue("code", departmentData.code);
                 setValue("organization", departmentData.organizationId || "");
-                setValue("organizationName", departmentData.organizationName || "");
-                
-                
+                setValue("organizationName", departmentData.organizationName || "");                
 
                 if (departmentData.organizationId) {
                     fetchDepartmentsForOrganization(departmentData.organizationId);
@@ -142,8 +135,6 @@ const EditDivision: React.FC = () => {
             localDate.setMinutes(localDate.getMinutes() - timezoneOffset);
             const isoString = localDate.toISOString();
             setValue("created", isoString);
-            console.log("Adjusted Date:", adjustedDate.format('YYYY-MM-DD'));
-            console.log("Local Adjusted ISO String:", isoString);
         }
     };
 
@@ -151,7 +142,6 @@ const EditDivision: React.FC = () => {
 
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
-        console.log("Data successfully sent:", data);
             api.put(`/Department/Edit/${id}`, {
                 
                 ...data,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {Box,Button, TextField,Typography,Paper,Divider,} from "@mui/material";
+import {Box,Button, TextField,Typography,Paper,Divider, Alert,} from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import InfoIcon from '@mui/icons-material/Info';
 import { useProfile, ProfileProvider } from "../../hooks/ProfileProvider"
@@ -25,13 +25,17 @@ const ProfilePage: React.FC = () => {
     const { userProfile, setUserProfile } = useAuth();
     const { employeeCard } = useProfile();
     const { control, handleSubmit, formState: { errors }, setValue } = useForm<FormData>({
-        resolver: zodResolver(schema),
-        defaultValues: {
-          firstName: employeeCard?.name || '',
-          lastName: employeeCard?.surname || '',
-          middleName: employeeCard?.middleName || '',
-        },
+        resolver: zodResolver(schema)
       });
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+      useEffect(() => {
+        if (employeeCard) {
+            setValue("firstName", employeeCard.name || '');
+            setValue("lastName", employeeCard.surname || '');
+            setValue("middleName", employeeCard.middleName || '');
+        }
+    }, [employeeCard, setValue]);    
 
     const handleSaveChanges = async (data: FormData) => {
         try {
@@ -46,7 +50,7 @@ const ProfilePage: React.FC = () => {
           if (response.status === 200) {
             const updatedUser = await api.get("User/Me");
             setUserProfile(updatedUser.data);
-            alert("Zmeny boli úspešne uložené!");
+            setSuccessMessage("Zmeny boli úspešne uložené!");
           } else {
             alert("Chyba pri ukladaní zmien!");
           }
@@ -60,7 +64,11 @@ const ProfilePage: React.FC = () => {
             
             <Box sx={{ width: "100%", margin: "0 auto", p: 3 }}>
             <Typography variant="h4" gutterBottom sx={{paddingLeft: 8}}>Profil</Typography>
-
+            {successMessage && (
+            <Alert severity="success" variant="filled" sx={{ width: "100%", mb: 2 }}>
+                {successMessage}
+            </Alert>
+            )}
             <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 4 }}>
                     <Box sx={{display: "flex",flexDirection: "column",alignItems: "center",}}>

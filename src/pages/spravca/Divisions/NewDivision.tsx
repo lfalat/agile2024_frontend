@@ -34,6 +34,14 @@ const NewDivision: React.FC = () => {
     const [selectedOrganization, setSelectedOrganization] = useState<string>();
     const [createdDate, setCreatedDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const {
+        register: create,
+        handleSubmit,
+        setValue,
+        formState: { errors },
+    } = useForm<FormData>({
+        resolver: zodResolver(schema),
+    });
 
 
     useEffect(() => {
@@ -76,16 +84,9 @@ const NewDivision: React.FC = () => {
             setDepartmentOptions([]);
         }
     };
-    const {
-        register: create,
-        handleSubmit,
-        setValue,
-        formState: { errors },
-    } = useForm<FormData>({
-        resolver: zodResolver(schema),
-    });
+    
 
-    const handleDateChange = (newValue: Dayjs | null, context: any) => {
+    const handleDateChange = (newValue: Dayjs | null) => {
         setCreatedDate(newValue);
         console.log(newValue)  ; 
         const adjustedDate = newValue ? newValue.startOf('day') : null;
@@ -163,12 +164,13 @@ const NewDivision: React.FC = () => {
                         renderInput={(params) => <TextField {...params} label="Podradené oddelenia" error={!!errors.childDepartments} helperText={errors.childDepartments?.message ?? ""} />}
                     
                     />
-                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                     <DatePicker
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
                             label="Dátum vytvorenia oddelenia"
                             value={createdDate}
-                            onChange={(newValue, context) => { handleDateChange(newValue, context);}}
+                            onChange={(newValue) => handleDateChange(newValue)}
                         />
+                                
                     </LocalizationProvider>
                     <Stack direction="row" gap={3}>
                         <Button type="submit" variant="contained" color="primary">
