@@ -123,7 +123,8 @@ const ChangeUser: React.FC = () => {
                             {error}
                         </Alert>
                     )}
-                    <TextField label="Používateľské meno (e-mail)" required fullWidth {...register("email")} error={!!errors.email} helperText={errors.email?.message ?? ""} />
+                    <TextField label="Používateľské meno (e-mail)" required fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                         {...register("email")} error={!!errors.email} helperText={errors.email?.message ?? ""} />
                     <TextField label="Heslo" type="password" required fullWidth {...register("password")} error={!!errors.password} helperText={errors.password?.message ?? ""} />
                     <Typography variant="body2" color={passwordStrength === "Silná" ? "green" : passwordStrength === "Stredná" ? "orange" : "red"}>
                         {`Sila hesla je: ${passwordStrength}`}
@@ -144,10 +145,14 @@ const ChangeUser: React.FC = () => {
                         value={roleOptions.find(option => option.label === watch("role")) || null}
                         renderInput={(params) => <TextField {...params} required label="Používateľská rola" {...register("role")}  error={!!errors.role} helperText={errors.role?.message ?? ""} />}
                     />
-                    <TextField label="Meno" required fullWidth {...register("name")} value={watch("name")} error={!!errors.name} helperText={errors.name?.message ?? ""} />
-                    <TextField label="Priezvisko" required fullWidth {...register("surname")} value={watch("surname")} error={!!errors.surname} helperText={errors.surname?.message ?? ""} />
-                    <TextField label="Tituly pred menom" fullWidth {...register("titleBefore")} value={watch("titleBefore")}/>
-                    <TextField label="Tituly za menom" fullWidth {...register("titleAfter")} value={watch("titleAfter")}/>
+                    <TextField label="Meno" required fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("name")} value={watch("name")} error={!!errors.name} helperText={errors.name?.message ?? ""} />
+                    <TextField label="Priezvisko" required fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("surname")} value={watch("surname")} error={!!errors.surname} helperText={errors.surname?.message ?? ""} />
+                    <TextField label="Tituly pred menom" fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("titleBefore")} value={watch("titleBefore")}/>
+                    <TextField label="Tituly za menom" fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("titleAfter")} value={watch("titleAfter")}/>
                     <Stack direction="row" gap={3}>
                         <Button type="submit" variant="contained" color="primary">
                             Uložiť
