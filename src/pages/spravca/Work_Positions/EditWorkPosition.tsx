@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TextField, Typography, MenuItem, Select, FormControl, InputLabel, Chip, Snackbar, Stack, Alert } from "@mui/material";
 import api from "../../../app/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Autocomplete from '@mui/material/Autocomplete';
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Layout from "../../../components/Layout";
+import JobPosition from "../../../types/JobPosition";
 
 type Organization = { id: string; name: string };
 type Level = string;
 // Define validation schema
 const schema = z
     .object({
+        id: z.string(),
         name: z.string().min(1, "Názov je poivnný!"),
         code:  z.string().min(1, "Kód je povinný!"),
         levels: z.array(z.string()),//.nonempty("Pracovná pozícia musí mať aspoň jedne level!"),
@@ -20,7 +22,9 @@ const schema = z
     })
 type FormData = z.infer<typeof schema>;
 
-const NewWorkPosition: React.FC = () => {
+const EditWorkPosition: React.FC = () => {
+    const { id: id } = useParams();
+    const [jobPosition, setJobPosition] = useState<JobPosition[]>();
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
     const [levels, setLevels] = useState<Level[]>([]);
@@ -34,6 +38,29 @@ const NewWorkPosition: React.FC = () => {
             .then((res) => setOrganizations(res.data))
             .catch((err) => console.error("Failed to load organizations", err));
     }, []);
+    useEffect(() => {
+        // Fetch job position data
+        console.log("Id: " + id);
+        if (id) {
+            api.get(`/JobPosition/Get?id=${id}`)
+                .then((res) => {
+                    const jobPosition = res.data;
+                    console.log("Načítané dáta");
+                    console.log(jobPosition);
+                    // Prefill form fields with user data
+                    setValue("name", jobPosition.name);
+                    setValue("levels", jobPosition.levels.map((x:any) => x.name));
+                    setValue("code", jobPosition.code);
+                    setValue("organizationsID", jobPosition.organizations.map((x:any) => x.id));
+                    //setJobPosition(jobPosition);
+                    //setLevels(jobPosition.levels);
+                })
+                .catch((err) => {
+                    console.error("Failed to fetch user data:", err);
+                    setError("Nepodarilo sa načítať údaje používateľa.");
+                });
+        }
+    }, []);
     const {
         register,
         handleSubmit,
@@ -45,6 +72,7 @@ const NewWorkPosition: React.FC = () => {
 
         resolver: zodResolver(schema),
         defaultValues: {
+            id: id, 
             name: "",
             code: "",
             levels: [],
@@ -53,7 +81,7 @@ const NewWorkPosition: React.FC = () => {
     });
     const onSubmit: SubmitHandler<FormData> = (data) => {
         console.log(data);
-        api.post("/JobPosition/Create", data)
+        api.post("/JobPosition/Edit", data)
             .then((res) => {
                 nav(-1);
             })
@@ -71,7 +99,7 @@ const NewWorkPosition: React.FC = () => {
         <Layout>
             <Box sx={{ padding: 3, maxWidth: 600, margin: "0 auto" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Vytvoriť novú pracovnú pozíciu
+                    Editácia Pracovnej pozície
                 </Typography>
                     <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     <TextField
@@ -81,6 +109,7 @@ const NewWorkPosition: React.FC = () => {
                         {...register("name")}
                         error={!!errors.name} helperText={errors.name?.message ?? ""}
                         margin="normal"
+                        slotProps={{ inputLabel: { shrink: true } }}
                     />
 
                     <TextField
@@ -90,6 +119,7 @@ const NewWorkPosition: React.FC = () => {
                         required
                         fullWidth
                         margin="normal"
+                        slotProps={{ inputLabel: { shrink: true } }}
                     />
 
                     <InputLabel>Príslušnosť k organizácii</InputLabel>
@@ -184,4 +214,4 @@ const NewWorkPosition: React.FC = () => {
     );
 };
 
-export default NewWorkPosition;
+export default EditWorkPosition;
