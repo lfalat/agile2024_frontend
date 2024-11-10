@@ -4,7 +4,7 @@ import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert } from "
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../app/api";
 import RoleResponse from "../../../types/responses/RoleResponse";
 
@@ -31,19 +31,25 @@ const schema = z
             ctx.addIssue({
                 code: "custom",
                 message: "Heslá sa musia zhodovať!",
-                path: ["confirmPassword"], // Attach the error to the confirmPassword field
+                path: ["confirmPassword"],
             });
         }
     });
 
 type FormData = z.infer<typeof schema>;
 
-const RegisterUser: React.FC = () => {
+const ChangeUser: React.FC = () => {
+    const { email: email } = useParams();
     const nav = useNavigate();
     const [roleOptions, setRoleOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
 
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
+        resolver: zodResolver(schema),
+    });
+
     useEffect(() => {
+        // Fetch roles for the role dropdown
         api.get("/Role/Roles")
             .then((res) => {
                 const options = res.data.map((role: RoleResponse) => ({
@@ -56,29 +62,30 @@ const RegisterUser: React.FC = () => {
                 setRoleOptions([]);
                 console.error(err);
             });
-    }, []);
+        
+        // Fetch user data to prefill the form
+        console.log("Email: " + email);
+        if (email) {
+            api.get(`/User/GetUser?email=${email}`)
+                .then((res) => {
+                    const userData = res.data;
+                    console.log(userData);
+                    // Prefill form fields with user data
+                    setValue("email", userData.email);
+                    setValue("role", userData.role);
+                    setValue("name", userData.name);
+                    setValue("surname", userData.surname);
+                    setValue("titleBefore", userData.titleBefore);
+                    setValue("titleAfter", userData.titleAfter);
+                })
+                .catch((err) => {
+                    console.error("Failed to fetch user data:", err);
+                    setError("Nepodarilo sa načítať údaje používateľa.");
+                });
+        }
+    }, [email, setValue]);
 
-    const {
-        register,
-        control,
-        handleSubmit,
-        watch,
-        formState: { errors },
-    } = useForm<FormData>({
-        resolver: zodResolver(schema),
-        defaultValues: {
-            email: "",
-            password: "",
-            confirmPassword: "",
-            role: "",
-            name: "",
-            surname: "",
-            titleBefore: "",
-            titleAfter: "",
-        },
-    });
-
-    const password = watch("password"); // Watch password input
+    const password = watch("password");
 
     const getPasswordStrength = (password: string) => {
         if (password.length < 13) return "Slabá";
@@ -93,8 +100,9 @@ const RegisterUser: React.FC = () => {
     const passwordStrength = getPasswordStrength(password || "");
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
-        api.post("/User/Register", data)
-            .then((res) => {
+        console.log(data);
+        api.post("/User/Update", data)
+            .then(() => {
                 nav(-1);
             })
             .catch((err) => {
@@ -107,7 +115,7 @@ const RegisterUser: React.FC = () => {
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Vytvoriť nového používateľa
+                    Editácia používateľa
                 </Typography>
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     {error && (
@@ -115,7 +123,8 @@ const RegisterUser: React.FC = () => {
                             {error}
                         </Alert>
                     )}
-                    <TextField label="Používateľské meno (e-mail)" required fullWidth {...register("email")} error={!!errors.email} helperText={errors.email?.message ?? ""} />
+                    <TextField label="Používateľské meno (e-mail)" required fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                         {...register("email")} error={!!errors.email} helperText={errors.email?.message ?? ""} />
                     <TextField label="Heslo" type="password" required fullWidth {...register("password")} error={!!errors.password} helperText={errors.password?.message ?? ""} />
                     <Typography variant="body2" color={passwordStrength === "Silná" ? "green" : passwordStrength === "Stredná" ? "orange" : "red"}>
                         {`Sila hesla je: ${passwordStrength}`}
@@ -132,16 +141,22 @@ const RegisterUser: React.FC = () => {
                     <Autocomplete
                         fullWidth
                         disablePortal
-                        options={roleOptions} // Replace with actual roles
-                        renderInput={(params) => <TextField {...params} required label="Používateľská rola" {...register("role")} error={!!errors.role} helperText={errors.role?.message ?? ""} />}
+                        options={roleOptions}
+                        value={roleOptions.find(option => option.label === watch("role")) || null}
+                        onChange={(e, value) => setValue("role", value?.label || "" )}
+                        renderInput={(params) => <TextField {...params} required label="Používateľská rola" {...register("role")}  error={!!errors.role} helperText={errors.role?.message ?? ""} />}
                     />
-                    <TextField label="Meno" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message ?? ""} />
-                    <TextField label="Priezvisko" required fullWidth {...register("surname")} error={!!errors.surname} helperText={errors.surname?.message ?? ""} />
-                    <TextField label="Tituly pred menom" fullWidth {...register("titleBefore")} />
-                    <TextField label="Tituly za menom" fullWidth {...register("titleAfter")} />
+                    <TextField label="Meno" required fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("name")} value={watch("name")} error={!!errors.name} helperText={errors.name?.message ?? ""} />
+                    <TextField label="Priezvisko" required fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("surname")} value={watch("surname")} error={!!errors.surname} helperText={errors.surname?.message ?? ""} />
+                    <TextField label="Tituly pred menom" fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("titleBefore")} value={watch("titleBefore")}/>
+                    <TextField label="Tituly za menom" fullWidth slotProps={{ inputLabel: { shrink: true } }}
+                        {...register("titleAfter")} value={watch("titleAfter")}/>
                     <Stack direction="row" gap={3}>
                         <Button type="submit" variant="contained" color="primary">
-                            Registrovať
+                            Uložiť
                         </Button>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav(-1)}>
                             Zrušiť
@@ -153,4 +168,4 @@ const RegisterUser: React.FC = () => {
     );
 };
 
-export default RegisterUser;
+export default ChangeUser;

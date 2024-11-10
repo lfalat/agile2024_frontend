@@ -15,7 +15,6 @@ const ManageUsers: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
-
     const nav = useNavigate();
 
     useEffect(() => {
@@ -96,16 +95,14 @@ const ManageUsers: React.FC = () => {
     return (
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <Typography variant="h4" fontWeight='bold' gutterBottom>
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Správa používateľov
                 </Typography>
                 <Button
                     variant="contained"
                     color="primary"
                     sx={{ marginBottom: 2 }}
-                    onClick={() => {
-                        nav("/registerUser");
-                    }}
+                    onClick={() => nav("/registerUser")}
                 >
                     Pridať nového používateľa
                 </Button>
@@ -113,6 +110,7 @@ const ManageUsers: React.FC = () => {
                     <DataGridPro
                         columns={columns}
                         rows={userRows}
+                        onCellClick = {(params) => handleEdit(params)}
                         initialState={{
                             pagination: {
                                 paginationModel: {
