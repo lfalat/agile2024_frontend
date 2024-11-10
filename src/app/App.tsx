@@ -22,6 +22,7 @@ import NewWorkPosition from "../pages/spravca/Work_Positions/NewWorkPosition";
 import Profile from "../pages/common/Profile";
 import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
+import EditWorkPosition from "../pages/spravca/Work_Positions/EditWorkPosition";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
 import { SnackbarProvider } from '../hooks/SnackBarContext';
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
@@ -66,6 +67,7 @@ const App: React.FC = () => {
 
                             <Route path="/manageWorkPositions" element={<ManageWorkPositions />} />
                             <Route path="/newWorkPosition" element={<NewWorkPosition />} />
+                            <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
                         </Route>
                     </Route>
 

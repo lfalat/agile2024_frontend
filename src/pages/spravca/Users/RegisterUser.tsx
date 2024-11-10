@@ -60,6 +60,7 @@ const RegisterUser: React.FC = () => {
 
     const {
         register,
+        control,
         handleSubmit,
         watch,
         formState: { errors },
