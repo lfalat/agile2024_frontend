@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Box, Stack, Button, Tooltip, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress } from "@mui/material";
+import { Box, Stack, Snackbar, Alert, Button, Tooltip, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Organization from "../../../types/Organization";
 import api from "../../../app/api";
@@ -12,6 +12,7 @@ import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import moment from "moment";
 import LoadingButton from '@mui/lab/LoadingButton';
 import { dataGridStyles } from "../../../styles/gridStyle"; 
+import { useSnackbar } from '../../../hooks/SnackBarContext'; 
 
 const ManageOrganizations: React.FC = () => {
     const [organizationRows, setOrganizationRows] = useState<Organization[]>([]);
@@ -20,6 +21,8 @@ const ManageOrganizations: React.FC = () => {
     const [openConfirm, setOpenConfirm] = useState(false);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const { openSnackbar } = useSnackbar();
 
     useEffect(() => {
         api.get("/Organization/Organizations")
@@ -34,12 +37,7 @@ const ManageOrganizations: React.FC = () => {
             });
     }, [refresh]);
 
-    const handleEdit = (id : string) => {
-        
-    };
-
     const handleRowDoubleClick = (params: any) => {
-        // Získame ID lokality z riadku
         const id = params.row.id;
         console.log("Double-clicked location ID:", id); // Skontrolujte, či sa správne získava ID
         if (!id) {
@@ -57,24 +55,26 @@ const ManageOrganizations: React.FC = () => {
     };
 
     const handleDelete = async () => {
-        if (!selectedId) {
-            console.log("selected id is null")
-            return;
-        }
-        setLoading(true);
-        api.post("/Organization/Delete", selectedId)
-            .then((res) => {
+    if (!selectedId) {
+        console.log("selected id is null");
+        return;
+    }
+    setLoading(true);
+    api.post("/Organization/Delete", selectedId)
+        .then((res) => {
             setRefresh((prev) => !prev);
             setOpenConfirm(false);
-            console.log("Organization deleted:", selectedId)
-            })
-            .catch ((err) => {
-            console.error("Error deleting organization:", err);    
-            })
-            .finally(() => {
-                setLoading(false);
+            setErrorMessage(null); 
+            openSnackbar("Organizácia bola úspešne upravená.", "success");
+        })
+        .catch((err) => {
+            console.error("Error deleting organization:", err);
+            openSnackbar("Nastala chyba pri mazaní organizácie.", "error");
+        })
+        .finally(() => {
+            setLoading(false);
         });
-    };
+};
 
     const archiveOrganization = async (id: string, archive : boolean) => {
         await api.put("/Organization/Archive", {

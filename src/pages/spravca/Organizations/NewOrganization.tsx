@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../app/api";
 import LocationResponse from "../../../types/responses/LocationResponse";
 import LoadingButton from '@mui/lab/LoadingButton';
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const schema = z
     .object({
@@ -28,6 +29,7 @@ const NewOrganization: React.FC = () => {
     const nav = useNavigate();
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState(false);
+    const { openSnackbar } = useSnackbar();
 
     useEffect(() => {
         api.get("/Location/Locations")
@@ -62,10 +64,12 @@ const NewOrganization: React.FC = () => {
         setLoading(true);
         api.post("/Organization/Register", data)
             .then((res) => {
+                openSnackbar("Organizácia bola úspešne vytvorená", "success");
                 nav(-1);
             })
             .catch((err) => {
                 setError(err.response?.data);
+                openSnackbar("Nastala chyba pri vytváraní organizácie", "error");
                 console.error(err);
             })
             .finally(() => {

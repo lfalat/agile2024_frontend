@@ -21,11 +21,13 @@ import Profile from "../pages/common/Profile";
 import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
+import { SnackbarProvider } from '../hooks/SnackBarContext';
 
 const App: React.FC = () => {
     const auth = useAuth();
 
     return (
+        <SnackbarProvider>
         <>
             <BrowserRouter>
                 <Routes>
@@ -66,6 +68,7 @@ const App: React.FC = () => {
                 </Routes>
             </BrowserRouter>
         </>
+        </SnackbarProvider>
     );
 };
 
