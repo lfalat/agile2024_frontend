@@ -1,10 +1,13 @@
 export type Department = {
     id: string;
+    name: string;
+    code: string;
+    organizationId: string;
     organizationName: string;
-    parentDepartmentId?: string; 
-    name: string; 
-    code: string; 
-    lastEdited: Date;
-    created: Date; 
-    archived: boolean; 
+    created: string;
+    lastEdited: string;
+    archived: boolean;
+    parentDepartmentId: string | null;
+    parentDepartmentName: string | null;
+    childDepartments: string[]; 
 }

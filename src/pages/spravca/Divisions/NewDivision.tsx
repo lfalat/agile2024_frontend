@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert } from "@mui/material";
+import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert, AutocompleteChangeReason } from "@mui/material";
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,16 +10,16 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import OrganizationResponse from "../../../types/responses/OrganizationResponse";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { Department } from "../../../types/Department";
 
 const schema = z.object({
     name: z.string().min(1, "Názov oddelenia je povinný!"),
     code: z.string().min(1, "Kód oddelenia je povinný!"),
-    organization: z.string().min(1, "Príslušná organizácia je povinná!"),
+    organization: z.string().min(1, "Príslušná organizácia je povinná!").default(""),
     parentDepartmentId: z.string().optional(),
     childDepartments: z.array(z.string()).optional(),
-    //created: z.instanceof(Dayjs).optional(),
+    created: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -31,9 +31,13 @@ const NewDivision: React.FC = () => {
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
+    const [selectedOrganization, setSelectedOrganization] = useState<string>();
+    const [createdDate, setCreatedDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
 
     useEffect(() => {
-        api.get("/Organization/Organizations")
+        api.get("/Organization/UnarchivedOrganizations")
             .then((res) => {
                 const options = res.data.map((org: OrganizationResponse) => ({
                     id: org.id,
@@ -45,21 +49,33 @@ const NewDivision: React.FC = () => {
                 setOrganizationOptions([]);
                 console.error(err);
             });
+    }, []);
 
-        api.get("/Department/UnarchivedDepartments")
+    const fetchDepartmentsForOrganization = (organizationId: string) => {
+        api.get(`/Department/DepartmentsByOrganization/${organizationId}`)
             .then((res) => {
-                const options = res.data.map((dept: Department) => ({
+                const options = res.data.map((dept:Department) => ({
                     id: dept.id,
                     label: dept.name,
                 }));
                 setDepartmentOptions(options);
             })
-            .catch((err) => {
-                setDepartmentOptions([]);
-                console.error(err);
-            });
-    }, []);
+            .catch((err) => console.error(err));
+    };
 
+    const handleOrganizationChange = (
+        event: React.SyntheticEvent,
+        value: { id: string; label: string } | null
+    ) => {
+        const organizationId = value?.id || "";
+        setSelectedOrganization(organizationId);
+        setValue("organization", organizationId);
+        if (organizationId) {
+            fetchDepartmentsForOrganization(organizationId);
+        } else {
+            setDepartmentOptions([]);
+        }
+    };
     const {
         register: create,
         handleSubmit,
@@ -69,29 +85,37 @@ const NewDivision: React.FC = () => {
         resolver: zodResolver(schema),
     });
 
-    const onSubmit: SubmitHandler<FormData> = (data) => {
-        console.log("clicked")
-        console.log("odosielane:", data)
-        
+    const handleDateChange = (newValue: Dayjs | null, context: any) => {
+        setCreatedDate(newValue);
+        console.log(newValue)  ; 
+        const adjustedDate = newValue ? newValue.startOf('day') : null;
+        console.log("tostring", adjustedDate?.toISOString());
+        //setValue("created", adjustedDate ? adjustedDate.toISOString() : undefined);
+        if (newValue) {
+            const adjustedDate = newValue.startOf('day'); 
+            const localDate = adjustedDate.toDate();
+            const timezoneOffset = localDate.getTimezoneOffset();
+            localDate.setMinutes(localDate.getMinutes() - timezoneOffset);
+            const isoString = localDate.toISOString();
+            setValue("created", isoString);
+            console.log("Adjusted Date:", adjustedDate.format('YYYY-MM-DD'));
+            console.log("Local Adjusted ISO String:", isoString);
+        }
+    };
 
-        /*api.post("/Department/Create", data)
-            .then(() => {
-                console.log("data:", data)
-                //alert("Zmeny boli úspešne uložené!");
-                nav('/manageDivisions')
-            })
-            .catch((err) => {
-                setError(err.response?.data);
-                console.error(err);
-            });*/
+
+    const onSubmit: SubmitHandler<FormData> = (data) => {
 
             api.post("/Department/Create", {
+                
                 ...data,
                 childDepartments: data.childDepartments || [], 
             })
                 .then(() => {
+                    
                     console.log("Data successfully sent:", data);
-                    nav('/manageDivisions');
+                    setSuccessMessage("Oddelenie bolo úspešne pridané");
+                    //nav('/manageDivisions');
                 })
                 .catch((err) => {
                     setError(err.response?.data);
@@ -106,15 +130,21 @@ const NewDivision: React.FC = () => {
                     Vytvoriť nové oddelenie
                 </Typography>
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)} >
-                    {error && (
+                {error && (
                         <Alert severity="error" variant="filled">
                             {error}
                         </Alert>
                     )}
+                    {successMessage && (
+                        <Alert severity="success" variant="filled" sx={{ width: "100%" }}>
+                            {successMessage}
+                        </Alert>
+                    
+                    )}
                     <TextField label="Názov oddelenia" required fullWidth  {...create("name")} error={!!errors.name} helperText={errors.name?.message} />
                     <TextField label="Kód oddelenia" required fullWidth  {...create("code")} error={!!errors.code} helperText={errors.code?.message}  />                                    
-                    <Autocomplete fullWidth options={organizationOptions}
-                        onChange={(e, value) => setValue("organization", value?.id || "")}                 
+                    <Autocomplete fullWidth options={organizationOptions}  
+                        onChange={handleOrganizationChange}               
                         renderInput={(params) => <TextField {...params} label="Príslušná organizácia *" error={!!errors.organization} helperText={errors.organization?.message ?? ""}/>}
                     />
 
@@ -134,9 +164,10 @@ const NewDivision: React.FC = () => {
                     
                     />
                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
+                     <DatePicker
                             label="Dátum vytvorenia oddelenia"
-
+                            value={createdDate}
+                            onChange={(newValue, context) => { handleDateChange(newValue, context);}}
                         />
                     </LocalizationProvider>
                     <Stack direction="row" gap={3}>

@@ -1,11 +1,13 @@
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Typography } from "@mui/material";
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Stack, Tooltip, Typography } from "@mui/material";
 import Layout from "../../../components/Layout";
 import { useNavigate} from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import api from "../../../app/api";
 import { Department } from "../../../types/Department";
-import { Archive, Delete } from "@mui/icons-material";
+import DeleteIcon from '@mui/icons-material/Delete';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import DeleteDialog from "../../../components/DeleteDialog";
 
 
@@ -16,7 +18,7 @@ const ManageDivisions: React.FC = () => {
     const [isSnackbarOpen, setSnackbarOpen] = useState(false);
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
-
+    const [refresh, setRefresh] = useState(false);
 
     useEffect(() => {
         api.get("/Department/Departments")
@@ -31,62 +33,41 @@ const ManageDivisions: React.FC = () => {
             });
     }, []);
 
-    const archiveDepartment = async (id: string) => {
-        try {
-            await api.put(`/Department/Archive/${id}`, { archived: true }); 
-            setDepartmentRows((prevRows) =>
-                prevRows.map((department) =>
-                    department.id === id ? { ...department, archived: true } : department
-                )
-            );
-            console.log(`Department ${id} archived successfully.`);
-        } catch (err) {
-            console.error("Error archiving department:", err);
-        }
+    const archiveOrganization = async (id: string, archive : boolean) => {
+        await api.put("/Department/Archive", {
+            Id : id,
+            Archive : archive 
+        })
+        .then((res) => {
+            setRefresh((prev) => !prev);
+            console.log(res);
+        })
+        .catch((err) => {
+            console.log(err);
+        })
     };
 
-    const unArchiveDepartment = async (id: string) => {
-        try {
-            await api.put(`/Department/Unarchive/${id}`, { archived: false }); 
-            setDepartmentRows((prevRows) =>
-                prevRows.map((department) =>
-                    department.id === id ? { ...department, archived: false } : department
-                )
-            );
-            console.log(`Department ${id} archived successfully.`);
-        } catch (err) {
-            console.error("Error archiving department:", err);
-        }
+    const handleEdit = (params: any) => {
+        const departmentId = params.row.id;
+        setSelectedDepartmentId(departmentId);
+        nav(`/editDivision/${departmentId}`);
     };
-
-    /*const deleteDepartment = async (id: string) => {
-        try {
-            await api.delete(`/Department/Delete/${id}`);
-            console.log(`Department ${id} deleting.`);
-            setDepartmentRows((prevRows) =>
-                prevRows.filter((department) => department.id !== id)
-            );
-
-            console.log(`Department ${id} deleted successfully.`);
-            alert("Oddelenie úspešne vymazané!")
-        } catch (err:any) {
-            if (err.response && err.response.status === 400) {
-                alert("Oddeleniu prislúchajú zamestnanci")
-            } else {
-                console.error("Error deleting department:", err);
-            }
-        }
-    };*/
 
     const handleDeleteClick = (id: string) => {
-        setSelectedDepartmentId(id);
+        setSelectedDepartmentId(id);      
         setDialogOpen(true);
     }
+
+    
 
     const confirmDelete = async () => {
         if (selectedDepartmentId) {
             try {
-                await api.delete(`/Department/Delete/${selectedDepartmentId}`);
+                await api.delete(`/Department/Delete`, {
+                    params: {
+                        selectedDepartmentId,
+                    },
+                });
                 setDepartmentRows((prevRows) =>
                     prevRows.filter((department) => department.id !== selectedDepartmentId)
                 );
@@ -105,7 +86,6 @@ const ManageDivisions: React.FC = () => {
         }
     };
 
-    //<(typeof departmentRows)[number]>
     const columns: GridColDef[] = [
         {
             field: "name",
@@ -137,46 +117,45 @@ const ManageDivisions: React.FC = () => {
             width: 200,
             resizable: false,
             renderCell: (params) => (
-                <>
-                    <IconButton
-                        color="primary"
-                        onClick={() => {
-                            console.log("Archive action for:", params.row.id);
-                            archiveDepartment(params.row.id);
-                        }}
-                    
-                    >
-                        <Archive />
-                    </IconButton>
-                    <IconButton
-                        color="secondary"
-                        onClick={() => {
-                            console.log("Unarchive action for:", params.row.id);
-                            unArchiveDepartment(params.row.id);
-                        }}
-                    >
-                        <Archive />
-                    </IconButton>
-                    <IconButton
-                        color="primary"
-                        onClick={() => {
-                            console.log("Archive action for:", params.row.id);
-                            handleDeleteClick(params.row.id);
-                        }}
-                    >
-                        <Delete />
-                    </IconButton>
-                </>
+                
+                <Stack direction="row" alignItems="flex-end" width="100%">
+                    <Tooltip title="Archivovať" arrow>
+                        <IconButton
+                            aria-label="archive"
+                            size="large"
+                            onClick={() => archiveOrganization(params.row.id, true)}
+                        >
+                            <ArchiveIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Odarchivovať" arrow>
+                        <IconButton
+                            aria-label="unarchive"
+                            size="large"
+                            onClick={() => archiveOrganization(params.row.id, false)}
+                        >
+                            <UnarchiveIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zmazať" arrow>
+                        <IconButton
+                            aria-label="delete"
+                            size="large"
+                            onClick={() => {console.log("Archive action for:", params.row.id);
+                                handleDeleteClick(params.row.id);} }
+                            sx={{ color: 'red' }}
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Stack>
             ),
         }
     ];
 
     
 
-    const handleRowDoubleClick = (params: any) => {
-        const departmentId = params.row.id;
-        nav(`/editDivision/${departmentId}`);
-    };
+    
 
     return (
         <Layout>
@@ -206,7 +185,7 @@ const ManageDivisions: React.FC = () => {
                         }}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
-                        onRowDoubleClick={handleRowDoubleClick}
+                        onRowDoubleClick={handleEdit}
                     />
                     <DeleteDialog
                         open={isDialogOpen}
