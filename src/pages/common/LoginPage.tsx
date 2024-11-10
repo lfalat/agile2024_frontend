@@ -31,7 +31,7 @@ const LoginPage: React.FC = () => {
         }
 
         await api
-            .post("User/Login", {
+            .post("Auth/Login", {
                 email: email,
                 password: password,
             })

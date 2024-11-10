@@ -6,7 +6,6 @@ type UserProfile = {
     titleAfter: string
     role: string
     email: string
-    profilePicLink: string
 }
 
 export default UserProfile

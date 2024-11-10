@@ -13,23 +13,18 @@ import api from "../app/api";
 
 type IAuthContext = {
     userProfile: UserProfile | undefined;
-    setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | undefined>>;
-    setRefresh: React.Dispatch<boolean>;
-    refresh: boolean
+    setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | undefined>>
 };
 
 const init: IAuthContext = {
     userProfile: undefined,
-    setUserProfile: () => {},
-    setRefresh: () => {},
-    refresh: false
+    setUserProfile: () => {}
 };
 
 const AuthContext = createContext<IAuthContext>(init);
 
 export const AuthProvider = ({ children }: any) => {
     const [userProfile, setUserProfile] = useState<UserProfile>();
-    const [refresh, setRefresh] = useState<boolean>(false);
 
     useEffect(() => {
         if (localStorage.getItem("accessToken")) {
@@ -43,10 +38,10 @@ export const AuthProvider = ({ children }: any) => {
                     console.error(err);
                 });
         }
-    }, [refresh]);
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ userProfile, setUserProfile, setRefresh, refresh }}>
+        <AuthContext.Provider value={{ userProfile, setUserProfile }}>
             {children}
         </AuthContext.Provider>
     );

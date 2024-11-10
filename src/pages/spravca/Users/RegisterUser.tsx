@@ -93,7 +93,7 @@ const RegisterUser: React.FC = () => {
     const passwordStrength = getPasswordStrength(password || "");
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
-        api.post("/User/Register", data)
+        api.post("/Auth/Register", data)
             .then((res) => {
                 nav(-1);
             })
