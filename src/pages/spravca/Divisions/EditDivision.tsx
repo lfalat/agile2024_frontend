@@ -20,6 +20,7 @@ const schema = z.object({
     organizationName: z.string().min(1, "Príslušná organizácia je povinná!").default(""),
     parentDepartmentName: z.string().optional(),
     parentDepartmentId: z.string().optional(),
+    childDepartmentsId: z.array(z.string()).optional(),
     childDepartments: z.array(z.string()).optional(),
     created: z.string().optional(),
 });
@@ -215,7 +216,11 @@ const EditDivision: React.FC = () => {
                             id,
                             label: departmentOptions.find((option) => option.id === id)?.label || id,
                         })) || []}
-                        onChange={(e, value) => setValue("childDepartments", value.map((v) => v.id))}
+                        onChange={(e, value) => {
+                            setValue("childDepartmentsId", value.map((v) => v.id));
+                            setValue("childDepartments", value.map((v) => v.label))
+
+                        }}
                         renderInput={(params) => <TextField {...params} label="Podradené oddelenia" error={!!errors.childDepartments} helperText={errors.childDepartments?.message ?? ""} />}
                     
                     />
