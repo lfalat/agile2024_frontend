@@ -22,12 +22,15 @@ import NewWorkPosition from "../pages/spravca/Work_Positions/NewWorkPosition";
 import Profile from "../pages/common/Profile";
 import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
+import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
+import { SnackbarProvider } from '../hooks/SnackBarContext';
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
 
 const App: React.FC = () => {
     const auth = useAuth();
 
     return (
+        <SnackbarProvider>
         <>
             <BrowserRouter>
                 <Routes>
@@ -50,6 +53,8 @@ const App: React.FC = () => {
 
                             <Route path="/manageOrganizations" element={<ManageOrganizations />} />
                             <Route path="/newOrganization" element={<NewOrganization />} />
+                            <Route path="/updateOrganization/:id" element={<UpdateOrganization />} />
+
 
                             <Route path="/manageDivisions" element={<ManageDivisions />} />
                             <Route path="/newDivision" element={<NewDivision />} />
@@ -69,6 +74,7 @@ const App: React.FC = () => {
                 </Routes>
             </BrowserRouter>
         </>
+        </SnackbarProvider>
     );
 };
 
