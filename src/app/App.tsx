@@ -20,6 +20,7 @@ import NewWorkPosition from "../pages/spravca/Work_Positions/NewWorkPosition";
 import Profile from "../pages/common/Profile";
 import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
+import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -46,6 +47,8 @@ const App: React.FC = () => {
 
                             <Route path="/manageOrganizations" element={<ManageOrganizations />} />
                             <Route path="/newOrganization" element={<NewOrganization />} />
+                            <Route path="/updateOrganization/:id" element={<UpdateOrganization />} />
+
 
                             <Route path="/manageDivisions" element={<ManageDivisions />} />
                             <Route path="/newDivisions" element={<NewDivision />} />

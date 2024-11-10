@@ -38,6 +38,18 @@ const ManageOrganizations: React.FC = () => {
         
     };
 
+    const handleRowDoubleClick = (params: any) => {
+        // Získame ID lokality z riadku
+        const id = params.row.id;
+        console.log("Double-clicked location ID:", id); // Skontrolujte, či sa správne získava ID
+        if (!id) {
+            console.warn("No ID found for this row:", params.row); // Log row data to confirm structure
+            return;
+        }
+        if (id) {
+            nav(`/updateOrganization/${id}`);  // Presmerovanie na stránku úpravy s ID
+        }
+    };
 
     const handleDeleteConfirm = (id : string) => {
         setSelectedId(id);
@@ -182,6 +194,8 @@ const ManageOrganizations: React.FC = () => {
                     }}
                     pageSizeOptions={[5, 10, 25]}
                     pagination
+                    onRowDoubleClick={handleRowDoubleClick}
+                    getRowId={(row) => row.id}
                 />
                     <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
                         <DialogTitle>Potvrdenie zmazania</DialogTitle>
