@@ -114,6 +114,7 @@ const ProfilePage: React.FC = () => {
                             margin="normal"
                             error={!!errors.firstName}
                             helperText={errors.firstName ? errors.firstName.message : ""}
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
                         )}
                     />
@@ -129,6 +130,7 @@ const ProfilePage: React.FC = () => {
                             margin="normal"
                             error={!!errors.lastName}
                             helperText={errors.lastName ? errors.lastName.message : ""}
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
                         )}
                     
@@ -143,6 +145,7 @@ const ProfilePage: React.FC = () => {
                             variant="outlined"
                             fullWidth
                             margin="normal"
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
                         )}
                     />

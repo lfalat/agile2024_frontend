@@ -100,7 +100,9 @@ const EditDivision: React.FC = () => {
     const fetchDepartmentsForOrganization = (organizationId: string) => {
         api.get(`/Department/DepartmentsByOrganization/${organizationId}`)
             .then((res) => {
-                const options = res.data.map((dept:Department) => ({
+                const options = res.data  
+                .filter((dept: Department) => dept.id !== id)
+                .map((dept:Department) => ({
                     id: dept.id,
                     label: dept.name,
                 }));
