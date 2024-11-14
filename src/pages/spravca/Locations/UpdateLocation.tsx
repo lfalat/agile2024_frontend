@@ -6,6 +6,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../app/api";
+import useLoading from "../../../hooks/LoadingData";
 
 const schema = z.object({
     name: z.string().min(1, "Názov lokality je povinný!"),
@@ -66,6 +67,8 @@ const UpdateLocation: React.FC = () => {
         }
     };
 
+    const loadingIndicator = useLoading(locationData === null);
+    if (loadingIndicator) return loadingIndicator;
     
     return (
         <Layout>

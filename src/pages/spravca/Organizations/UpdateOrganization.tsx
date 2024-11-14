@@ -10,6 +10,7 @@ import api from "../../../app/api";
 import LoadingButton from '@mui/lab/LoadingButton';
 import LocationResponse from "../../../types/responses/LocationResponse";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
+import useLoading from '../../../hooks/LoadingData';
 
 const schema = z.object({
     name: z.string().min(1, { message: "Názov musí byť vyplnený" }),
@@ -93,15 +94,8 @@ const UpdateOrganization: React.FC = () => {
             });
     };
 
-    if (organizationData === null) {
-        return (
-            <Layout>
-                <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-                    <CircularProgress />
-                </Box>
-            </Layout>
-        );
-    }
+    const loadingIndicator = useLoading(organizationData === null);
+    if (loadingIndicator) return loadingIndicator;
 
     return (
         <Layout>
