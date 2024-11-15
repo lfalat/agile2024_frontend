@@ -9,6 +9,8 @@ import { Archive, Delete } from "@mui/icons-material";
 import DeleteDialog from "../../../components/DeleteDialog";
 import { dataGridStyles } from "../../../styles/gridStyle"; 
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import moment from "moment";
+
 
 
 const ManageLocations: React.FC = () => {
@@ -114,15 +116,21 @@ const ManageLocations: React.FC = () => {
             resizable: false,
         },
         {
-            field: "lokalita",
+            field: "organizations",
             headerName: "Príslušnosť lokality k organizácií",
             width: 300,
             resizable: false,
+            renderCell: (params) => {
+                const organizations = params.row.organizations || [];
+                return organizations.length > 0
+                    ? organizations.join(", ") // Join organization names with a comma
+                    : "..."; // Default text when there are no organizations
+            },
         },
         {
             field: "adress",
             headerName: "Adresa",
-            width: 150,
+            width: 200,
             resizable: false,
         },
         {
@@ -134,7 +142,7 @@ const ManageLocations: React.FC = () => {
         {
             field: "zipCode",
             headerName: "PSC",
-            width: 150,
+            width: 80,
             resizable: false,
         },
         {
@@ -142,6 +150,7 @@ const ManageLocations: React.FC = () => {
             headerName: "Posledná úprava",
             width: 250,
             resizable: false,
+            valueGetter: (value, row) => row.created ? moment(row.created).format('DD.MM.YYYY HH:mm') : "Neplatný dátum",
         },
         {
             field: "actions",

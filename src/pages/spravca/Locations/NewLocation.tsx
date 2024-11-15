@@ -6,13 +6,14 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import api from "../../../app/api";
+import OrganizationResponse from "../../../types/responses/OrganizationResponse";
 import { Message } from "@mui/icons-material";
 
 const schema = z.object({
     name: z.string().min(1, "Názov lokality je povinný!"),
     code: z.string().min(1, "Kód lokality je povinný!"),
-    //organization: z.array(z.string()).optional(),
-    //address: z.string().min(1, "Adresa je povinná!"),
+    organizations: z.array(z.string()).optional(),
+    adress: z.string().min(1, "Adresa je povinná!"),
     city: z.string().min(1, "Mesto je povinné!"),
     zipCode: z.string().regex(/^\d+$/, "PSČ musí byť číselné!").min(1, "PSČ je povinné!"),
     latitude: z.number().optional(),
@@ -24,25 +25,8 @@ type FormData = z.infer<typeof schema>;
 
 const NewLocation: React.FC = () => {
     const nav = useNavigate();
-    //const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
+    const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
-    
-    useEffect(() => {
-        // api.get("/Organization/Organizations")
-        //     .then((res) => {
-        //         const options = res.data.map((org: OrganizationResponse) => ({
-        //             id: org.id,
-        //             label: org.name,
-        //         }));
-        //         setOrganizationOptions(options);
-        //     })
-        //     .catch((err) => {
-        //         setOrganizationOptions([]);
-        //         console.error(err);
-        //     });
-
-    }, []);
-
     const {
         register: create,
         handleSubmit,
@@ -50,21 +34,32 @@ const NewLocation: React.FC = () => {
         formState: { errors },
     } = useForm<FormData>({
         resolver: zodResolver(schema),
-        defaultValues: {
-            name: "",
-            code: "",
-            //organization: "",
-            //address: ""),
-            city: "",
-            zipCode: "",
-            latitude: 0,
-            longitude: 0
-        }
     });
+
+
+    useEffect(() => {
+        api.get("/Organization/UnarchivedOrganizations")
+            .then((res) => {
+                const options = res.data.map((org: OrganizationResponse) => ({
+                    id: org.id,
+                    label: org.name,
+                }));
+                setOrganizationOptions(options);
+            })
+            .catch((err) => {
+                setOrganizationOptions([]);
+                console.error(err);
+            });
+
+    }, []);
+
+    
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         
-       await api.post("/Location/Create", data)
+       await api.post("/Location/Create", {...data,
+        organizations: data.organizations || [],
+       })
             .then((res) => {
                 //alert("Lokalita bola úspešne vytvorená!");
                 console.log("res:", res)
@@ -87,7 +82,16 @@ const NewLocation: React.FC = () => {
                     <TextField label="Názov lokality" required fullWidth {...create("name")} error={!!errors.name} helperText={errors.name?.message} />
                     <TextField label="Kód lokality" required fullWidth {...create("code")} error={!!errors.code} helperText={errors.code?.message} />
                     <TextField label="Mesto" required fullWidth {...create("city")} error={!!errors.city} helperText={errors.city?.message} />
+                    <TextField label="Adresa" required fullWidth {...create("adress")} error={!!errors.adress} helperText={errors.adress?.message} />
                     <TextField label="PSČ" required fullWidth {...create("zipCode")} error={!!errors.zipCode} helperText={errors.zipCode?.message} />
+                    <Autocomplete
+                        fullWidth
+                        multiple
+                        options={organizationOptions}
+                        onChange={(e, value) => setValue("organizations", value.map((v) => v.id))}
+                        renderInput={(params) => <TextField {...params} label="Príslušnosť lokality k organizácii" error={!!errors.organizations} helperText={errors.organizations?.message ?? ""} />}
+                    
+                    />
                     <TextField label="Zemepisná šírka" fullWidth type="number" {...create("latitude", { valueAsNumber: true })} error={!!errors.latitude} helperText={errors.latitude?.message}  />
                     <TextField label="Zemepisná dĺžka" fullWidth type="number"{...create("longitude", { valueAsNumber: true })} error={!!errors.longitude} helperText={errors.longitude?.message} />
                     <Stack direction="row" gap={3}>
