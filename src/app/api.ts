@@ -3,7 +3,10 @@ import axios from 'axios'
 const ax = axios.create();
 const api = axios.create();
 
-api.defaults.baseURL = "https://localhost:5092/api";
+var apiUrl = "https://localhost:5092/api";
+//var apiUrl = "https://ingprojektapi.azurewebsites.net/api";
+
+api.defaults.baseURL = apiUrl;
 api.defaults.headers.common["Content-Type"] = "application/json";
 
 api.interceptors.request.use(
@@ -31,7 +34,7 @@ api.interceptors.response.use(
                 const jwtToken = localStorage.getItem('accessToken'); // Use the latest access token
                 const refreshToken = localStorage.getItem('refreshToken');
 
-                const response = await ax.post(`https://localhost:5092/api/Auth/RefreshToken`, {
+                const response = await ax.post(`${apiUrl}/Auth/RefreshToken`, {
                     jwtToken,
                     refreshToken,
                 }, {

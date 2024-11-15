@@ -112,7 +112,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">
                             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                <Avatar src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg" sx={{ backgroundColor: "black" }} />
+                                <Avatar src={userProfile?.profilePicLink || "https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg"} sx={{ backgroundColor: "black" }} />
                             </IconButton>
                         </Tooltip>
                         <Menu

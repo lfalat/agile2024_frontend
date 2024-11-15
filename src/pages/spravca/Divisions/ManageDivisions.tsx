@@ -9,6 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import DeleteDialog from "../../../components/DeleteDialog";
+import { dataGridStyles } from "../../../styles/gridStyle"; 
 
 
 const ManageDivisions: React.FC = () => {
@@ -31,7 +32,7 @@ const ManageDivisions: React.FC = () => {
                 setDepartmentRows([]);
                 console.error(err);
             });
-    }, []);
+    }, [refresh]);
 
     const archiveOrganization = async (id: string, archive : boolean) => {
         await api.put("/Department/Archive", {
@@ -173,6 +174,11 @@ const ManageDivisions: React.FC = () => {
                     <DataGridPro
                         columns={columns}
                         rows={departmentRows}
+                        isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
+                        getRowClassName={(params) => 
+                            params.row.archived ? 'archived-row' : ''
+                        }
+                        sx={dataGridStyles}
                         initialState={{
                             pagination: {
                                 paginationModel: {
