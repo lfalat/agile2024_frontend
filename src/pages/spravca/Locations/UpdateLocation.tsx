@@ -79,7 +79,6 @@ const UpdateLocation: React.FC = () => {
                 setValue("longitude", locationData.longitude);
                 //setValue("organizations", organizationss);
                 
-                
                 //console.log(organizationss);
                 console.log("Selected IDs:", watch("organizationsID"));
                 console.log("Filtered Options:", organizationOptions.filter((option) =>
@@ -94,11 +93,11 @@ const UpdateLocation: React.FC = () => {
         }
       }, [id, setValue]);
 
-     // Load organization options
+     
      useEffect(() => {
         api.get("/Organization/UnarchivedOrganizations")
             .then((res) => {
-                console.log("Organizations fetched:", res.data); // Debugging log
+                console.log("Organizations fetched:", res.data); 
                 const formattedOptions = res.data.map((org: OrganizationResponse) => ({
                     id: org.id, 
                     label: org.name,
@@ -152,14 +151,14 @@ const UpdateLocation: React.FC = () => {
                         value={
                             (watch("organizationsID") || [])
                                 .map((id) => organizationOptions.find((option) => option.id === id))
-                                .filter((option): option is { id: string; label: string } => !!option) // Filter out undefined values
+                                .filter((option): option is { id: string; label: string } => !!option) 
                         }
                         onChange={(e, value) => {
                             setValue("organizationsID", value.map((v) => v.id));
                             setValue("organizations", value.map((v) => v.label))
 
                         }}
-                        isOptionEqualToValue={(option, value) => option.id === value.id} // Compare by ID
+                        isOptionEqualToValue={(option, value) => option.id === value.id} 
                         renderInput={(params) => <TextField {...params} label="Príslušnosť lokality k organizáciam" error={!!errors.organizations} helperText={errors.organizations?.message ?? ""} />}
                     />
                     
