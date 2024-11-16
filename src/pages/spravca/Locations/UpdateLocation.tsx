@@ -5,8 +5,10 @@ import { z } from "zod";
 import { useForm, SubmitHandler, Controller  } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
+import OrganizationResponse from "../../../types/responses/OrganizationResponse";
 import api from "../../../app/api";
 import useLoading from "../../../hooks/LoadingData";
+import Organization from "../../../types/Organization";
 
 const schema = z.object({
     name: z.string().min(1, "Názov lokality je povinný!"),
@@ -33,12 +35,20 @@ const UpdateLocation: React.FC = () => {
     //const [loading, setLoading] = useState(true);
     const [locationData, setLocationData] = useState<FormData | null>(null);
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
+    const [ordanization, setOrganization] = useState<Organization | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     //const [location, setLocation] = useState<Location | null>(null);
     //const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const validOrganizations = Array.isArray(organizationOptions) ? organizationOptions : [];
 
-    const { register, handleSubmit, control, formState: { errors }, setValue } = useForm<FormData>({
+    const { register: create,
+        handleSubmit, 
+        watch, 
+        formState: { errors }, 
+        setValue 
+    } = useForm<FormData>({
         resolver: zodResolver(schema),
-      });
+    });
 
 
     // Načítanie dát existujúcej lokality podľa ID
@@ -46,17 +56,36 @@ const UpdateLocation: React.FC = () => {
         if (id) {
           api.get(`/Location/${id}`)
             .then((res) => {
-              const locationData = res.data;
-              setLocationData(locationData);
-              // Nastavenie hodnôt do formulára
-              setValue("name", locationData.name);
-              setValue("code", locationData.code);
-              setValue("city", locationData.city);
-              setValue("adress", locationData.adress);
-              setValue("zipCode", locationData.zipCode);
-              setValue("latitude", locationData.latitude);
-              setValue("longitude", locationData.longitude);
-              setValue("organizations", locationData.organizations || []);
+                const locationData = res.data;
+                const organizationIDs = locationData.organizations || []; // Fallback to empty array
+                setValue("organizationsID", organizationIDs);
+                
+                
+                setValue("organizations", organizationIDs.map((id: string) => {
+                    const matchedOrg = organizationOptions.find((opt) => opt.id === id);
+                    return matchedOrg ? matchedOrg.label : id;
+                })); // Map labels to IDs
+                
+                console.log("Loaded Organizations:", organizationIDs);
+                
+                setLocationData(locationData);
+                // Nastavenie hodnôt do formulára
+                setValue("name", locationData.name);
+                setValue("code", locationData.code);
+                setValue("city", locationData.city);
+                setValue("adress", locationData.adress);
+                setValue("zipCode", locationData.zipCode);
+                setValue("latitude", locationData.latitude);
+                setValue("longitude", locationData.longitude);
+                //setValue("organizations", organizationss);
+                
+                
+                //console.log(organizationss);
+                console.log("Selected IDs:", watch("organizationsID"));
+                console.log("Filtered Options:", organizationOptions.filter((option) =>
+                    (watch("organizationsID") || []).includes(option.id)
+));
+                
             })
             .catch((err) => {
               setError("Nastala chyba pri načítaní údajov o lokalite.");
@@ -70,25 +99,32 @@ const UpdateLocation: React.FC = () => {
         api.get("/Organization/UnarchivedOrganizations")
             .then((res) => {
                 console.log("Organizations fetched:", res.data); // Debugging log
-            const formattedOptions = res.data.map((org: string) => ({
-                id: org, // Assuming 'org' is a string
-                label: org,
-            }));
-            setOrganizationOptions(formattedOptions);
+                const formattedOptions = res.data.map((org: OrganizationResponse) => ({
+                    id: org.id, 
+                    label: org.name,
+                }));
+                setOrganizationOptions(formattedOptions);
             })
             .catch((err) => {
+                setOrganizationOptions([]);
                 console.error("Error loading organizations:", err);
             });
     }, []);
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-        try {
-            await api.put(`/Location/Update/${id}`, data);
+        await api.put(`/Location/Update/${id}`, {
+            ...data, 
+            orgazations: data.organizations || [],
+        })
+        .then(() => {
+            console.log("Data successfully sent:", data);
+            setSuccessMessage("Zmeny sa uložili");
             nav("/manageLocations");
-        } catch (err) {
+        })
+        .catch((err) => {
             setError("Nastala chyba pri aktualizácii lokality.");
             console.error(err);
-        }
+        });
     };
 
     const loadingIndicator = useLoading(locationData === null);
@@ -102,42 +138,31 @@ const UpdateLocation: React.FC = () => {
                 </Typography>
                 
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
-                    <TextField label="Názov lokality" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
-                    <TextField label="Kód lokality" required fullWidth {...register("code")} error={!!errors.code} helperText={errors.code?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
-                    <TextField label="Mesto" required fullWidth {...register("city")} error={!!errors.city} helperText={errors.city?.message} slotProps={{ inputLabel: { shrink: true } }}/>
-                    <TextField label="Adresa" required fullWidth {...register("adress")} error={!!errors.adress} helperText={errors.adress?.message} />
-                    <TextField label="PSČ" required fullWidth {...register("zipCode")} InputLabelProps={{ shrink: true }} error={!!errors.zipCode} helperText={errors.zipCode?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
-                    <TextField label="Zemepisná šírka" fullWidth type="number" {...register("latitude", { valueAsNumber: true })} error={!!errors.latitude} helperText={errors.latitude?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
-                    <TextField label="Zemepisná dĺžka" fullWidth type="number" {...register("longitude", { valueAsNumber: true })} error={!!errors.longitude} helperText={errors.longitude?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
-                    {organizationOptions.length > 0 ? (
-                    <Controller
-                        name="organizations"
-                        control={control}
-                        render={({ field }) => (
-                            <Autocomplete
-                                multiple
-                                options={organizationOptions}
-                                getOptionLabel={(option) => option.label}
-                                value={organizationOptions.filter((option) =>
-                                    (field.value || []).includes(option.label) // Match by label
-                                )}
-                                onChange={(_, selectedOptions) => {
-                                    field.onChange(selectedOptions.map((option) => option.label)); // Extract labels
-                                }}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Organizácie"
-                                        error={!!errors.organizations}
-                                        helperText={errors.organizations?.message}
-                                    />
-                                )}
-                            />
-                        )}
+                    <TextField label="Názov lokality" required fullWidth {...create("name")} error={!!errors.name} helperText={errors.name?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
+                    <TextField label="Kód lokality" required fullWidth {...create("code")} error={!!errors.code} helperText={errors.code?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
+                    <TextField label="Mesto" required fullWidth {...create("city")} error={!!errors.city} helperText={errors.city?.message} slotProps={{ inputLabel: { shrink: true } }}/>
+                    <TextField label="Adresa" required fullWidth {...create("adress")} error={!!errors.adress} helperText={errors.adress?.message} />
+                    <TextField label="PSČ" required fullWidth {...create("zipCode")} InputLabelProps={{ shrink: true }} error={!!errors.zipCode} helperText={errors.zipCode?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
+                    <TextField label="Zemepisná šírka" fullWidth type="number" {...create("latitude", { valueAsNumber: true })} error={!!errors.latitude} helperText={errors.latitude?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
+                    <TextField label="Zemepisná dĺžka" fullWidth type="number" {...create("longitude", { valueAsNumber: true })} error={!!errors.longitude} helperText={errors.longitude?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
+                    <Autocomplete
+                        fullWidth
+                        multiple
+                        options={organizationOptions}
+                        value={
+                            (watch("organizationsID") || [])
+                                .map((id) => organizationOptions.find((option) => option.id === id))
+                                .filter((option): option is { id: string; label: string } => !!option) // Filter out undefined values
+                        }
+                        onChange={(e, value) => {
+                            setValue("organizationsID", value.map((v) => v.id));
+                            setValue("organizations", value.map((v) => v.label))
+
+                        }}
+                        isOptionEqualToValue={(option, value) => option.id === value.id} // Compare by ID
+                        renderInput={(params) => <TextField {...params} label="Príslušnosť lokality k organizáciam" error={!!errors.organizations} helperText={errors.organizations?.message ?? ""} />}
                     />
-                    ) : (
-                        <Typography>Loading organizations...</Typography>
-                    )}
+                    
                     <Stack direction="row" gap={3}>
                         <Button type="submit" variant="contained" color="primary">
                             Uložiť

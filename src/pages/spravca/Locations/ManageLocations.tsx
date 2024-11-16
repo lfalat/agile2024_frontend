@@ -118,7 +118,7 @@ const ManageLocations: React.FC = () => {
         {
             field: "organizations",
             headerName: "Príslušnosť lokality k organizácií",
-            width: 300,
+            width: 400,
             resizable: false,
             renderCell: (params) => {
                 const organizations = params.row.organizations || [];
