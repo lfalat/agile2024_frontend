@@ -9,6 +9,8 @@ import { Archive, Delete } from "@mui/icons-material";
 import DeleteDialog from "../../../components/DeleteDialog";
 import { dataGridStyles } from "../../../styles/gridStyle"; 
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import moment from "moment";
+
 
 
 const ManageLocations: React.FC = () => {
@@ -35,11 +37,10 @@ const ManageLocations: React.FC = () => {
     }, [refresh]);
 
     const handleRowDoubleClick = (params: any) => {
-        // Získame ID lokality z riadku
         const locationId = params.row.id;
-        console.log("Double-clicked location ID:", locationId); // Skontrolujte, či sa správne získava ID
+        console.log("Double-clicked location ID:", locationId);
         if (locationId) {
-            nav(`/updateLocation/${locationId}`);  // Presmerovanie na stránku úpravy s ID
+            nav(`/updateLocation/${locationId}`); 
         }
     };
 
@@ -114,15 +115,21 @@ const ManageLocations: React.FC = () => {
             resizable: false,
         },
         {
-            field: "lokalita",
+            field: "organizations",
             headerName: "Príslušnosť lokality k organizácií",
-            width: 300,
+            width: 400,
             resizable: false,
+            renderCell: (params) => {
+                const organizations = params.row.organizations || [];
+                return organizations.length > 0
+                    ? organizations.join(", ")
+                    : "..."; 
+            },
         },
         {
             field: "adress",
             headerName: "Adresa",
-            width: 150,
+            width: 200,
             resizable: false,
         },
         {
@@ -134,7 +141,7 @@ const ManageLocations: React.FC = () => {
         {
             field: "zipCode",
             headerName: "PSC",
-            width: 150,
+            width: 80,
             resizable: false,
         },
         {
@@ -142,6 +149,7 @@ const ManageLocations: React.FC = () => {
             headerName: "Posledná úprava",
             width: 250,
             resizable: false,
+            valueGetter: (value, row) => row.created ? moment(row.created).format('DD.MM.YYYY HH:mm') : "Neplatný dátum",
         },
         {
             field: "actions",
@@ -201,7 +209,7 @@ const ManageLocations: React.FC = () => {
                     <DataGridPro
                         columns={columns}
                         rows={locationRows}
-                        isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
+                        isRowSelectable={(params) => params.id === "name"}
                         getRowClassName={(params) => 
                             params.row.archived ? 'archived-row' : ''
                         }
