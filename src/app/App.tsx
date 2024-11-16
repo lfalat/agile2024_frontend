@@ -26,6 +26,10 @@ import EditWorkPosition from "../pages/spravca/Work_Positions/EditWorkPosition";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
 import { SnackbarProvider } from '../hooks/SnackBarContext';
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
+import ManageGoals from "../pages/veduci zamestnanec/Goals/ManageGoals";
+import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
+import AssignEmployeeToGoal from "../pages/veduci zamestnanec/Goals/AssignEmployeeToGoal";
+import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -68,6 +72,13 @@ const App: React.FC = () => {
                             <Route path="/manageWorkPositions" element={<ManageWorkPositions />} />
                             <Route path="/newWorkPosition" element={<NewWorkPosition />} />
                             <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
+                        </Route>
+                        <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
+                        <Route path="/manageGoals" element={<ManageGoals />} />
+                        <Route path="/newGoal" element={<NewGoal />} />
+                        <Route path="/assignEmployeeToGoal" element={<AssignEmployeeToGoal />} />
+                        <Route path="/editGoal/:id" element={<EditGoal />} />
+                        <Route path="/showGoal/:id" element={<EditGoal />} />
                         </Route>
                     </Route>
 
