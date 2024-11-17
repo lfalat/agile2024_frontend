@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert, TextareaAutosize } from "@mui/material";
+import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert, TextareaAutosize, IconButton } from "@mui/material";
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import { GoalCategoryResponse } from "../../../types/responses/GoalCategoryResponse";
+import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
@@ -28,7 +30,10 @@ const NewGoal: React.FC = () => {
     const [error, setError] = useState<string>();
     const [dueDate, setDueDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
     const [categoryOption, setCategoryOptions] = useState<{ id: string; label: string }[]>([]);
-    
+    const [showTable, setShowTable] = useState(false);
+    const [employeeData, setEmployeeData] = useState<EmployeeCard[]>([]);
+    const [employeeIds, setEmployeeIds] = useState<string[]>([]);
+
 
     const {
         register,
@@ -45,6 +50,39 @@ const NewGoal: React.FC = () => {
         }
     });
 
+    const columnsUser: GridColDef<EmployeeCard>[] = [
+        //{ field: "email", headerName: "Používateľské meno", width: 200 },
+        { field: "name", headerName: "Meno", width: 150 },
+        { field: "surname", headerName: "Priezvisko", width: 150 },
+        {
+            field: "actions",
+            headerName: "Akcie",
+            width: 200,
+            renderCell: (params: { row: any; }) => (
+                <Stack direction="row" spacing={2}>
+                    <Button
+                        variant="contained"
+                        sx={{ backgroundColor: "orange", color: "black", fontSize: "12px", textWrap: "wrap" }}
+                        disabled={employeeIds.includes(params.row.employeeId)}
+                        onClick={() => handleAddEmployee(params.row.employeeId)} 
+          
+                    >
+                        Pridať
+                    </Button>
+                    <IconButton
+                        aria-label="delete"
+                        size="large"
+                        onClick={() => handleRemoveEmployee(params.row.employeeId)}
+          
+                        sx={{ color: "red" }}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+                </Stack>
+            ),
+        },
+    ];
+
     useEffect(() => {
         api.get("/GoalCategory/Categories")
             .then((res) => {
@@ -58,7 +96,24 @@ const NewGoal: React.FC = () => {
                 setCategoryOptions([]);
                 console.error(err);
             });
+            api.get("/EmployeeCard/EmployeeCards")
+            .then((res) => {
+                setEmployeeData(res.data); 
+                console.log("employeeCards", res.data); 
+            })
+            .catch((err) => console.error("Error fetching employee cards:", err));
+        
     }, []);
+
+    const handleAddEmployee = (employeeId: string) => {
+        if (!employeeIds.includes(employeeId)) {
+          setEmployeeIds((prev) => [...prev, employeeId]); 
+        }
+      };
+    
+      const handleRemoveEmployee = (employeeId: string) => {
+        setEmployeeIds((prev) => prev.filter(id => id !== employeeId)); 
+      };
 
     const handleDateChange = (newValue: Dayjs | null) => {
         setDueDate(newValue);
@@ -74,10 +129,14 @@ const NewGoal: React.FC = () => {
     };
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-        
-       await api.post("/Goal/Create", data)
+        const dataToSend = {
+            ...data,  
+            employeeIds: employeeIds, 
+        };
+       await api.post("/Goal/Create", dataToSend)
             .then((res) => {
-                console.log("res:", res)
+                console.log("Goal sending:",dataToSend);
+                console.log("Goal created:", res.data);
                 nav('/manageGoals');
             })
             .catch((err) => {
@@ -94,10 +153,34 @@ const NewGoal: React.FC = () => {
                 </Typography>
 
                 <Button variant="contained" color="primary"
-                    sx={{ marginBottom: 2 }} onClick={() => { nav("/assignEmployeeToGoal");}}
+                    sx={{ marginBottom: 2 }} //onClick={() => { nav("/assignEmployeeToGoal");}}
+                    onClick={() => setShowTable((prev) => !prev)}
+                
                 >
                     Pridať zamestnanca
+                    
                 </Button>
+                {showTable && (
+                    <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
+                         <DataGridPro
+                        columns={columnsUser}
+                        rows={employeeData}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10,
+                                },
+                            },
+                            pinnedColumns: {
+                                right: ["actions"],
+                            },
+                        }}
+                        pageSizeOptions={[5, 10, 25]}
+                        pagination
+                        getRowId={(row) => row.employeeId}
+                    />
+                    </Box>
+                )}
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     
                     <TextField label="Názov cieľa" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message} />

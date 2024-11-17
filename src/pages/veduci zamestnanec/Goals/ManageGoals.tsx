@@ -16,6 +16,8 @@ const ManageGoals: React.FC = () => {
     const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
+    const [openGoalDetailsDialog, setOpenGoalDetailsDialog] = useState(false); // Modal state
+
     const nav = useNavigate();
 
     useEffect(() => {
@@ -30,6 +32,7 @@ const ManageGoals: React.FC = () => {
                 console.error(err);
             });
     }, []);
+
 
     const handleOpenDialog = (goal: Goal) => {
         setSelectedGoal(goal);
@@ -51,6 +54,27 @@ const ManageGoals: React.FC = () => {
                 .catch((err) => console.error("Cieľ sa nevymazal:", err))
                 .finally(() => handleCloseDialog()); // Close dialog
         }
+    };
+
+    const handleEdit = (id: string, field: string) => {
+        if (field === "actions") { 
+            if (id) {
+                nav(`/editGoal/${id}`); 
+            } else {
+                console.error("Goal ID is missing or invalid");
+            }
+        } else {
+            console.log("Click event did not originate from the actions column");
+        }
+    };
+    const handleRowClick = (params: any) => {
+        const goal = goalRows.find(goal => goal.id === params.row.id);       
+        setSelectedGoal(goal || null);
+        setOpenGoalDetailsDialog(true);
+    };
+
+    const handleCloseGoalDetailsDialog = () => {
+        setOpenGoalDetailsDialog(false);
     };
     
 
@@ -77,16 +101,7 @@ const ManageGoals: React.FC = () => {
                     assignedEmployees: employeeNames, // Comma separated employee names
                     goalId: goal.id,
                 });
-            } else {
-                // If there are no assigned employees, display 'Žiadny zamestnanec'
-                rows.push({
-                    id: goal.id,
-                    name: goal.name,
-                    categoryDescription: goal.categoryDescription,
-                    statusDescription: goal.statusDescription,
-                    assignedEmployees: 'Žiadny zamestnanec',
-                    goalId: goal.id,
-                });
+                
             }
         });
         return rows;
@@ -96,7 +111,7 @@ const ManageGoals: React.FC = () => {
     const columns: GridColDef<Goal>[] = [
 
          
-         { field: "assignedEmployees", headerName: "Priradený zamestnanec", width: 200 },
+        { field: "assignedEmployees", headerName: "Priradený zamestnanec", width: 200 },
         { field: "name", headerName: "Názov cieľa", width: 150 },
         { field: "categoryDescription", headerName: "Kategória cieľa", width: 150 },
         { field: "statusDescription", headerName: "Stav cieľa", width: 150 },
@@ -109,7 +124,7 @@ const ManageGoals: React.FC = () => {
                     <Button
                         variant="contained"
                         sx={{ backgroundColor: 'orange', color: 'black', fontSize: '12px', textWrap: "wrap" }}
-                        //onClick={() => handleEdit(params.row.id)}
+                        onClick={() => handleEdit(params.row.id, params.field)}
                     >   
                         Editovať
                     </Button>
@@ -126,17 +141,7 @@ const ManageGoals: React.FC = () => {
         }
     ];
 
-    const handleEdit = (params: any) => {
-        if (params.field !== "actions") {
-            nav(`/editGoal/${params.row.id}`);
-        }
-    };
-
-    const handleShow = (params: any) => {
-        if (params.field !== "actions") {
-            nav(`/showGoal/${params.row.id}`);
-        }
-    };
+    
 
     return (
         <Layout>
@@ -156,18 +161,7 @@ const ManageGoals: React.FC = () => {
                     <DataGridPro
                         columns={columns}
                         rows={generateRows(goalRows)}
-                        //rows={(goalRows)}
-                        onCellClick = {(params) => handleShow(params)}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 10,
-                                },
-                            },
-                            pinnedColumns: {
-                                right: ["actions"],
-                            },
-                        }}
+                        onRowClick={handleRowClick}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                     />
@@ -204,6 +198,23 @@ const ManageGoals: React.FC = () => {
                     open={openCardDialog}
                     handleClose={() => setOpenCardDialog(false)}
                 />
+
+                {/* Goal Details Modal */}
+                <Dialog open={openGoalDetailsDialog} onClose={handleCloseGoalDetailsDialog}>
+                    <DialogTitle>Detail cieľa</DialogTitle>
+                    <DialogContent>
+                        <Typography variant="h6">Názov cieľa: {selectedGoal?.name}</Typography>
+                        <Typography variant="body1">Kategória cieľa: {selectedGoal?.categoryDescription}</Typography>
+                        <Typography variant="body1">Stav cieľa: {selectedGoal?.statusDescription}</Typography>
+                        <Typography variant="body1">Priradení zamestnanci: {selectedGoal?.assignedEmployees?.join(', ') || 'Žiadny zamestnanec'}</Typography>
+
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseGoalDetailsDialog} color="primary">
+                            Zatvoriť
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Box>
         </Layout>
     );

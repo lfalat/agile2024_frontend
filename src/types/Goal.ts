@@ -8,6 +8,7 @@ type Goal = {
     fullfilmentDate: string
     finishedDate: string
     employee: string
+    completitionRate: string
     assignedEmployees?: { id: string; name: string; surname: string }[];
 }
 
