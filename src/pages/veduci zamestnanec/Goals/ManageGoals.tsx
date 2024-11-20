@@ -18,7 +18,7 @@ const ManageGoals: React.FC = () => {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
     const [openGoalDetailsDialog, setOpenGoalDetailsDialog] = useState(false); // Modal state
-    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCard | null>(null); // For showing employee card dialog
+    const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null); // For showing employee card dialog
     const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]); // Vybraní zamestnanci
 
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
@@ -84,8 +84,12 @@ const ManageGoals: React.FC = () => {
     };
     
 
-    const handleEmployeeCardClick = (employee: EmployeeCard) => {
-        setSelectedEmployee(employee);
+    const handleEmployeeCardClick = async (employeeCardId: string) => {
+        const response = await api.get(`/EmployeeCard/GetUserByEmployeeCard?employeeCardId=${employeeCardId}`);
+        const userProfile: UserProfile = response.data; 
+
+        setSelectedEmployee(userProfile);
+        //setSelectedEmployee(employee);
         setOpenCardDialog(true); // Show employee card dialog
     };
     type SimplifiedEmployeeCard = {
@@ -241,34 +245,34 @@ const ManageGoals: React.FC = () => {
                     message="Položka bola úspešne vymazaná"
                 />
                 {/* Modálne okno na zobrazenie zamestnancov */}
-            <Dialog open={openEmployeesModal} onClose={() => setOpenEmployeesModal(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Priradení zamestnanci</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ height: 300 }}>
-                        <DataGridPro
-                            columns={columnsUser}
-                            rows={selectedEmployees.map((emp) => ({
-                                id: emp.id,
-                                name: emp.name,
-                                surname: emp.surname,
-                            }))}
-                            pageSizeOptions={[5, 10, 25]} 
-                            pagination
-                            onRowClick={(params) => handleEmployeeCardClick(params.row.id)}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenEmployeesModal(false)} color="primary">
-                        Zatvoriť
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                <Dialog open={openEmployeesModal} onClose={() => setOpenEmployeesModal(false)} maxWidth="sm" fullWidth>
+                    <DialogTitle>Priradení zamestnanci</DialogTitle>
+                    <DialogContent>
+                        <Box sx={{ height: 300 }}>
+                            <DataGridPro
+                                columns={columnsUser}
+                                rows={selectedEmployees.map((emp) => ({
+                                    id: emp.id,
+                                    name: emp.name,
+                                    surname: emp.surname,
+                                }))}
+                                pageSizeOptions={[5, 10, 25]} 
+                                pagination
+                                onRowClick={(params) => handleEmployeeCardClick(params.row.id)}
+                            />
+                        </Box>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setOpenEmployeesModal(false)} color="primary">
+                            Zatvoriť
+                        </Button>
+                    </DialogActions>
+                </Dialog>
                 {/* Employee Card Dialog */}
                 <EmployeeCardDialog
                     open={openCardDialog}
-                    handleClose={() => setOpenCardDialog(false)}
-                />
+                    handleClose={() => setOpenCardDialog(false)}  userId={selectedEmployee?.id}  
+                    user={selectedEmployee}                />
 
                 {/* Goal Details Modal */}
                 <Dialog open={openGoalDetailsDialog} onClose={handleCloseGoalDetailsDialog}>

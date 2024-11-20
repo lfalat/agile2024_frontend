@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { IconButton } from "@mui/material";
 import EmployeeCardDialog from "./EmployeCardDialog";
+import { DataGrid } from "@mui/x-data-grid";
 
 const ManageUsers: React.FC = () => {
     const [userRows, setUserRows] = useState<UserProfile[]>([]);
@@ -30,10 +31,13 @@ const ManageUsers: React.FC = () => {
     }, []);
 
     const handleCardOpen = (user: UserProfile) => {
+        console.log("Selected User: ", user);
+        setSelectedUser(user);
         setOpenCardDialog(true);
     };
 
     const handleOpenDialog = (user: UserProfile) => {
+        console.log(user);  
         setSelectedUser(user);
         setOpenDialog(true);
     };
@@ -60,6 +64,7 @@ const ManageUsers: React.FC = () => {
         { field: "firstName", headerName: "Meno", width: 150 },
         { field: "lastName", headerName: "Priezvisko", width: 150 },
         { field: "role", headerName: "Rola používateľa", width: 150 },
+        { field: "", headerName: "", flex: 1 },
         {
             field: "actions",
             headerName: "Akcie",
@@ -107,7 +112,7 @@ const ManageUsers: React.FC = () => {
                     Pridať nového používateľa
                 </Button>
                 <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                    <DataGrid
                         columns={columns}
                         rows={userRows}
                         onCellClick = {(params) => handleEdit(params)}
@@ -116,9 +121,6 @@ const ManageUsers: React.FC = () => {
                                 paginationModel: {
                                     pageSize: 10,
                                 },
-                            },
-                            pinnedColumns: {
-                                right: ["actions"],
                             },
                         }}
                         pageSizeOptions={[5, 10, 25]}
@@ -154,6 +156,8 @@ const ManageUsers: React.FC = () => {
                 
                 {/* Employee Card Dialog */}
                 <EmployeeCardDialog
+                    userId={selectedUser?.id ?? null}
+                    user={selectedUser}
                     open={openCardDialog}
                     handleClose={() => setOpenCardDialog(false)}
                 />
