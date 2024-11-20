@@ -1,6 +1,6 @@
 type JobPosition = {
     levels: Array<[string, string]>;
-    organizationsID: Array<[string, string]>;
+    organizations: Array<[string, string]>;
     name: string;
     code: string;
     id: string;

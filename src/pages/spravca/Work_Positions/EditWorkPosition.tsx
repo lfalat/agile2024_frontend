@@ -17,7 +17,7 @@ const schema = z
         id: z.string(),
         name: z.string().min(1, "Názov je poivnný!"),
         code:  z.string().min(1, "Kód je povinný!"),
-        levels: z.array(z.string()),//.nonempty("Pracovná pozícia musí mať aspoň jedne level!"),
+        levels: z.array(z.string()).nonempty("Pracovná pozícia musí mať aspoň jedne level!"),
         organizationsID: z.array(z.string()).nonempty("Pracovná pozícia musí mať aspoň jednu organizáciu!")
     })
 type FormData = z.infer<typeof schema>;
