@@ -12,10 +12,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import OrganizationResponse from "../../../types/responses/OrganizationResponse";
 import dayjs, { Dayjs } from "dayjs";
 import { Department } from "../../../types/Department";
+import UserProfile from "../../../types/UserProfile";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const schema = z.object({
     name: z.string().min(1, "Názov oddelenia je povinný!"),
     code: z.string().min(1, "Kód oddelenia je povinný!"),
+    superior: z.string().min(1, "Vedúci oddelenia je povinný!"),
     organization: z.string().min(1, "Príslušná organizácia je povinná!").default(""),
     parentDepartmentId: z.string().optional(),
     childDepartments: z.array(z.string()).optional(),
@@ -28,12 +31,14 @@ type FormData = z.infer<typeof schema>;
 const NewDivision: React.FC = () => {
 
     const nav = useNavigate();
+    const [userOptions, setUserOptions] = useState<{ id: string; label: string }[]>([]);
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
     const [selectedOrganization, setSelectedOrganization] = useState<string>();
     const [createdDate, setCreatedDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const { openSnackbar } = useSnackbar();
+    
     const {
         register: create,
         handleSubmit,
@@ -55,6 +60,19 @@ const NewDivision: React.FC = () => {
             })
             .catch((err) => {
                 setOrganizationOptions([]);
+                console.error(err);
+            });
+
+            api.get("/User/Users")
+            .then((res) => {
+                const options = res.data.map((user: UserProfile) => ({
+                    id: user.id,
+                    label: user.firstName + " " + user.lastName + ", " + user.role,
+                }));
+                setUserOptions(options);
+            })
+            .catch((err) => {
+                setUserOptions([]);
                 console.error(err);
             });
     }, []);
@@ -115,11 +133,12 @@ const NewDivision: React.FC = () => {
                 .then(() => {
                     
                     console.log("Data successfully sent:", data);
-                    setSuccessMessage("Oddelenie bolo úspešne pridané");
-                    //nav('/manageDivisions');
+                    openSnackbar("Organizácia bola úspešne vytvorená", "success");
+                    nav('/manageDivisions');
                 })
                 .catch((err) => {
                     setError(err.response?.data);
+                    openSnackbar("Nastala chyba pri vytváraní organizácie", "error");
                     console.error(err);
                 });
     };
@@ -131,22 +150,17 @@ const NewDivision: React.FC = () => {
                     Vytvoriť nové oddelenie
                 </Typography>
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)} >
-                {error && (
-                        <Alert severity="error" variant="filled">
-                            {error}
-                        </Alert>
-                    )}
-                    {successMessage && (
-                        <Alert severity="success" variant="filled" sx={{ width: "100%" }}>
-                            {successMessage}
-                        </Alert>
-                    
-                    )}
                     <TextField label="Názov oddelenia" required fullWidth  {...create("name")} error={!!errors.name} helperText={errors.name?.message} />
                     <TextField label="Kód oddelenia" required fullWidth  {...create("code")} error={!!errors.code} helperText={errors.code?.message}  />                                    
+                    
+                    <Autocomplete fullWidth options={userOptions}  
+                        onChange={(e, value) => setValue("superior", value?.id || "")}         
+                        renderInput={(params) => <TextField {...params} required label="Vedúci oddelenia " error={!!errors.superior} helperText={errors.superior?.message ?? ""}/>}
+                    />
+                    
                     <Autocomplete fullWidth options={organizationOptions}  
-                        onChange={handleOrganizationChange}               
-                        renderInput={(params) => <TextField {...params} label="Príslušná organizácia *" error={!!errors.organization} helperText={errors.organization?.message ?? ""}/>}
+                        onChange={handleOrganizationChange}             
+                        renderInput={(params) => <TextField {...params} required label="Príslušná organizácia " error={!!errors.organization} helperText={errors.organization?.message ?? ""}/>}
                     />
 
                     <Autocomplete

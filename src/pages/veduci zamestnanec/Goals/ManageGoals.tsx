@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack, Tooltip } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { IconButton } from "@mui/material";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 import Goal from "../../../types/Goal";
+import { EmployeeCard } from "../../../types/EmployeeCard";
 
 const ManageGoals: React.FC = () => {
     const [goalRows, setGoalRows] = useState<Goal[]>([]);
@@ -17,6 +18,11 @@ const ManageGoals: React.FC = () => {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
     const [openGoalDetailsDialog, setOpenGoalDetailsDialog] = useState(false); // Modal state
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCard | null>(null); // For showing employee card dialog
+    const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]); // Vybraní zamestnanci
+
+    const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
+
 
     const nav = useNavigate();
 
@@ -78,40 +84,82 @@ const ManageGoals: React.FC = () => {
     };
     
 
+    const handleEmployeeCardClick = (employee: EmployeeCard) => {
+        setSelectedEmployee(employee);
+        setOpenCardDialog(true); // Show employee card dialog
+    };
+    type SimplifiedEmployeeCard = {
+        id: string;
+        name: string;
+        surname: string;
+    };
+    const handleEmployeeClick = (employees: SimplifiedEmployeeCard[]) => {
+        setSelectedEmployees(employees);
+        setOpenEmployeesModal(true); // Otvorenie modálneho okna
+    };
+
     const generateRows = (goals: Goal[]) => {
+        if (!Array.isArray(goals) || goals.length === 0) {
+
+            return [];
+        }
+    
         const rows: any[] = [];
+        
         goals.forEach(goal => {
             const assignedEmployees = goal.assignedEmployees;
-            
-            // Check if there are assigned employees
             if (assignedEmployees && assignedEmployees.length > 0) {
-                // Map through employees and join their names with commas
-                const employeeNames = assignedEmployees.map(emp => `${emp.name} ${emp.surname}`).join(', ');
-                const employeeNamesWithTooltip = (
-                    <Tooltip title={employeeNames} arrow>
-                        <Typography variant="body2" noWrap>{employeeNames}</Typography>
-                    </Tooltip>
-                );
-                // Push the row data with employee names joined by commas
                 rows.push({
                     id: goal.id,
                     name: goal.name,
                     categoryDescription: goal.categoryDescription,
                     statusDescription: goal.statusDescription,
-                    assignedEmployees: employeeNames, // Comma separated employee names
-                    goalId: goal.id,
+                    assignedEmployees: assignedEmployees,
+                    goalId: goal.id
                 });
-                
             }
         });
         return rows;
     };
     
+    const columnsUser: GridColDef[] = [
+        { field: "name", headerName: "Meno", width: 150 },
+        { field: "surname", headerName: "Priezvisko", width: 150 },
+    ];
+    
 
     const columns: GridColDef<Goal>[] = [
-
-         
-        { field: "assignedEmployees", headerName: "Priradený zamestnanec", width: 200 },
+        {
+            field: "assignedEmployees", 
+            headerName: "Priradený zamestnanec", 
+            width: 200,
+            renderCell: (params) => {
+                const assignedEmployees = params.row.assignedEmployees || [];
+                const employeeNames = assignedEmployees.map(emp => `${emp.name} ${emp.surname}`);
+    
+                return (
+                    <Tooltip title={employeeNames.join(', ')}>
+                    <Typography 
+                        variant="body2" 
+                        noWrap 
+                        sx={{ 
+                            cursor: 'pointer', 
+                            textDecoration: 'underline',
+                            '&:hover': {
+                                color: 'gray',
+                            }
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleEmployeeClick(assignedEmployees);
+                        }}
+                    >
+                        {employeeNames.length > 3 ? `${employeeNames.slice(0, 3).join(', ')}...` : employeeNames.join(', ')}
+                    </Typography>
+                </Tooltip>
+                );
+            }
+        },
         { field: "name", headerName: "Názov cieľa", width: 150 },
         { field: "categoryDescription", headerName: "Kategória cieľa", width: 150 },
         { field: "statusDescription", headerName: "Stav cieľa", width: 150 },
@@ -192,7 +240,30 @@ const ManageGoals: React.FC = () => {
                     onClose={() => setOpenSnackbar(false)}
                     message="Položka bola úspešne vymazaná"
                 />
-                
+                {/* Modálne okno na zobrazenie zamestnancov */}
+            <Dialog open={openEmployeesModal} onClose={() => setOpenEmployeesModal(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Priradení zamestnanci</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ height: 300 }}>
+                        <DataGridPro
+                            columns={columnsUser}
+                            rows={selectedEmployees.map((emp) => ({
+                                id: emp.id,
+                                name: emp.name,
+                                surname: emp.surname,
+                            }))}
+                            pageSizeOptions={[5, 10, 25]} 
+                            pagination
+                            onRowClick={(params) => handleEmployeeCardClick(params.row.id)}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenEmployeesModal(false)} color="primary">
+                        Zatvoriť
+                    </Button>
+                </DialogActions>
+            </Dialog>
                 {/* Employee Card Dialog */}
                 <EmployeeCardDialog
                     open={openCardDialog}
@@ -206,8 +277,21 @@ const ManageGoals: React.FC = () => {
                         <Typography variant="h6">Názov cieľa: {selectedGoal?.name}</Typography>
                         <Typography variant="body1">Kategória cieľa: {selectedGoal?.categoryDescription}</Typography>
                         <Typography variant="body1">Stav cieľa: {selectedGoal?.statusDescription}</Typography>
-                        <Typography variant="body1">Priradení zamestnanci: {selectedGoal?.assignedEmployees?.join(', ') || 'Žiadny zamestnanec'}</Typography>
+                        <Typography variant="body1">
+                        Priradení zamestnanci:{" "}
+                        {selectedGoal?.assignedEmployees && selectedGoal.assignedEmployees.length > 0
+                        ? selectedGoal.assignedEmployees.map(emp => `${emp.name} ${emp.surname}`).join(', ')
+                        : 'Žiadny zamestnanec'}
+                        </Typography>
+                        {selectedGoal?.fullfilmentRate && (
+                            <Typography variant="body1">Miera splnenia: {selectedGoal.fullfilmentRate}%</Typography>
+                        )}
 
+                        {/* Conditionally display finishedDate */}
+                        {selectedGoal?.finishedDate && (
+                            <Typography variant="body1">Dátum dokončenia: {selectedGoal.finishedDate}</Typography>
+                        )}
+                        <Typography variant="body1">Termín dokončenia: {selectedGoal?.dueDate}</Typography>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleCloseGoalDetailsDialog} color="primary">

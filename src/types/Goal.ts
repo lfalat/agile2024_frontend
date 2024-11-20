@@ -5,10 +5,9 @@ type Goal = {
     categoryDescription: string
     statusDescription: string
     dueDate: string
-    fullfilmentDate: string
+    fullfilmentRate: number
     finishedDate: string
     employee: string
-    completitionRate: string
     assignedEmployees?: { id: string; name: string; surname: string }[];
 }
 

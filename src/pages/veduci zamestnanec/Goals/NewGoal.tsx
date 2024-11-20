@@ -14,6 +14,7 @@ import { EmployeeCard } from "../../../types/EmployeeCard";
 import { GoalCategoryResponse } from "../../../types/responses/GoalCategoryResponse";
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useSnackbar } from '../../../hooks/SnackBarContext';
 
 const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
@@ -33,6 +34,7 @@ const NewGoal: React.FC = () => {
     const [showTable, setShowTable] = useState(false);
     const [employeeData, setEmployeeData] = useState<EmployeeCard[]>([]);
     const [employeeIds, setEmployeeIds] = useState<string[]>([]);
+    const { openSnackbar } = useSnackbar();
 
 
     const {
@@ -62,22 +64,24 @@ const NewGoal: React.FC = () => {
                 <Stack direction="row" spacing={2}>
                     <Button
                         variant="contained"
-                        sx={{ backgroundColor: "orange", color: "black", fontSize: "12px", textWrap: "wrap" }}
+                        sx={{ backgroundColor: "turquoise", color: "black", fontSize: "12px", textWrap: "wrap" }}
                         disabled={employeeIds.includes(params.row.employeeId)}
                         onClick={() => handleAddEmployee(params.row.employeeId)} 
           
                     >
                         Pridať
                     </Button>
-                    <IconButton
-                        aria-label="delete"
-                        size="large"
-                        onClick={() => handleRemoveEmployee(params.row.employeeId)}
+
+                    <Button
+                        variant="contained"
+                        sx={{ backgroundColor: "orange", color: "black", fontSize: "12px", textWrap: "wrap" }}
+                        disabled={!employeeIds.includes(params.row.employeeId)}
+                        onClick={() => handleRemoveEmployee(params.row.employeeId)} 
           
-                        sx={{ color: "red" }}
                     >
-                        <DeleteIcon />
-                    </IconButton>
+                        Odobrať
+                    </Button>
+                    
                 </Stack>
             ),
         },
@@ -137,6 +141,7 @@ const NewGoal: React.FC = () => {
             .then((res) => {
                 console.log("Goal sending:",dataToSend);
                 console.log("Goal created:", res.data);
+                openSnackbar("Organizácia bola úspešne vytvorená", "success");
                 nav('/manageGoals');
             })
             .catch((err) => {
@@ -149,7 +154,7 @@ const NewGoal: React.FC = () => {
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Vytvoriť novú lokalitu
+                    Vytvoriť nový cieľ
                 </Typography>
 
                 <Button variant="contained" color="primary"
@@ -203,7 +208,7 @@ const NewGoal: React.FC = () => {
                     />
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker
-                            label="Dátum vytvorenia oddelenia"
+                            label="Termín dokončenia"
                             value={dueDate}
                             onChange={(newValue) => handleDateChange(newValue)}
                         />

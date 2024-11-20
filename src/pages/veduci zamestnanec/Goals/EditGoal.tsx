@@ -14,6 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import CircleIcon from "@mui/icons-material/Circle";
+import { useSnackbar } from '../../../hooks/SnackBarContext';
 
 const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
@@ -22,7 +23,7 @@ const schema = z.object({
     status: z.string().min(1, "Stav cieľa je povinný!"),
     dueDate: z.string().min(1, "Termín je povinný!"),
     finishedDate: z.string().optional(),
-    //completionRate: z.number().min(0, "Miera splnenia musí byť medzi 0 a 100").max(100, "Miera splnenia musí byť medzi 0 a 100").optional(), // Optional completion rate
+    fullfilmentRate: z.number().min(0, "Miera splnenia musí byť medzi 0 a 100").max(100, "Miera splnenia musí byť medzi 0 a 100").optional(), // Optional completion rate
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,6 +41,7 @@ const EditGoal: React.FC = () => {
     const [employeeData, setEmployeeData] = useState<EmployeeCard[]>([]);
     const [employeeIds, setEmployeeIds] = useState<string[]>([]);
     const [assignedEmployees, setAssignedEmployees] = useState<EmployeeCard[]>([]);
+    const { openSnackbar } = useSnackbar();
 
 
 
@@ -57,7 +59,7 @@ const EditGoal: React.FC = () => {
             status: "",
             dueDate: "",
             finishedDate: "",
-            //completionRate: undefined,
+            fullfilmentRate: undefined,
         }
     });
 
@@ -169,16 +171,24 @@ const EditGoal: React.FC = () => {
             localDate.setMinutes(localDate.getMinutes() - timezoneOffset);
             const isoString = localDate.toISOString();
             setValue("finishedDate", isoString);
-        } else {
-            setValue("finishedDate", undefined); 
         }
+        /* else {
+            setValue("finishedDate", undefined); 
+        }*/
     };
 
     const handleStatusChange = (value: { id: string, label: string } | null) => {
         const newStatus = value ? value.id : "";
         const newStatusLabel = value ? value.label : "";
         setValue("status", newStatus);
-        setShowCompletionFields(newStatusLabel === "Dokončený");  // Show completion fields if "Dokončený"
+    
+        if (newStatusLabel === "Dokončený") {
+            setShowCompletionFields(true);
+        } else {
+            setShowCompletionFields(false);
+            setValue("fullfilmentRate", undefined); // Clear value if not completed
+            setValue("finishedDate", undefined);   // Clear value if not completed
+        }
     };
     
 
@@ -194,18 +204,19 @@ const EditGoal: React.FC = () => {
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         if (data.status === "Dokončený") {
-            /*if (data.completionRate === undefined || data.completionRate === null) {
+            if (data.fullfilmentRate === undefined || data.fullfilmentRate === null) {
                 setError("Miera splnenia je povinná pre dokončené ciele.");
                 return;
-            }*/
+            }
         } else {
-            //data.completionRate = undefined;  
+            data.fullfilmentRate = undefined;  
             data.finishedDate = undefined;    
         }
         console.log("Submitting form data:", data); 
         await api.put(`/Goal/Edit/${id}`, data)
             .then((res) => {
                 console.log("res:", res);
+                openSnackbar("Zmeny sa uložili", "success");
                 nav('/manageGoals');
             })
             .catch((err) => {
@@ -301,10 +312,13 @@ const EditGoal: React.FC = () => {
                     {showCompletionFields && (
                         <>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker label="Dátum dokončenia *" value={finishedDate} onChange={handleDateChangeFinished}/>
+                                <DatePicker label="Dátum dokončenia *"  value={finishedDate} onChange={handleDateChangeFinished}/>
                             </LocalizationProvider>
-                            <TextField label="Miera splnenia *" 
-                            //{...register("completionRate")} required type="number" inputProps={{ min: 0, max: 100 }} helperText={errors.completionRate ? errors.completionRate.message : "Zadajte číslo medzi 0 a 100."} 
+                            <TextField label="Miera splnenia" 
+                            {...register("fullfilmentRate", {
+                                setValueAs: (value) => (value === "" ? undefined : Number(value)),
+                              })}
+                            required type="number" inputProps={{ min: 0, max: 100 }} helperText={errors.fullfilmentRate ? errors.fullfilmentRate.message : "Zadajte číslo medzi 0 a 100."} 
                             />
                         </>
                     )}
