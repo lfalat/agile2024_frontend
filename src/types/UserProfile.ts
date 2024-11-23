@@ -7,6 +7,7 @@ type UserProfile = {
     role: string
     email: string
     profilePicLink: string
+    deactivated: boolean
 }
 
 export default UserProfile

@@ -24,15 +24,21 @@ import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
 import EditWorkPosition from "../pages/spravca/Work_Positions/EditWorkPosition";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
-import { SnackbarProvider } from '../hooks/SnackBarContext';
+import { CustomSnackbarProvider } from '../hooks/SnackBarContext';
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
+import ManageGoals from "../pages/veduci zamestnanec/Goals/ManageGoals";
+import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
+import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
+import { SnackbarProvider } from 'notistack';
+import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
 
 const App: React.FC = () => {
     const auth = useAuth();
-
+    
     return (
-        <SnackbarProvider>
         <>
+        <SnackbarProvider maxSnack={3}>
+        <CustomSnackbarProvider>
             <BrowserRouter>
                 <Routes>
                     {/* Public routes */}
@@ -69,14 +75,23 @@ const App: React.FC = () => {
                             <Route path="/newWorkPosition" element={<NewWorkPosition />} />
                             <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
                         </Route>
+                        <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
+                            <Route path="/manageGoals" element={<ManageGoals />} />
+                            <Route path="/newGoal" element={<NewGoal />} />
+                            <Route path="/editGoal/:id" element={<EditGoal />} />                       
+                        </Route>
+                        <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
+                            <Route path="/employeeGoals" element={<EmployeeGoals />} />                     
+                        </Route>
                     </Route>
 
                     {/* Default route */}
                     <Route path="*" element={<Navigate to={localStorage.getItem("accessToken") ? "/home" : "/login"} />} />
                 </Routes>
             </BrowserRouter>
-        </>
-        </SnackbarProvider>
+            </CustomSnackbarProvider>
+            </SnackbarProvider>
+        </> 
     );
 };
 
