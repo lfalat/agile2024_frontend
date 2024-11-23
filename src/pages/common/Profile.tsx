@@ -134,40 +134,55 @@ const ProfilePage: React.FC = () => {
                             </Box>
                         </Box>
                     </Grid>
-
-                    <Grid size={{ xs: 12, md: 8 }}>
-                        <Controller
-                            name="firstName"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Meno"
-                                    variant="outlined"
-                                    fullWidth
-                                    margin="normal"
-                                    error={!!errors.firstName}
-                                    helperText={errors.firstName ? errors.firstName.message : ""}
-                                />
-                            )}
+                </Grid>
+                <Grid size={{ xs: 12, md: 8 }}>
+                    <Controller
+                        name="firstName"
+                        control={control}
+                        render={({ field }) => (
+                        <TextField
+                            {...field}
+                            label="Meno"
+                            variant="outlined"
+                            fullWidth
+                            margin="normal"
+                            error={!!errors.firstName}
+                            helperText={errors.firstName ? errors.firstName.message : ""}
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
-                        <Controller
-                            name="lastName"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Priezvisko"
-                                    variant="outlined"
-                                    fullWidth
-                                    margin="normal"
-                                    error={!!errors.lastName}
-                                    helperText={errors.lastName ? errors.lastName.message : ""}
-                                />
-                            )}
+                        )}
+                    />
+                    <Controller
+                        name="lastName"
+                        control={control}
+                        render={({ field }) => (
+                        <TextField
+                            {...field}
+                            label="Priezvisko"
+                            variant="outlined"
+                            fullWidth
+                            margin="normal"
+                            error={!!errors.lastName}
+                            helperText={errors.lastName ? errors.lastName.message : ""}
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
-                        <Controller name="middleName" control={control} render={({ field }) => <TextField {...field} label="Stredné meno" variant="outlined" fullWidth margin="normal" />} />
-                    </Grid>
+                        )}
+                    
+                    />
+                    <Controller
+                        name="middleName"
+                        control={control}
+                        render={({ field }) => (
+                        <TextField
+                            {...field}
+                            label="Stredné meno"
+                            variant="outlined"
+                            fullWidth
+                            margin="normal"
+                            slotProps={{ inputLabel: { shrink: true } }}
+                        />
+                        )}
+                    />
                 </Grid>
 
                 <Box mt={4}>

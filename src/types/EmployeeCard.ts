@@ -1,6 +1,7 @@
 
 export type EmployeeCard = {
     employeeId: string;
+    id: string;
     email: string;
     birthdate: string | null; 
     position: string;
@@ -17,5 +18,4 @@ export type EmployeeCard = {
     location: string;
     archived: boolean;
     employmentDuration:string;
-    
 };

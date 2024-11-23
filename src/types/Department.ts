@@ -2,6 +2,8 @@ export type Department = {
     id: string;
     name: string;
     code: string;
+    superiorId:string;
+    superiorName:string;
     organizationId: string;
     organizationName: string;
     created: string;

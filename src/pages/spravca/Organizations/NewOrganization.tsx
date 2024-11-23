@@ -18,8 +18,6 @@ const schema = z
         location: z.string().min(1,{message: "Lokalizácia je povinná"})
     }
     )
-
-
 type FormData = z.infer<typeof schema>;
 
 
@@ -60,9 +58,9 @@ const NewOrganization: React.FC = () => {
         },
     });
 
-    const onSubmit: SubmitHandler<FormData> = (data) => {
+    const onSubmit: SubmitHandler<FormData> = async (data) => {
         setLoading(true);
-        api.post("/Organization/Register", data)
+        await api.post("/Organization/Register", data)
             .then((res) => {
                 openSnackbar("Organizácia bola úspešne vytvorená", "success");
                 nav(-1);
