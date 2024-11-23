@@ -45,7 +45,7 @@ const ManageOrganizations: React.FC = () => {
             return;
         }
         if (id) {
-            nav(`/updateOrganization/${id}`);  // Presmerovanie na stránku úpravy s ID
+            nav('/updateOrganization', { state: { id } });   // Presmerovanie na stránku úpravy s ID
         }
     };
 

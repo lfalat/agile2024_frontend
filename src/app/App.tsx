@@ -60,7 +60,7 @@ const App: React.FC = () => {
 
                             <Route path="/manageOrganizations" element={<ManageOrganizations />} />
                             <Route path="/newOrganization" element={<NewOrganization />} />
-                            <Route path="/updateOrganization/:id" element={<UpdateOrganization />} />
+                            <Route path="/updateOrganization" element={<UpdateOrganization />} />
 
 
                             <Route path="/manageDivisions" element={<ManageDivisions />} />
