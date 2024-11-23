@@ -1,66 +1,33 @@
-// At the top of SnackBarContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Snackbar, Alert } from "@mui/material";
+import React, { createContext, useContext, ReactNode } from "react";
+import { SnackbarProvider as NotistackSnackbarProvider, useSnackbar as useNotistackSnackbar, VariantType } from "notistack";
 
-// Your existing code below...
-
+// Define the context type for your custom SnackbarProvider
 interface SnackbarContextType {
-    openSnackbar: (message: string, severity: 'success' | 'error') => void;
-    snackbarMessage: string;
-    snackbarSeverity: 'success' | 'error';
-    isSnackbarOpen: boolean;
-    setSnackbarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    setSnackbarMessage: React.Dispatch<React.SetStateAction<string>>;
-    setSnackbarSeverity: React.Dispatch<React.SetStateAction<'success' | 'error'>>;
+    openSnackbar: (message: string, severity: VariantType) => void;
 }
 
 const SnackbarContext = createContext<SnackbarContextType | undefined>(undefined);
 
-export const SnackbarProvider = ({ children }: { children: ReactNode }) => {
-    const [isSnackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+// Create a custom SnackbarProvider (rename it to avoid the conflict with notistack's SnackbarProvider)
+export const CustomSnackbarProvider = ({ children }: { children: ReactNode }) => {
+    const { enqueueSnackbar } = useNotistackSnackbar();
 
-    const openSnackbar = (message: string, severity: 'success' | 'error') => {
-        setSnackbarMessage(message);
-        setSnackbarSeverity(severity);
-        setSnackbarOpen(true);
+    // Function to open the snackbar using notistack
+    const openSnackbar = (message: string, severity: VariantType) => {
+        enqueueSnackbar(message, { variant: severity });
     };
 
     return (
-      <SnackbarContext.Provider value={{
-          openSnackbar,
-          snackbarMessage,
-          snackbarSeverity,
-          isSnackbarOpen,
-          setSnackbarOpen,
-          setSnackbarMessage,
-          setSnackbarSeverity
-      }}>
-          {children}
-
-          {/* Material UI Snackbar Component */}
-          <Snackbar
-              open={isSnackbarOpen}
-              autoHideDuration={6000} // Display time in ms (6 seconds)
-              onClose={() => setSnackbarOpen(false)} // Close the Snackbar after duration
-          >
-              <Alert 
-                  severity={snackbarSeverity} 
-                  sx={{ width: '100%' }} 
-                  onClose={() => setSnackbarOpen(false)} // Close on Alert click
-              >
-                  {snackbarMessage}
-              </Alert>
-          </Snackbar>
-      </SnackbarContext.Provider>
-  );
+        <SnackbarContext.Provider value={{ openSnackbar }}>
+            {children}
+        </SnackbarContext.Provider>
+    );
 };
 
 export const useSnackbar = () => {
     const context = useContext(SnackbarContext);
     if (!context) {
-        throw new Error("useSnackbar must be used within a SnackbarProvider");
+        throw new Error("useSnackbar must be used within a CustomSnackbarProvider");
     }
     return context;
 };
