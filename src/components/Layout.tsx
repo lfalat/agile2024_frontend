@@ -77,6 +77,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             label: "Správa pracovných pozícií",
             path: "/manageWorkPositions",
         },
+        {
+            role: Roles.Zamestnanec,
+            label: "Spätná vázba",
+            path: "/manageFeedback",
+        },
+        {
+            role: Roles.Veduci,
+            label: "Spätná vázba",
+            path: "/manageFeedback",
+        }
         // {
         //     label: "Ciele a rozvoj môjho tímu",
         //     path: "/cieleRozvojTimu",
