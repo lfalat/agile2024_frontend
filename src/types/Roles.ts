@@ -1,6 +1,7 @@
 const enum Roles {
     Spravca = "Správca systému",
-    Veduci = "Vedúci zamestnanec"
+    Veduci = "Vedúci zamestnanec",
+    Zamestnanec = "Zamestnanec"
 }
 
 export default Roles

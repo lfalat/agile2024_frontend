@@ -15,6 +15,8 @@ import { GoalCategoryResponse } from "../../../types/responses/GoalCategoryRespo
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
+import UserProfile from "../../../types/UserProfile";
+import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 
 const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
@@ -34,6 +36,8 @@ const NewGoal: React.FC = () => {
     const [showTable, setShowTable] = useState(false);
     const [employeeData, setEmployeeData] = useState<EmployeeCard[]>([]);
     const [employeeIds, setEmployeeIds] = useState<string[]>([]);
+    const [openCardDialog, setOpenCardDialog] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null); 
     const { openSnackbar } = useSnackbar();
 
 
@@ -119,6 +123,15 @@ const NewGoal: React.FC = () => {
         setEmployeeIds((prev) => prev.filter(id => id !== employeeId)); 
       };
 
+      const handleEmployeeCardClick = async (employeeCardId: string) => {
+        const response = await api.get(`/EmployeeCard/GetUserByEmployeeCard?employeeCardId=${employeeCardId}`);
+        const userProfile: UserProfile = response.data; 
+
+        setSelectedEmployee(userProfile);
+        //setSelectedEmployee(employee);
+        setOpenCardDialog(true); // Show employee card dialog
+    };
+
     const handleDateChange = (newValue: Dayjs | null) => {
         setDueDate(newValue);
         const adjustedDate = newValue ? newValue.startOf('day') : null;
@@ -158,7 +171,7 @@ const NewGoal: React.FC = () => {
                 </Typography>
 
                 <Button variant="contained" color="primary"
-                    sx={{ marginBottom: 2 }} //onClick={() => { nav("/assignEmployeeToGoal");}}
+                    sx={{ marginBottom: 2 }}
                     onClick={() => setShowTable((prev) => !prev)}
                 
                 >
@@ -183,9 +196,15 @@ const NewGoal: React.FC = () => {
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                         getRowId={(row) => row.employeeId}
+                        onRowClick={(params) => handleEmployeeCardClick(params.row.employeeId)}
                     />
                     </Box>
                 )}
+                {/* Employee Card Dialog */}
+                <EmployeeCardDialog
+                    open={openCardDialog}
+                    handleClose={() => setOpenCardDialog(false)}  userId={selectedEmployee?.id}  
+                    user={selectedEmployee}                />
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     
                     <TextField label="Názov cieľa" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message} />

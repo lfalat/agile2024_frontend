@@ -30,6 +30,7 @@ import ManageGoals from "../pages/veduci zamestnanec/Goals/ManageGoals";
 import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
 import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
 import { SnackbarProvider } from 'notistack';
+import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -75,9 +76,12 @@ const App: React.FC = () => {
                             <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
                         </Route>
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
-                        <Route path="/manageGoals" element={<ManageGoals />} />
-                        <Route path="/newGoal" element={<NewGoal />} />
-                        <Route path="/editGoal/:id" element={<EditGoal />} />
+                            <Route path="/manageGoals" element={<ManageGoals />} />
+                            <Route path="/newGoal" element={<NewGoal />} />
+                            <Route path="/editGoal/:id" element={<EditGoal />} />                       
+                        </Route>
+                        <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
+                            <Route path="/employeeGoals" element={<EmployeeGoals />} />                     
                         </Route>
                     </Route>
 

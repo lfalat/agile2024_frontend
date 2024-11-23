@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack, Tooltip } from "@mui/material";
-import { DataGrid, DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";

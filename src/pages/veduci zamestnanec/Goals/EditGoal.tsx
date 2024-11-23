@@ -15,15 +15,19 @@ import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import CircleIcon from "@mui/icons-material/Circle";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
+import UserProfile from "../../../types/UserProfile";
+import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 
 const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
     description: z.string().min(1, "Popis cieľa je povinný!"),
     goalCategoryId: z.string().min(1, "Kategória cieľa je povinná!").default(""), 
-    status: z.string().min(1, "Stav cieľa je povinný!"),
+    statusId: z.string().min(1, "Stav cieľa je povinný!"),
+    goalCategoryName: z.string().min(1, "Kategória cieľa je povinná!").default(""), 
+    statusName: z.string().min(1, "Stav cieľa je povinný!"),
     dueDate: z.string().min(1, "Termín je povinný!"),
-    finishedDate: z.string().optional(),
-    fullfilmentRate: z.number().min(0, "Miera splnenia musí byť medzi 0 a 100").max(100, "Miera splnenia musí byť medzi 0 a 100").optional(), // Optional completion rate
+    finishedDate: z.string().nullable().optional(),
+    fullfilmentRate: z.number().min(0, "Miera splnenia musí byť medzi 0 a 100").max(100, "Miera splnenia musí byť medzi 0 a 100").nullable().optional(), // Optional completion rate
 });
 
 type FormData = z.infer<typeof schema>;
@@ -41,6 +45,8 @@ const EditGoal: React.FC = () => {
     const [employeeData, setEmployeeData] = useState<EmployeeCard[]>([]);
     const [employeeIds, setEmployeeIds] = useState<string[]>([]);
     const [assignedEmployees, setAssignedEmployees] = useState<EmployeeCard[]>([]);
+    const [openCardDialog, setOpenCardDialog] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null); 
     const { openSnackbar } = useSnackbar();
 
 
@@ -49,6 +55,7 @@ const EditGoal: React.FC = () => {
         register,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors },
     } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -56,12 +63,48 @@ const EditGoal: React.FC = () => {
             name: "",
             description: "",
             goalCategoryId: "",
-            status: "",
+            statusId: "",
             dueDate: "",
             finishedDate: "",
             fullfilmentRate: undefined,
         }
     });
+
+    useEffect(() => {
+        api.get(`/Goal/${id}`)
+            .then((res) => {
+                console.log("prijate data:", res.data);
+                const goalData = res.data;
+
+                setValue("name", goalData.name);
+                setValue("description", goalData.description);
+                setValue("goalCategoryId", goalData.goalCategoryId);
+                setValue("goalCategoryName", goalData.goalCategoryName);
+                setValue("statusId", goalData.statusId || "");
+                setValue("statusName", goalData.statusName || "");                
+                setValue("dueDate", goalData.dueDate || "");
+                setValue("finishedDate", goalData.finishedDate || "");
+                setValue("fullfilmentRate", goalData.fullfilmentRate);
+                setDueDate(dayjs(goalData.dueDate));
+                setFinishedDate(dayjs(goalData.finishedDate));
+
+            const defaultStatus = goalStatuses.find(status => status.label === goalData.statusName);
+            if (defaultStatus) {
+                setValue("statusId", defaultStatus.id); 
+                if (defaultStatus.label === "Dokončený") {
+                    setShowCompletionFields(true);
+                } else {
+                    setShowCompletionFields(false);
+                }
+            }
+            })
+            .catch((err) => {
+                console.error("Error loading department:", err);
+            });
+
+
+            
+    }, [id, setValue]);
 
     useEffect(() => {
         api.get("/GoalCategory/Categories")
@@ -124,22 +167,24 @@ const EditGoal: React.FC = () => {
                 <Stack direction="row" spacing={2}>
                     <Button
                         variant="contained"
-                        sx={{ backgroundColor: "orange", color: "black", fontSize: "12px", textWrap: "wrap" }}
+                        sx={{ backgroundColor: "turquoise", color: "black", fontSize: "12px", textWrap: "wrap" }}
                         disabled={employeeIds.includes(params.row.employeeId)}
                         onClick={() => handleAddEmployee(params.row.employeeId)} 
           
                     >
                         Pridať
                     </Button>
-                    <IconButton
-                        aria-label="delete"
-                        size="large"
-                        onClick={() => handleRemoveEmployee(params.row.employeeId)}
+
+                    <Button
+                        variant="contained"
+                        sx={{ backgroundColor: "orange", color: "black", fontSize: "12px", textWrap: "wrap" }}
+                        disabled={!employeeIds.includes(params.row.employeeId)}
+                        onClick={() => handleRemoveEmployee(params.row.employeeId)} 
           
-                        sx={{ color: "red" }}
                     >
-                        <DeleteIcon />
-                    </IconButton>
+                        Odobrať
+                    </Button>
+                    
                 </Stack>
             ),
         },
@@ -180,7 +225,8 @@ const EditGoal: React.FC = () => {
     const handleStatusChange = (value: { id: string, label: string } | null) => {
         const newStatus = value ? value.id : "";
         const newStatusLabel = value ? value.label : "";
-        setValue("status", newStatus);
+        setValue("statusId", newStatus);
+        setValue("statusName", newStatusLabel);
     
         if (newStatusLabel === "Dokončený") {
             setShowCompletionFields(true);
@@ -202,27 +248,41 @@ const EditGoal: React.FC = () => {
         setEmployeeIds((prev) => prev.filter(id => id !== employeeId)); 
       };
 
+      const handleEmployeeCardClick = async (employeeCardId: string) => {
+        const response = await api.get(`/EmployeeCard/GetUserByEmployeeCard?employeeCardId=${employeeCardId}`);
+        const userProfile: UserProfile = response.data; 
+
+        setSelectedEmployee(userProfile);
+        //setSelectedEmployee(employee);
+        setOpenCardDialog(true); // Show employee card dialog
+    };
+
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-        if (data.status === "Dokončený") {
-            if (data.fullfilmentRate === undefined || data.fullfilmentRate === null) {
-                setError("Miera splnenia je povinná pre dokončené ciele.");
-                return;
+        const dataToSend = {
+            ...data,  
+            employeeIds: employeeIds, 
+        };
+        try {
+            console.log("status", dataToSend.statusId);
+    
+            const completedStatus = goalStatuses.find((status) => status.label === "Dokončený")?.id;
+    
+            // Check if the goal is completed and the completion rate is not set
+            if (dataToSend.statusId === completedStatus) {
+                if (dataToSend.fullfilmentRate === undefined || dataToSend.fullfilmentRate === null) {
+                    setError("Miera splnenia je povinná pre dokončené ciele.");
+                    return;
+                }
             }
-        } else {
-            data.fullfilmentRate = undefined;  
-            data.finishedDate = undefined;    
+    
+            console.log("Submitting form data:", dataToSend);
+            await api.put(`/Goal/Edit/${id}`, dataToSend);
+            openSnackbar("Zmeny sa uložili", "success");
+            nav('/employeeGoals');
+        } catch (err: any) {
+            setError(err.response?.dataToSend?.title || "Došlo k chybe pri ukladaní zmien.");
+            console.error(err);
         }
-        console.log("Submitting form data:", data); 
-        await api.put(`/Goal/Edit/${id}`, data)
-            .then((res) => {
-                console.log("res:", res);
-                openSnackbar("Zmeny sa uložili", "success");
-                nav('/manageGoals');
-            })
-            .catch((err) => {
-                setError(err.response.data.title);
-                console.error(err);
-            });
     };
 
     return (
@@ -240,7 +300,11 @@ const EditGoal: React.FC = () => {
                     <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
                          <DataGridPro
                         columns={columnsUser}
-                        rows={employeeData}
+                        //rows={employeeData}
+                        
+                        rows={employeeData.filter(
+                            (employee) => !assignedEmployees.some((assigned) => assigned.id === employee.employeeId)
+                        )}
                         initialState={{
                             pagination: {
                                 paginationModel: {
@@ -254,11 +318,15 @@ const EditGoal: React.FC = () => {
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                         getRowId={(row) => row.employeeId}
+                        onRowClick={(params) => handleEmployeeCardClick(params.row.employeeId)}
                     />
                     </Box>
                 )}
+                <Typography variant="h6"  gutterBottom>
+                    Priradení zamestnanci 
+                </Typography>
 
-                <Box sx={{ height: 400, width: "100%" }}>
+                <Box sx={{ height: 400, width: "100%", marginBottom: 4 }}>
                     <DataGridPro
                         columns={columnsAssigned}
                         rows={assignedEmployees}
@@ -275,25 +343,34 @@ const EditGoal: React.FC = () => {
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                         getRowId={(row) => row.id}
+                        onRowClick={(params) => handleEmployeeCardClick(params.row.id)}
                     />
                 </Box>
+                <EmployeeCardDialog
+                    open={openCardDialog}
+                    handleClose={() => setOpenCardDialog(false)}  userId={selectedEmployee?.id}  
+                    user={selectedEmployee}                />
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
 
-                    <TextField label="Názov cieľa" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message} />
+                    <TextField label="Názov cieľa" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message} slotProps={{ inputLabel: { shrink: true } }}/>
                     <TextareaAutosize aria-label="Popis cieľa" required minRows="10" {...register("description")}
                         style={{ resize: "vertical", height: "150px", maxHeight: "300px", overflowY: "auto" }} />
                     <Autocomplete fullWidth options={categoryOption}
+                        value={categoryOption.find((opt) => opt.label === watch("goalCategoryName")) || null}
                         onChange={(e, value) => {
                             if (value) {
                                 setValue("goalCategoryId", value.id);
+                                setValue("goalCategoryName", value.label);
                             } else {
                                 setValue("goalCategoryId", "");
-                            }
-                        }}
-                        renderInput={(params) => <TextField {...params} label="Kategória cieľa *" />}
+                            } 
+                        }}           
+                        renderInput={(params) => <TextField {...params} required label="Kategória cieľa " error={!!errors.goalCategoryId} helperText={errors.goalCategoryId?.message ?? ""}/>}
+                    
                     />
 
                 <Autocomplete fullWidth options={goalStatuses}
+                        value={goalStatuses.find((opt) => opt.label === watch("statusName")) || null}
                         onChange={(e, value) => handleStatusChange(value)}
                         renderOption={(props, option) => (
                         <li {...props} key={option.id}>
@@ -314,17 +391,27 @@ const EditGoal: React.FC = () => {
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker label="Dátum dokončenia *"  value={finishedDate} onChange={handleDateChangeFinished}/>
                             </LocalizationProvider>
-                            <TextField label="Miera splnenia" 
-                            {...register("fullfilmentRate", {
-                                setValueAs: (value) => (value === "" ? undefined : Number(value)),
-                              })}
-                            required type="number" inputProps={{ min: 0, max: 100 }} helperText={errors.fullfilmentRate ? errors.fullfilmentRate.message : "Zadajte číslo medzi 0 a 100."} 
-                            />
+                            <TextField
+                                    label="Miera splnenia *"
+                                    {...register("fullfilmentRate", {
+                                        setValueAs: (value) => (value === "" ? null : Number(value)),
+                                    })}
+                                    //required
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                                        const value = e.target.value;
+                                        const id = value ? parseInt(value, 10) || null : null;
+                                        setValue("fullfilmentRate",  id ); 
+  
+                                      }}type="number"
+                                    inputProps={{ min: 0, max: 100 }}
+                                    helperText={errors.fullfilmentRate ? errors.fullfilmentRate.message : "Zadajte číslo medzi 0 a 100."}
+                                    sx={{ marginTop: 2 }}
+                                />
                         </>
                     )}
 
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker label="Termín" value={dueDate} onChange={handleDateChange}
+                        <DatePicker label="Termín dokončenia *" value={dueDate} onChange={handleDateChange} 
                         />
                     </LocalizationProvider>
 

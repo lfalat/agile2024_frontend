@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGridPro} from "@mui/x-data-grid-pro";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { IconButton } from "@mui/material";
 import EmployeeCardDialog from "./EmployeCardDialog";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 
 const ManageUsers: React.FC = () => {
     const [userRows, setUserRows] = useState<UserProfile[]>([]);
