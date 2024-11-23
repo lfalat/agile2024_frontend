@@ -26,6 +26,8 @@ import EditWorkPosition from "../pages/spravca/Work_Positions/EditWorkPosition";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
 import { CustomSnackbarProvider } from '../hooks/SnackBarContext';
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
+import ManageFeedback from "../pages/zamestnanec/ManageFeedback";
+import NewFeedback from "../pages/zamestnanec/NewFeedback";
 import ManageGoals from "../pages/veduci zamestnanec/Goals/ManageGoals";
 import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
 import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
@@ -74,6 +76,10 @@ const App: React.FC = () => {
                             <Route path="/manageWorkPositions" element={<ManageWorkPositions />} />
                             <Route path="/newWorkPosition" element={<NewWorkPosition />} />
                             <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
+                        </Route>
+                        <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci, Roles.Zamestnanec]} />}>
+                            <Route path="/manageFeedback" element={<ManageFeedback />} />
+                            <Route path="/newFeedback" element={<NewFeedback />} />
                         </Route>
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
                             <Route path="/manageGoals" element={<ManageGoals />} />
