@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack } from "@mui/material";
-import { DataGridPro} from "@mui/x-data-grid-pro";
+import {
+    Box,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    DialogContentText,
+    Button,
+    Typography,
+    Snackbar,
+    Stack,
+} from "@mui/material";
+import { DataGridPro } from "@mui/x-data-grid-pro";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -24,16 +35,13 @@ const ManageUsers: React.FC = () => {
 
     useEffect(() => {
         const fetchData = () => {
-            Promise.all([
-                api.get<UserProfile[]>("/User/Users"),
-                api.get("/EmployeeCard/GetAll/")
-            ])
+            Promise.all([api.get<UserProfile[]>("/User/Users"), api.get("/EmployeeCard/GetAll/")])
                 .then(([userRes, employeeCardRes]) => {
                     const users = userRes.data;
                     const employeeCards = employeeCardRes.data;
                     console.log(employeeCards);
                     console.log(users);
-    
+
                     const updatedRows = users.map((user) => {
                         const matchingCard = employeeCards.find((card: any) => {
                             return String(card.user.id).trim() === String(user.id).trim();
@@ -44,7 +52,7 @@ const ManageUsers: React.FC = () => {
                             deactivated: matchingCard ? matchingCard.archived : false,
                         };
                     });
-    
+
                     setUserRows(updatedRows);
                     console.log(updatedRows); // Log updated rows
                 })
@@ -53,7 +61,7 @@ const ManageUsers: React.FC = () => {
                     setUserRows([]); // Reset rows on error
                 });
         };
-    
+
         fetchData();
     }, [refresh]);
 
@@ -64,7 +72,7 @@ const ManageUsers: React.FC = () => {
     };
 
     const handleOpenDialog = (user: UserProfile) => {
-        console.log(user);  
+        console.log(user);
         setSelectedUser(user);
         setOpenDialog(true);
     };
@@ -76,9 +84,9 @@ const ManageUsers: React.FC = () => {
 
     const handleDeactivate = (user: UserProfile) => {
         if (!user.deactivated) {
-            openSnackbar("Deaktivujem kartu.", "info");
+            openSnackbar("Deaktivujem kartu.", "success");
         } else {
-            openSnackbar("Aktivujem kartu.", "info");
+            openSnackbar("Aktivujem kartu.", "success");
         }
         api.post(`/EmployeeCard/Deactivate/${user.id}`)
             .then((res) => {
@@ -86,9 +94,7 @@ const ManageUsers: React.FC = () => {
                 console.log(res);
 
                 setUserRows((prevRows) =>
-                    prevRows.map((row) =>
-                        row.id === user.id ? { ...row, deactivated: true } : row
-                    )
+                    prevRows.map((row) => (row.id === user.id ? { ...row, deactivated: true } : row))
                 );
                 if (!user.deactivated) {
                     openSnackbar("Karta deaktivovaná.", "success");
@@ -98,7 +104,7 @@ const ManageUsers: React.FC = () => {
             })
             .catch((err) => {
                 console.log(err);
-            })
+            });
     };
 
     const handleDelete = () => {
@@ -127,29 +133,34 @@ const ManageUsers: React.FC = () => {
                 <Stack direction="row" spacing={2}>
                     <Button
                         variant="contained"
-                        sx={{ backgroundColor: 'orange', color: 'black', fontSize: '12px', textWrap: "wrap" }}
+                        sx={{ backgroundColor: "orange", color: "black", fontSize: "12px", textWrap: "wrap" }}
                         onClick={() => handleCardOpen(params.row)}
                     >
                         Zamestnanecka karta
                     </Button>
                     <Button
                         variant="contained"
-                        sx={{ backgroundColor: 'lightgray', color: 'black', fontSize: '12px', textWrap: "wrap" }}
+                        sx={{
+                            backgroundColor: "lightgray",
+                            color: "black",
+                            fontSize: "12px",
+                            textWrap: "wrap",
+                        }}
                         onClick={() => handleDeactivate(params.row)}
                     >
-                        {params.row.deactivated ? 'Aktivovať' : 'Deaktivovať'}
+                        {params.row.deactivated ? "Aktivovať" : "Deaktivovať"}
                     </Button>
                     <IconButton
                         aria-label="delete"
                         size="large"
                         onClick={() => handleOpenDialog(params.row)}
-                        sx={{ color: 'red' }}
+                        sx={{ color: "red" }}
                     >
                         <DeleteIcon />
                     </IconButton>
                 </Stack>
             ),
-        }
+        },
     ];
 
     const handleEdit = (params: any) => {
@@ -176,11 +187,9 @@ const ManageUsers: React.FC = () => {
                     <DataGrid
                         columns={columns}
                         rows={userRows}
-                        onRowDoubleClick = {(params) => handleEdit(params)}
+                        onRowDoubleClick={(params) => handleEdit(params)}
                         isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
-                        getRowClassName={(params) => 
-                            params.row.deactivated ? 'archived-row' : ''
-                        }
+                        getRowClassName={(params) => (params.row.deactivated ? "archived-row" : "")}
                         sx={dataGridStyles}
                         initialState={{
                             pagination: {
@@ -212,7 +221,7 @@ const ManageUsers: React.FC = () => {
                         </Button>
                     </DialogActions>
                 </Dialog>
-                
+
                 {/* Employee Card Dialog */}
                 <EmployeeCardDialog
                     userId={selectedUser?.id ?? null}
