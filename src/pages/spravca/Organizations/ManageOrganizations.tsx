@@ -45,7 +45,7 @@ const ManageOrganizations: React.FC = () => {
             return;
         }
         if (id) {
-            nav('/updateOrganization', { state: { id } });   // Presmerovanie na stránku úpravy s ID
+            nav('/updateOrganization', { state: { id } });    // Presmerovanie na stránku úpravy s ID
         }
     };
 
@@ -65,7 +65,7 @@ const ManageOrganizations: React.FC = () => {
             setRefresh((prev) => !prev);
             setOpenConfirm(false);
             setErrorMessage(null); 
-            openSnackbar("Organizácia bola úspešne upravená.", "success");
+            openSnackbar("Organizácia bola úspešne zmazaná.", "success");
         })
         .catch((err) => {
             console.error("Error deleting organization:", err);

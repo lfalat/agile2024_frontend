@@ -15,7 +15,7 @@ const schema = z
     .object({
         name: z.string().min(1, {message: "Názov musí byť vyplnený"}),
         code: z.string().min(1,{message: "Kód musí byť vyplnený"}),
-        location: z.string().min(1,{message: "Lokalizácia je povinná"})
+        //location: z.string().min(1,{message: "Lokalizácia je povinná"})
     }
     )
 type FormData = z.infer<typeof schema>;
@@ -23,26 +23,10 @@ type FormData = z.infer<typeof schema>;
 
 const NewOrganization: React.FC = () => {
 
-    const [locationOptions, setLocationOptions] = useState<{ id: string; label: string }[]>([]);
     const nav = useNavigate();
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState(false);
     const { openSnackbar } = useSnackbar();
-
-    useEffect(() => {
-        api.get("/Location/Locations")
-            .then((res) => {
-                const options = res.data.map((location: LocationResponse) => ({
-                    id: location.id,
-                    label: location.name,
-                }));
-                setLocationOptions(options);
-            })
-            .catch((err) => {
-                setLocationOptions([]);
-                console.error(err);
-            });
-    }, []);
 
     const {
         register,
@@ -53,8 +37,7 @@ const NewOrganization: React.FC = () => {
         resolver: zodResolver(schema),
         defaultValues: {
             name: "",
-            code: "",
-            location: ""
+            code: ""
         },
     });
 
@@ -89,25 +72,6 @@ const NewOrganization: React.FC = () => {
                     )}
                     <TextField label="Názov" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message ?? ""}></TextField>
                     <TextField label="Kód" required fullWidth {...register("code")} error={!!errors.code} helperText={errors.code?.message ?? ""}></TextField>
-                    <Autocomplete
-                        fullWidth
-                        disablePortal
-                        options={locationOptions} // lokacie
-                        getOptionLabel={(option) => option.label}
-                        onChange={(_, value) => {
-                            // Update form state with the selected location's id
-                            setValue("location", value ? value.id : "");
-                        }}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                required
-                                label="Lokalita organizácie"
-                                error={!!errors.location}
-                                helperText={errors.location?.message ?? ""}
-                            />
-                        )}
-                    />
                     <Stack direction="row" gap={3}>
                         <LoadingButton 
                             type="submit" 

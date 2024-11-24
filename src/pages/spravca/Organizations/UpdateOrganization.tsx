@@ -16,7 +16,7 @@ import { useLocation } from 'react-router-dom';
 const schema = z.object({
     name: z.string().min(1, { message: "Názov musí byť vyplnený" }),
     code: z.string().min(1, { message: "Kód musí byť vyplnený" }),
-    location: z.string().min(1, { message: "Lokalizácia je povinná" }),
+    //location: z.string().min(1, { message: "Lokalizácia je povinná" }),
     created: z.string(),
 });
 
@@ -29,6 +29,7 @@ const UpdateOrganization: React.FC = () => {
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState(false);
     const [organizationData, setOrganizationData] = useState<FormData | null>(null);
+    //const [selectedLocation, setSelectedLocation] = useState<{ id: string; label: string } | null>(null);
     const { openSnackbar } = useSnackbar();
 
     const formattedCreateDate = organizationData
@@ -45,7 +46,7 @@ const UpdateOrganization: React.FC = () => {
     const { register, handleSubmit, formState: { errors }, setValue } = useForm<FormData>({
         resolver: zodResolver(schema),
     });
-
+    
     const navigateBack = () => {
         console.log("Navigating back");
         nav("/manageOrganizations");
@@ -65,17 +66,17 @@ const UpdateOrganization: React.FC = () => {
                 })
                 .catch((err) => {
                     console.log("Nastala chyba pri načítaní údajov o organizácií.");
-                    navigateBack();
+                    navigateBack()
                 });
         }
-    }, [id]);
+    }, [id, setValue]);
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         setLoading(true);
         await api.put(`/Organization/Update/${id}`, data)
             .then((res) => {
                 openSnackbar("Organizácia bola úspešne upravená.", "success"); // Show success Snackbar
-                navigateBack();
+                nav("/manageOrganizations");
             })
             .catch((err) => {
                 openSnackbar("Nastala chyba pri aktualizácii organizácie.", "error"); // Show error Snackbar
