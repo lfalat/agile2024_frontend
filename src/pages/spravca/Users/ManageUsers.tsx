@@ -88,14 +88,17 @@ const ManageUsers: React.FC = () => {
                         row.id === user.id ? { ...row, deactivated: true } : row
                     )
                 );
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+            .finally(() => 
+            {
                 if (!user.deactivated) {
                     openSnackbar("Karta deaktivovaná.", "success");
                 } else {
                     openSnackbar("Karta aktivovaná.", "success");
                 }
-            })
-            .catch((err) => {
-                console.log(err);
             })
     };
 
