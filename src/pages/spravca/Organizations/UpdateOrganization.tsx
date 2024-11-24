@@ -11,6 +11,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import LocationResponse from "../../../types/responses/LocationResponse";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
 import useLoading from '../../../hooks/LoadingData';
+import { useLocation } from 'react-router-dom';
 
 const schema = z.object({
     name: z.string().min(1, { message: "Názov musí byť vyplnený" }),
@@ -22,13 +23,12 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const UpdateOrganization: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
-    const [locationOptions, setLocationOptions] = useState<{ id: string; label: string }[]>([]);
+    const { state } = useLocation();
+    const { id } = state || {};
     const nav = useNavigate();
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState(false);
     const [organizationData, setOrganizationData] = useState<FormData | null>(null);
-    const [selectedLocation, setSelectedLocation] = useState<{ id: string; label: string } | null>(null);
     const { openSnackbar } = useSnackbar();
 
     const formattedCreateDate = organizationData
@@ -46,20 +46,12 @@ const UpdateOrganization: React.FC = () => {
         resolver: zodResolver(schema),
     });
 
-    useEffect(() => {
-        api.get("/Location/Locations")
-            .then((res) => {
-                const options = res.data.map((location: LocationResponse) => ({
-                    id: location.id,
-                    label: location.name,
-                }));
-                setLocationOptions(options);
-            })
-            .catch((err) => {
-                setLocationOptions([]);
-                console.error(err);
-            });
+    const navigateBack = () => {
+        console.log("Navigating back");
+        nav("/manageOrganizations");
+    };
 
+    useEffect(() => {
         if (id) {
             api.get(`/Organization/${id}`)
                 .then((res) => {
@@ -67,23 +59,23 @@ const UpdateOrganization: React.FC = () => {
                     setOrganizationData(organizationData);
                     setValue("name", organizationData.name);
                     setValue("code", organizationData.code);
-                    setValue("location", organizationData.location.id);
+                    //setValue("location", organizationData.location.id);
                     setValue("created", organizationData.created);
-                    setSelectedLocation({ id: organizationData.location.id, label: organizationData.location.name });
+                    //setSelectedLocation({ id: organizationData.location.id, label: organizationData.location.name });
                 })
                 .catch((err) => {
-                    setError("Nastala chyba pri načítaní údajov o organizácií.");
-                    nav(-1);
+                    console.log("Nastala chyba pri načítaní údajov o organizácií.");
+                    navigateBack();
                 });
         }
-    }, [id, setValue]);
+    }, [id]);
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         setLoading(true);
         await api.put(`/Organization/Update/${id}`, data)
             .then((res) => {
                 openSnackbar("Organizácia bola úspešne upravená.", "success"); // Show success Snackbar
-                nav("/manageOrganizations");
+                navigateBack();
             })
             .catch((err) => {
                 openSnackbar("Nastala chyba pri aktualizácii organizácie.", "error"); // Show error Snackbar
@@ -119,26 +111,6 @@ const UpdateOrganization: React.FC = () => {
                             readOnly: true,
                         }}
                     />
-                    <Autocomplete
-                        fullWidth
-                        disablePortal
-                        options={locationOptions}
-                        getOptionLabel={(option) => option.label}
-                        value={selectedLocation}
-                        onChange={(_, value) => {
-                            setSelectedLocation(value);
-                            setValue("location", value ? value.id : "");
-                        }}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                required
-                                label="Lokalita organizácie"
-                                error={!!errors.location}
-                                helperText={errors.location?.message ?? ""}
-                            />
-                        )}
-                    />
                     <Stack direction="row" gap={3}>
                         <LoadingButton
                             type="submit"
@@ -149,7 +121,7 @@ const UpdateOrganization: React.FC = () => {
                         >
                             Upraviť organizáciu
                         </LoadingButton>
-                        <Button type="button" variant="contained" color="secondary" onClick={() => nav(-1)}>
+                        <Button type="button" variant="contained" color="secondary" onClick={navigateBack}>
                             Zrušiť
                         </Button>
                     </Stack>

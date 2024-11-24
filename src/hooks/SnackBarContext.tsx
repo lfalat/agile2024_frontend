@@ -16,6 +16,7 @@ export const CustomSnackbarProvider = ({ children }: { children: ReactNode }) =>
     const openSnackbar = (message: string, severity: 'success' | 'error') => {
         const variant: VariantType = severity === 'success' ? 'success' : 'error';
         enqueueSnackbar(message, { variant });
+
     };
 
     return (

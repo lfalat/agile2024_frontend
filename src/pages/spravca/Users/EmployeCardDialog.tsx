@@ -144,9 +144,11 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
             try {
                 // Fetching all the data simultaneously using Promise.all
                 const [locationsRes, departmentsRes, jobPositionsRes, levelsRes, contractTypesRes] = await Promise.all([
-                    api.get("/Location/Locations"),
-                    api.get("/Department/Departments"),
-                    api.get("/JobPosition/GetAll"),
+
+                    api.get("/Location/GetAllUnarchived"),
+                    api.get("/Department/GetAllUnarchived"),
+                    api.get("/JobPosition/GetAllUnarchived"),
+
                     api.get("/Level/GetAll"),
                     api.get("/ContractType/GetAll")
                 ]);
@@ -244,7 +246,6 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
                     setStartWorkDate(null);  // Handle null case
                 }
                 setWorkTime(res.data.workPercentage);
-
                 const selectedLoc = res.data.location;
                 const foundLocation = locationOptions.find(option => option.id === selectedLoc);
                 setSelectedLocation(foundLocation || null);

@@ -24,6 +24,7 @@ const schema = z.object({
     goalCategoryId: z.string().min(1, "Kategória cieľa je povinná!").default(""), 
     dueDate: z.string().min(1, "Termín je povinný!"),
     employeeIds: z.array(z.string()).min(1, "Musí byť pridelený aspoň jeden zamestnanec!"),
+
 });
 
 type FormData = z.infer<typeof schema>;
@@ -55,6 +56,7 @@ const NewGoal: React.FC = () => {
             goalCategoryId: "",
             dueDate:"",
             employeeIds: [], // default empty list
+
         }
     });
 
@@ -114,6 +116,7 @@ const NewGoal: React.FC = () => {
             .catch((err) => console.error("Error fetching employee cards:", err));
         
     }, []);
+
     /*
     const handleAddEmployee = (employeeId: string) => {
         if (!employeeIds.includes(employeeId)) {
@@ -125,6 +128,7 @@ const NewGoal: React.FC = () => {
         setEmployeeIds((prev) => prev.filter(id => id !== employeeId)); 
       };
     */
+
       const handleEmployeeCardClick = async (employeeCardId: string) => {
         const response = await api.get(`/EmployeeCard/GetUserByEmployeeCard?employeeCardId=${employeeCardId}`);
         const userProfile: UserProfile = response.data; 
@@ -165,6 +169,7 @@ const NewGoal: React.FC = () => {
             });
     };
 
+
     const handleAddEmployee = (employeeId: string) => {
         if (!employeeIds.includes(employeeId)) {
             const updated = [...employeeIds, employeeId];
@@ -201,6 +206,7 @@ const NewGoal: React.FC = () => {
                         {errors.employeeIds.message}
                     </Alert>
                 )}
+
                 {showTable && (
                     <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
                          <DataGridPro
@@ -249,6 +255,7 @@ const NewGoal: React.FC = () => {
                         renderInput={(params) => <TextField {...params} label="Kategória cieľa *" 
                         error={!!errors.goalCategoryId}
                         helperText={errors.goalCategoryId?.message  ?? ""} />}
+
                     />
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker

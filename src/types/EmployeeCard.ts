@@ -18,5 +18,4 @@ export type EmployeeCard = {
     location: string;
     archived: boolean;
     employmentDuration:string;
-    
 };

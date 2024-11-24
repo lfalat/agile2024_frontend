@@ -9,26 +9,53 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { IconButton } from "@mui/material";
 import EmployeeCardDialog from "./EmployeCardDialog";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { dataGridStyles } from "../../../styles/gridStyle";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const ManageUsers: React.FC = () => {
     const [userRows, setUserRows] = useState<UserProfile[]>([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-    const [openSnackbar, setOpenSnackbar] = useState(false);
+    //const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
+    const [refresh, setRefresh] = useState(false);
     const nav = useNavigate();
+    const { openSnackbar } = useSnackbar();
 
     useEffect(() => {
-        api.get("/User/Users")
-            .then((res) => {
-                const rows: UserProfile[] = res.data;
-                setUserRows(rows);
-            })
-            .catch((err) => {
-                setUserRows([]);
-                console.error(err);
-            });
-    }, []);
+        const fetchData = () => {
+            Promise.all([
+                api.get<UserProfile[]>("/User/Users"),
+                api.get("/EmployeeCard/GetAll/")
+            ])
+                .then(([userRes, employeeCardRes]) => {
+                    const users = userRes.data;
+                    const employeeCards = employeeCardRes.data;
+                    console.log(employeeCards);
+                    console.log(users);
+    
+                    const updatedRows = users.map((user) => {
+                        const matchingCard = employeeCards.find((card: any) => {
+                            return String(card.user.id).trim() === String(user.id).trim();
+                        });
+                        console.log(matchingCard);
+                        return {
+                            ...user,
+                            deactivated: matchingCard ? matchingCard.archived : false,
+                        };
+                    });
+    
+                    setUserRows(updatedRows);
+                    console.log(updatedRows); // Log updated rows
+                })
+                .catch((error) => {
+                    console.error("Error fetching data:", error);
+                    setUserRows([]); // Reset rows on error
+                });
+        };
+    
+        fetchData();
+    }, [refresh]);
 
     const handleCardOpen = (user: UserProfile) => {
         console.log("Selected User: ", user);
@@ -47,12 +74,39 @@ const ManageUsers: React.FC = () => {
         setSelectedUser(null);
     };
 
+    const handleDeactivate = (user: UserProfile) => {
+        if (!user.deactivated) {
+            openSnackbar("Deaktivujem kartu.", "info");
+        } else {
+            openSnackbar("Aktivujem kartu.", "info");
+        }
+        api.post(`/EmployeeCard/Deactivate/${user.id}`)
+            .then((res) => {
+                setRefresh((prev) => !prev);
+                console.log(res);
+
+                setUserRows((prevRows) =>
+                    prevRows.map((row) =>
+                        row.id === user.id ? { ...row, deactivated: true } : row
+                    )
+                );
+                if (!user.deactivated) {
+                    openSnackbar("Karta deaktivovaná.", "success");
+                } else {
+                    openSnackbar("Karta aktivovaná.", "success");
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+    };
+
     const handleDelete = () => {
         if (selectedUser) {
             api.delete(`/User/Delete?email=${encodeURIComponent(selectedUser.email)}`)
                 .then(() => {
                     setUserRows((prevRows) => prevRows.filter((user) => user.email !== selectedUser.email));
-                    setOpenSnackbar(true); // Show success message
+                    openSnackbar("Profil uspešne zmazaný", "success"); // Show success message
                 })
                 .catch((err) => console.error("Používateľ sa nevymazal:", err))
                 .finally(() => handleCloseDialog()); // Close dialog
@@ -68,7 +122,7 @@ const ManageUsers: React.FC = () => {
         {
             field: "actions",
             headerName: "Akcie",
-            width: 200,
+            width: 300,
             renderCell: (params) => (
                 <Stack direction="row" spacing={2}>
                     <Button
@@ -77,6 +131,13 @@ const ManageUsers: React.FC = () => {
                         onClick={() => handleCardOpen(params.row)}
                     >
                         Zamestnanecka karta
+                    </Button>
+                    <Button
+                        variant="contained"
+                        sx={{ backgroundColor: 'lightgray', color: 'black', fontSize: '12px', textWrap: "wrap" }}
+                        onClick={() => handleDeactivate(params.row)}
+                    >
+                        {params.row.deactivated ? 'Aktivovať' : 'Deaktivovať'}
                     </Button>
                     <IconButton
                         aria-label="delete"
@@ -115,7 +176,12 @@ const ManageUsers: React.FC = () => {
                     <DataGrid
                         columns={columns}
                         rows={userRows}
-                        onCellClick = {(params) => handleEdit(params)}
+                        onRowDoubleClick = {(params) => handleEdit(params)}
+                        isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
+                        getRowClassName={(params) => 
+                            params.row.deactivated ? 'archived-row' : ''
+                        }
+                        sx={dataGridStyles}
                         initialState={{
                             pagination: {
                                 paginationModel: {
@@ -125,6 +191,7 @@ const ManageUsers: React.FC = () => {
                         }}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
+                        getRowId={(row) => row.id}
                     />
                 </Box>
 
@@ -145,14 +212,6 @@ const ManageUsers: React.FC = () => {
                         </Button>
                     </DialogActions>
                 </Dialog>
-
-                {/* Success Snackbar */}
-                <Snackbar
-                    open={openSnackbar}
-                    autoHideDuration={3000}
-                    onClose={() => setOpenSnackbar(false)}
-                    message="Položka bola úspešne vymazaná"
-                />
                 
                 {/* Employee Card Dialog */}
                 <EmployeeCardDialog

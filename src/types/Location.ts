@@ -4,6 +4,7 @@ export type Location = {
     code: string; 
     city: string;
     zipcode: string;
+    organizations: string[]; 
     latitude: string;
     longitude: string;
     lastEdited: Date;

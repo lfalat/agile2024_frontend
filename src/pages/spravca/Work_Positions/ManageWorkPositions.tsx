@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArchiveIcon from '@mui/icons-material/Archive';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import { dataGridStyles } from "../../../styles/gridStyle"; 
 
 const ManageJobPositions: React.FC = () => {
     const [jobRows, setJobRows] = useState<JobPosition[]>([]);
@@ -22,8 +23,6 @@ const ManageJobPositions: React.FC = () => {
     useEffect(() => {
         api.get("/JobPosition/GetAll") // Adjust endpoint to fetch job positions
             .then((res) => {
-                console.log("data: ");
-                console.log(res.data);
                 const rows: JobPosition[] = res.data;
                 console.log(rows);
                 setJobRows(rows);
@@ -82,19 +81,50 @@ const ManageJobPositions: React.FC = () => {
     };
 
     const columns: GridColDef<JobPosition>[] = [
-        { field: "name", headerName: "Name", width: 200, resizable: false },
-        { field: "code", headerName: "Code", width: 150, resizable: false },
+        { field: "name", headerName: "Názov", width: 200, resizable: false },
+        { field: "code", headerName: "Kód", width: 150, resizable: false },
+        {
+            field: "organizationsID",
+            headerName: "Organizácia",
+            width: 250,
+            resizable: true,
+            renderCell: (params) => {
+                const organizations = params.row.organizations || [];
+                return organizations.length > 0
+                    ? organizations.map((x:any) => x.name).join(", ")
+                    : "..."; 
+            }
+        },
         {
             field: "levels",
-            headerName: "Levels",
+            headerName: "Level",
             width: 250,
-            resizable: false,
-            valueGetter: (params: { row: JobPosition }) => 
-                params.row?.levels?.map(([level]) => level).join(", "),
+            resizable: true,
+            renderCell: (params) => {
+                const levels = params.row.levels || [];
+                return levels.length > 0
+                    ? levels.map((x:any) => x.name).join(", ")
+                    : "..."; 
+            }
+        },
+        { field: "created", headerName: "Dátum pridania", width: 150, resizable: false, 
+            valueGetter: (value, row) => {
+                if (!row.created) return "Neplatný dátum";
+                
+                const createdDate = new Date(row.created);
+                return createdDate.toLocaleDateString("sk-SK", {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+            },
         },
         {
             field: "actions",
-            headerName: "Actions",
+            headerName: "Akcia",
             width: 150,
             resizable: false,
             renderCell: (params) => (
@@ -157,6 +187,10 @@ const ManageJobPositions: React.FC = () => {
                         columns={columns}
                         rows={jobRows}
                         onCellClick={(params) => handleEdit(params)}
+                        getRowClassName={(params) => 
+                            params.row.archived ? 'archived-row' : ''
+                        }
+                        sx={dataGridStyles}
                         initialState={{
                             pagination: {
                                 paginationModel: {
@@ -174,18 +208,18 @@ const ManageJobPositions: React.FC = () => {
 
                 {/* Delete Confirmation Dialog */}
                 <Dialog open={openDialog} onClose={handleCloseDialog}>
-                    <DialogTitle>Confirm Deletion</DialogTitle>
+                    <DialogTitle>Potvrdenie vymazania</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            Are you sure you want to delete this item? This action cannot be undone.
+                            Naozaj chcete vymazať pracovnú pozíciu? Táto udalosť je nenávratná
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleCloseDialog} color="primary">
-                            Cancel
+                            Zrušiť
                         </Button>
                         <Button onClick={handleDelete} color="primary">
-                            Delete
+                            Vymazať
                         </Button>
                     </DialogActions>
                 </Dialog>
