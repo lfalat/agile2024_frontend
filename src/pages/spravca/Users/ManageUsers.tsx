@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack } from "@mui/material";
+import { DataGridPro} from "@mui/x-data-grid-pro";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,7 @@ import EmployeeCardDialog from "./EmployeCardDialog";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { dataGridStyles } from "../../../styles/gridStyle";
 import { useSnackbar } from "../../../hooks/SnackBarContext";
+
 const ManageUsers: React.FC = () => {
     const [userRows, setUserRows] = useState<UserProfile[]>([]);
     const [openDialog, setOpenDialog] = useState(false);

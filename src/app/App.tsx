@@ -81,6 +81,7 @@ const App: React.FC = () => {
                             <Route path="/manageFeedback" element={<ManageFeedback />} />
                             <Route path="/newFeedback" element={<NewFeedback />} />
                         </Route>
+
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
                             <Route path="/manageGoals" element={<ManageGoals />} />
                             <Route path="/newGoal" element={<NewGoal />} />

@@ -23,6 +23,8 @@ const schema = z.object({
     description: z.string().min(1, "Popis cieľa je povinný!"),
     goalCategoryId: z.string().min(1, "Kategória cieľa je povinná!").default(""), 
     dueDate: z.string().min(1, "Termín je povinný!"),
+    employeeIds: z.array(z.string()).min(1, "Musí byť pridelený aspoň jeden zamestnanec!"),
+
 });
 
 type FormData = z.infer<typeof schema>;
@@ -53,6 +55,8 @@ const NewGoal: React.FC = () => {
             description: "",
             goalCategoryId: "",
             dueDate:"",
+            employeeIds: [], // default empty list
+
         }
     });
 
@@ -113,6 +117,7 @@ const NewGoal: React.FC = () => {
         
     }, []);
 
+    /*
     const handleAddEmployee = (employeeId: string) => {
         if (!employeeIds.includes(employeeId)) {
           setEmployeeIds((prev) => [...prev, employeeId]); 
@@ -122,6 +127,7 @@ const NewGoal: React.FC = () => {
       const handleRemoveEmployee = (employeeId: string) => {
         setEmployeeIds((prev) => prev.filter(id => id !== employeeId)); 
       };
+    */
 
       const handleEmployeeCardClick = async (employeeCardId: string) => {
         const response = await api.get(`/EmployeeCard/GetUserByEmployeeCard?employeeCardId=${employeeCardId}`);
@@ -163,6 +169,22 @@ const NewGoal: React.FC = () => {
             });
     };
 
+
+    const handleAddEmployee = (employeeId: string) => {
+        if (!employeeIds.includes(employeeId)) {
+            const updated = [...employeeIds, employeeId];
+            setEmployeeIds(updated);
+            setValue("employeeIds", updated); // Aktualizácia pre validáciu
+        }
+    };
+    
+    const handleRemoveEmployee = (employeeId: string) => {
+        const updated = employeeIds.filter((id) => id !== employeeId);
+        setEmployeeIds(updated);
+        setValue("employeeIds", updated); // Aktualizácia pre validáciu
+    };
+    
+
     return (
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
@@ -178,6 +200,13 @@ const NewGoal: React.FC = () => {
                     Pridať zamestnanca
                     
                 </Button>
+
+                {errors.employeeIds && (
+                    <Alert severity="error" sx={{ marginBottom: 2 }}>
+                        {errors.employeeIds.message}
+                    </Alert>
+                )}
+
                 {showTable && (
                     <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
                          <DataGridPro
@@ -207,7 +236,7 @@ const NewGoal: React.FC = () => {
                     user={selectedEmployee}                />
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     
-                    <TextField label="Názov cieľa" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message} />
+                    <TextField label="Názov cieľa" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message  ?? ""} />
                     <TextareaAutosize aria-label="Popis cieľa" required minRows = "10" {...register("description")} 
                     style={{
                         resize: "vertical",
@@ -223,7 +252,10 @@ const NewGoal: React.FC = () => {
                                 setValue("goalCategoryId", "");
                             }
                         }}             
-                        renderInput={(params) => <TextField {...params} label="Kategória cieľa *" />}
+                        renderInput={(params) => <TextField {...params} label="Kategória cieľa *" 
+                        error={!!errors.goalCategoryId}
+                        helperText={errors.goalCategoryId?.message  ?? ""} />}
+
                     />
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker

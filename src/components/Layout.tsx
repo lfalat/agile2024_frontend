@@ -97,6 +97,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         //     path: "/cieleRozvojMoje",
         // },
 
+
          {
             role: Roles.Veduci,
             label: "Ciele a rozvoj môjho tímu",

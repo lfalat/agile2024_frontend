@@ -3,7 +3,7 @@ import { SnackbarProvider as NotistackSnackbarProvider, useSnackbar as useNotist
 
 // Define the context type for your custom SnackbarProvider
 interface SnackbarContextType {
-    openSnackbar: (message: string, severity: VariantType) => void;
+    openSnackbar: (message: string, severity: 'success' | 'error') => void;
 }
 
 const SnackbarContext = createContext<SnackbarContextType | undefined>(undefined);
@@ -13,8 +13,10 @@ export const CustomSnackbarProvider = ({ children }: { children: ReactNode }) =>
     const { enqueueSnackbar } = useNotistackSnackbar();
 
     // Function to open the snackbar using notistack
-    const openSnackbar = (message: string, severity: VariantType) => {
-        enqueueSnackbar(message, { variant: severity });
+    const openSnackbar = (message: string, severity: 'success' | 'error') => {
+        const variant: VariantType = severity === 'success' ? 'success' : 'error';
+        enqueueSnackbar(message, { variant });
+
     };
 
     return (
