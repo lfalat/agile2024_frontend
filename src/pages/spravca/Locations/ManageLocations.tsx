@@ -40,7 +40,8 @@ const ManageLocations: React.FC = () => {
         const locationId = params.row.id;
         console.log("Double-clicked location ID:", locationId);
         if (locationId) {
-            nav(`/updateLocation/${locationId}`); 
+            //nav(`/updateLocation/${locationId}`); 
+            nav('/updateLocation', { state: { locationId } });
         }
     };
 

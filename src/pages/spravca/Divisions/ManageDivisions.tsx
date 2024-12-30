@@ -51,7 +51,7 @@ const ManageDivisions: React.FC = () => {
     const handleEdit = (params: any) => {
         const departmentId = params.row.id;
         setSelectedDepartmentId(departmentId);
-        nav(`/editDivision/${departmentId}`);
+        nav('/editDivision', { state: { departmentId } });
     };
 
     const handleDeleteClick = (id: string) => {

@@ -4,7 +4,7 @@ import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert, Autocom
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../../../app/api";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -33,7 +33,9 @@ type FormData = z.infer<typeof schema>;
 
 
 const EditDivision: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    const { state } = useLocation();
+    const { departmentId } = state || {};
+    //const { id } = useParams<{ id: string }>();
     const nav = useNavigate();
     const [userOptions, setUserOptions] = useState<{ id: string; label: string }[]>([]);
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
@@ -55,7 +57,7 @@ const EditDivision: React.FC = () => {
 
 
     useEffect(() => {
-        api.get(`/Department/${id}`)
+        api.get(`/Department/${departmentId}`)
             .then((res) => {
                 console.log("prijate data:", res.data);
                 const departmentData = res.data;
@@ -87,7 +89,7 @@ const EditDivision: React.FC = () => {
 
 
             
-    }, [id, setValue]);
+    }, [departmentId, setValue]);
 
     useEffect(() => {
         api.get("/Organization/UnarchivedOrganizations")
@@ -121,7 +123,7 @@ const EditDivision: React.FC = () => {
         api.get(`/Department/DepartmentsByOrganization/${organizationId}`)
             .then((res) => {
                 const options = res.data  
-                .filter((dept: Department) => dept.id !== id)
+                .filter((dept: Department) => dept.id !== departmentId)
                 .map((dept:Department) => ({
                     id: dept.id,
                     label: dept.name,
@@ -164,7 +166,7 @@ const EditDivision: React.FC = () => {
 
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
-            api.put(`/Department/Edit/${id}`, {
+            api.put(`/Department/Edit/${departmentId}`, {
                 
                 ...data,
                 childDepartments: data.childDepartments || [], 

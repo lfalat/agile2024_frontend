@@ -65,7 +65,8 @@ const ManageGoals: React.FC = () => {
     const handleEdit = (id: string, field: string) => {
         if (field === "actions") { 
             if (id) {
-                nav(`/editGoal/${id}`); 
+                //nav(`/editGoal/${id}`); 
+                nav('/editGoal', { state: { id} });
             } else {
                 console.error("Goal ID is missing or invalid");
             }

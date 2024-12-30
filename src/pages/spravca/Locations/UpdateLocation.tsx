@@ -4,7 +4,7 @@ import { Box, Stack, TextField, Typography, Button, Alert, Autocomplete  } from 
 import { z } from "zod";
 import { useForm, SubmitHandler, Controller  } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import OrganizationResponse from "../../../types/responses/OrganizationResponse";
 import api from "../../../app/api";
 import useLoading from "../../../hooks/LoadingData";
@@ -29,7 +29,9 @@ type FormData = z.infer<typeof schema>;
 // }
 
 const UpdateLocation: React.FC = () => {
-    const { id } = useParams<{ id: string }>();  // Získanie ID lokality z URL
+    const { state } = useLocation();
+    const { locationId } = state || {};
+    //const { id } = useParams<{ id: string }>();  // Získanie ID lokality z URL
     const nav = useNavigate();
     const [error, setError] = useState<string | null>(null);
     //const [loading, setLoading] = useState(true);
@@ -53,8 +55,8 @@ const UpdateLocation: React.FC = () => {
 
     // Načítanie dát existujúcej lokality podľa ID
     useEffect(() => {
-        if (id) {
-          api.get(`/Location/${id}`)
+        if (locationId) {
+          api.get(`/Location/${locationId}`)
             .then((res) => {
                 const locationData = res.data;
                 const organizationIDs = locationData.organizations || []; // Fallback to empty array
@@ -91,7 +93,7 @@ const UpdateLocation: React.FC = () => {
               console.error("Error loading location data:", err);
             });
         }
-      }, [id, setValue]);
+      }, [locationId, setValue]);
 
      
      useEffect(() => {
@@ -111,7 +113,7 @@ const UpdateLocation: React.FC = () => {
     }, []);
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-        await api.put(`/Location/Update/${id}`, {
+        await api.put(`/Location/Update/${locationId}`, {
             ...data, 
             orgazations: data.organizations || [],
         })

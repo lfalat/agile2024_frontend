@@ -4,7 +4,7 @@ import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert, Textare
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../../../app/api";
 import { GoalCategoryResponse } from "../../../types/responses/GoalCategoryResponse";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -22,19 +22,22 @@ const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
     description: z.string().min(1, "Popis cieľa je povinný!"),
     goalCategoryId: z.string().min(1, "Kategória cieľa je povinná!").default(""), 
-    statusId: z.string().min(1, "Stav cieľa je povinný!"),
     goalCategoryName: z.string().min(1, "Kategória cieľa je povinná!").default(""), 
+    statusId: z.string().min(1, "Stav cieľa je povinný!"),
     statusName: z.string().min(1, "Stav cieľa je povinný!"),
     dueDate: z.string().min(1, "Termín je povinný!"),
     finishedDate: z.string().nullable().optional(),
     fullfilmentRate: z.number().min(0, "Miera splnenia musí byť medzi 0 a 100").max(100, "Miera splnenia musí byť medzi 0 a 100").nullable().optional(), // Optional completion rate
+    employeeIds: z.array(z.string()).optional(),
 });
 
 type FormData = z.infer<typeof schema>;
 
 const EditGoal: React.FC = () => {
     const nav = useNavigate();
-    const { id } = useParams<{ id: string }>();
+    //const { id } = useParams<{ id: string }>();
+    const { state } = useLocation();
+    const { id } = state || {};
     const [error, setError] = useState<string>();
     const [dueDate, setDueDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
     const [finishedDate, setFinishedDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
@@ -65,8 +68,9 @@ const EditGoal: React.FC = () => {
             goalCategoryId: "",
             statusId: "",
             dueDate: "",
-            finishedDate: "",
+            finishedDate: null,
             fullfilmentRate: undefined,
+            employeeIds: [],
         }
     });
 
@@ -83,7 +87,7 @@ const EditGoal: React.FC = () => {
                 setValue("statusId", goalData.statusId || "");
                 setValue("statusName", goalData.statusName || "");                
                 setValue("dueDate", goalData.dueDate || "");
-                setValue("finishedDate", goalData.finishedDate || "");
+                setValue("finishedDate", goalData.finishedDate || null);
                 setValue("fullfilmentRate", goalData.fullfilmentRate);
                 setDueDate(dayjs(goalData.dueDate));
                 setFinishedDate(dayjs(goalData.finishedDate));
@@ -168,7 +172,7 @@ const EditGoal: React.FC = () => {
                     <Button
                         variant="contained"
                         sx={{ backgroundColor: "turquoise", color: "black", fontSize: "12px", textWrap: "wrap" }}
-                        disabled={employeeIds.includes(params.row.employeeId)}
+                        disabled={employeeIds.includes(params.row.employeeId) || assignedEmployees.some(emp => emp.id === params.row.employeeId)}
                         onClick={() => handleAddEmployee(params.row.employeeId)} 
           
                     >
@@ -178,7 +182,7 @@ const EditGoal: React.FC = () => {
                     <Button
                         variant="contained"
                         sx={{ backgroundColor: "orange", color: "black", fontSize: "12px", textWrap: "wrap" }}
-                        disabled={!employeeIds.includes(params.row.employeeId)}
+                        disabled={!employeeIds.includes(params.row.employeeId) && !assignedEmployees.some(emp => emp.id === params.row.employeeId)}
                         onClick={() => handleRemoveEmployee(params.row.employeeId)} 
           
                     >
@@ -232,21 +236,24 @@ const EditGoal: React.FC = () => {
             setShowCompletionFields(true);
         } else {
             setShowCompletionFields(false);
-            setValue("fullfilmentRate", undefined); // Clear value if not completed
-            setValue("finishedDate", undefined);   // Clear value if not completed
+            setValue("fullfilmentRate", undefined); 
+            setValue("finishedDate", null);   
         }
     };
-    
 
-    const handleAddEmployee = (employeeId: string) => {
-        if (!employeeIds.includes(employeeId)) {
-          setEmployeeIds((prev) => [...prev, employeeId]); 
-        }
-      };
+
+      const handleAddEmployee = (employeeId: string) => {
+        setEmployeeIds((prevEmployeeIds) => {
+            const updatedEmployeeIds = [...prevEmployeeIds, employeeId];
+            console.log("pridavani edit3: ", updatedEmployeeIds);
+            return updatedEmployeeIds;
+        });
+    };
     
-      const handleRemoveEmployee = (employeeId: string) => {
-        setEmployeeIds((prev) => prev.filter(id => id !== employeeId)); 
-      };
+    const handleRemoveEmployee = (employeeId: string) => {
+        setEmployeeIds((prev) => prev.filter(id => id !== employeeId));
+        setAssignedEmployees((prev) => prev.filter(emp => emp.id !== employeeId));
+    };
 
       const handleEmployeeCardClick = async (employeeCardId: string) => {
         const response = await api.get(`/EmployeeCard/GetUserByEmployeeCard?employeeCardId=${employeeCardId}`);
@@ -258,16 +265,18 @@ const EditGoal: React.FC = () => {
     };
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
+        const assignedEmployeeIds = assignedEmployees.map(emp => emp.id);
+        const allEmployeeIds = [...employeeIds, ...assignedEmployeeIds]; 
         const dataToSend = {
-            ...data,  
-            employeeIds: employeeIds, 
+            ...data,
+            employeeIds: allEmployeeIds,
         };
+
         try {
-            console.log("status", dataToSend.statusId);
+
     
             const completedStatus = goalStatuses.find((status) => status.label === "Dokončený")?.id;
-    
-            // Check if the goal is completed and the completion rate is not set
+
             if (dataToSend.statusId === completedStatus) {
                 if (dataToSend.fullfilmentRate === undefined || dataToSend.fullfilmentRate === null) {
                     setError("Miera splnenia je povinná pre dokončené ciele.");
@@ -300,11 +309,11 @@ const EditGoal: React.FC = () => {
                     <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
                          <DataGridPro
                         columns={columnsUser}
-                        //rows={employeeData}
+                        rows={employeeData}
                         
-                        rows={employeeData.filter(
+                        /*rows={employeeData.filter(
                             (employee) => !assignedEmployees.some((assigned) => assigned.id === employee.employeeId)
-                        )}
+                        )}*/
                         initialState={{
                             pagination: {
                                 paginationModel: {
