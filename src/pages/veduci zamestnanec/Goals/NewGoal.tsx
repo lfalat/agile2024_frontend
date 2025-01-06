@@ -68,7 +68,7 @@ const NewGoal: React.FC = () => {
             field: "actions",
             headerName: "Akcie",
             width: 200,
-            renderCell: (params: { row: any; }) => (
+            renderCell: (params: any ) => (
                 <Stack direction="row" spacing={2}>
                     <Button
                         variant="contained"
@@ -224,8 +224,12 @@ const NewGoal: React.FC = () => {
                         }}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
-                        getRowId={(row) => row.employeeId}
-                        onRowClick={(params) => handleEmployeeCardClick(params.row.employeeId)}
+                        getRowId={(row) => row.employeeId}     
+                        onCellClick={(params) => {
+                            if (params.field === "name" || params.field === "surname") {
+                                handleEmployeeCardClick(params.row.employeeId);
+                            }
+                        }}
                     />
                     </Box>
                 )}

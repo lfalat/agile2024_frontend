@@ -126,6 +126,17 @@ const ManageGoals: React.FC = () => {
         });
         return rows;
     };
+
+    const getDate = (date: any) => {
+        if (!date) return "-";
+
+        const createdDate = new Date(date);
+        return createdDate.toLocaleDateString("sk-SK", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+    };
     
     const columnsUser: GridColDef[] = [
         { field: "name", headerName: "Meno", width: 150 },
@@ -294,9 +305,9 @@ const ManageGoals: React.FC = () => {
 
                         {/* Conditionally display finishedDate */}
                         {selectedGoal?.finishedDate && (
-                            <Typography variant="body1">Dátum dokončenia: {selectedGoal.finishedDate}</Typography>
+                            <Typography variant="body1">Dátum dokončenia: {getDate(selectedGoal.finishedDate)}</Typography>
                         )}
-                        <Typography variant="body1">Termín dokončenia: {selectedGoal?.dueDate}</Typography>
+                        <Typography variant="body1">Termín dokončenia: {getDate(selectedGoal?.dueDate)}</Typography>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleCloseGoalDetailsDialog} color="primary">

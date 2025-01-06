@@ -163,6 +163,17 @@ const EmployeeGoals: React.FC = () => {
         }
     };
 
+    const getDate = (date: any) => {
+        if (!date) return "-";
+
+        const createdDate = new Date(date);
+        return createdDate.toLocaleDateString("sk-SK", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+    };
+
     const columns: GridColDef<Goal>[] = [
         { field: "name", headerName: "Názov cieľa", width: 300 },
         { field: "statusDescription", headerName: "Stav cieľa", width: 200 },
@@ -170,7 +181,7 @@ const EmployeeGoals: React.FC = () => {
             valueFormatter: (params: any) => {
             if (params != null) {
                 const value = params != null ? params : 0;
-                return `${value}`;
+                return `${getDate(value)}`;
             }
             return `-`;
         }, },

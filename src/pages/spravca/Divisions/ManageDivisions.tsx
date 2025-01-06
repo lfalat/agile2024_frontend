@@ -87,6 +87,20 @@ const ManageDivisions: React.FC = () => {
         }
     };
 
+    const getDate = (date: any) => {
+        if (!date) return "-";
+
+        const createdDate = new Date(date);
+        return createdDate.toLocaleDateString("sk-SK", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+    };
+
     const columns: GridColDef[] = [
         {
             field: "name",
@@ -111,6 +125,11 @@ const ManageDivisions: React.FC = () => {
             headerName: "Dátum vytvorenia oddelenia",
             width: 250,
             resizable: false,
+            renderCell: (params) => (
+                <Typography variant="body2">
+                    {getDate(params.row.created)}
+                </Typography>
+            ),
         },
         {
             field: "actions",

@@ -59,7 +59,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         },
         {
             role: Roles.Spravca,
-            label: "Správa orginazácie",
+            label: "Správa organizácie",
             path: "/manageOrganizations",
         },
         {
