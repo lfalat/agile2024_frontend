@@ -15,6 +15,6 @@ export type Review = {
     name: string
     status: string
     assignedEmployees?: { id: string; name: string; surname: string }[];
-    creationTimestamp: string
-    completionTimestamp?: string
+    createdAt: string
+    completedAt?: string
 }

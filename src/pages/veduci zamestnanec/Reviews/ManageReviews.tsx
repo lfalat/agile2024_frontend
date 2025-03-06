@@ -16,16 +16,16 @@ const ManageReviews: React.FC = () => {
     const [selectedReview, setSelectedReview] = useState<Review | null>(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
-    const [openReviewDetailsDialog, setOpenReviewDetailsDialog] = useState(false); // Modal state
-    const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null); // For showing employee card dialog
-    const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]); // Vybraní zamestnanci
+    const [openReviewDetailsDialog, setOpenReviewDetailsDialog] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null);
+    const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]);
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
 
 
     const nav = useNavigate();
 
     useEffect(() => {
-        api.get("/Review/Reviews")
+        api.get("/Review/GetReviews")
             .then((res) => {
                 console.log("Received reviews:", res.data);
                 setReviewRows(res.data);
@@ -46,20 +46,6 @@ const ManageReviews: React.FC = () => {
         setOpenDialog(false);
         setSelectedReview(null);
     };
-
-
-    // const handleEdit = (id: string, field: string) => {
-    //     if (field === "actions") { 
-    //         if (id) {
-    //             //nav(`/editGoal/${id}`); 
-    //             nav('/editGoal', { state: { id} });
-    //         } else {
-    //             console.error("Goal ID is missing or invalid");
-    //         }
-    //     } else {
-    //         console.log("Click event did not originate from the actions column");
-    //     }
-    // };
     
     const handleRowClick = (params: any) => {
         const review = reviewRows.find(review => review.id === params.row.id);       
@@ -89,7 +75,7 @@ const ManageReviews: React.FC = () => {
     
     const handleEmployeeClick = (employees: SimplifiedEmployeeCard[]) => {
         setSelectedEmployees(employees);
-        setOpenEmployeesModal(true); // Otvorenie modálneho okna
+        setOpenEmployeesModal(true);
     };
 
     
@@ -110,14 +96,15 @@ const ManageReviews: React.FC = () => {
     
 
     const columns: GridColDef<Review>[] = [
-        { field: "name", headerName: "Názov posudku", width: 150 },
+        { field: "reviewName", headerName: "Názov posudku", width: 250 },
         { field: "status", headerName: "Stav", width: 150 },
         {   field: "assignedEmployees", 
             headerName: "Priradený zamestnanec", 
             width: 200,
             renderCell: (params) => {
                 const assignedEmployees = params.row.assignedEmployees || [];
-                const employeeNames = assignedEmployees.map(emp => `${emp.name} ${emp.surname}`);
+                const employeeNames = assignedEmployees.map(emp => `${emp.name}`);
+                const employeeIds = assignedEmployees.map(emp => emp.id);
     
                 return (
                     <Tooltip title={employeeNames.join(', ')}>
@@ -135,22 +122,23 @@ const ManageReviews: React.FC = () => {
                             }}
                         >
                             {employeeNames.length > 3 ? `${employeeNames.slice(0, 3).join(', ')}...` : employeeNames.join(', ')}
+                            
                         </Typography>
                     </Tooltip>
                 );
             }
         },
         { 
-            field: "creationTimestamp", 
+            field: "createdAt", 
             headerName: "Dátum a čas vytvorenia posudku", 
-            width: 200, 
-            valueGetter: (params: { row: Review }) => getDate(params.row.creationTimestamp) 
+            width: 250, 
+            //valueGetter: (params: { row: Review }) => getDate(params.row.createdAt) 
         },
         { 
-            field: "completionTimestamp", 
+            field: "completedAt", 
             headerName: "Dátum a čas dokončenia posudku", 
-            width: 200, 
-            valueGetter: (params: { row: Review }) => getDate(params.row.completionTimestamp) 
+            width: 250, 
+            //valueGetter: (params: { row: Review }) => getDate(params.row.completedAt) 
         },
     ];
 
@@ -181,41 +169,12 @@ const ManageReviews: React.FC = () => {
                 </Box>
 
 
-                {/* Modálne okno na zobrazenie zamestnancov */}
-                <Dialog open={openEmployeesModal} onClose={() => setOpenEmployeesModal(false)} maxWidth="sm" fullWidth>
-                    <DialogTitle>Priradení zamestnanci</DialogTitle>
-                    <DialogContent>
-                        <Box sx={{ height: 300 }}>
-                            <DataGridPro
-                                columns={columnsUser}
-                                rows={selectedEmployees.map((emp) => ({
-                                    id: emp.id,
-                                    name: emp.name,
-                                    surname: emp.surname,
-                                }))}
-                                pageSizeOptions={[5, 10, 25]} 
-                                pagination
-                                onRowClick={(params) => handleEmployeeCardClick(params.row.id)}
-                            />
-                        </Box>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setOpenEmployeesModal(false)} color="primary">
-                            Zatvoriť
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-
-                {/* Employee Card Dialog */}
-                <EmployeeCardDialog
-                    open={openCardDialog}
-                    handleClose={() => setOpenCardDialog(false)}  userId={selectedEmployee?.id}  
-                    user={selectedEmployee}                />
-
+                
     
             </Box>
         </Layout>
     );
 };
+
 
 export default ManageReviews;
