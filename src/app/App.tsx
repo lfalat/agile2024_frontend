@@ -35,6 +35,7 @@ import { SnackbarProvider } from 'notistack';
 import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
 import ManageReviews from "../pages/veduci zamestnanec/Reviews/ManageReviews";
 import NewReview from "../pages/veduci zamestnanec/Reviews/NewReview";
+import ManageReviewsZam from "../pages/zamestnanec/ManageReviewsZam";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -92,7 +93,8 @@ const App: React.FC = () => {
                             <Route path="/newReview" element={<NewReview/>} />
                         </Route>
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
-                            <Route path="/employeeGoals" element={<EmployeeGoals />} />                     
+                            <Route path="/employeeGoals" element={<EmployeeGoals />} />    
+                            <Route path="/myReviews" element={<ManageReviewsZam/>}/>                 
                         </Route>
                     
                     </Route>
