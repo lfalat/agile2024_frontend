@@ -36,6 +36,7 @@ import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
 import ManageReviews from "../pages/veduci zamestnanec/Reviews/ManageReviews";
 import NewReview from "../pages/veduci zamestnanec/Reviews/NewReview";
 import ManageReviewsZam from "../pages/zamestnanec/ManageReviewsZam";
+import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -91,6 +92,7 @@ const App: React.FC = () => {
                             <Route path="/editGoal" element={<EditGoal />} />      
                             <Route path="/manageReviews" element={<ManageReviews/>} />
                             <Route path="/newReview" element={<NewReview/>} />
+                            <Route path="/updateReview" element={<UpdateReview/>} />
                         </Route>
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
                             <Route path="/employeeGoals" element={<EmployeeGoals />} />    

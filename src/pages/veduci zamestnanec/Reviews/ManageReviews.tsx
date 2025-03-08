@@ -36,6 +36,17 @@ const ManageReviews: React.FC = () => {
             });
     }, []);
 
+    const handleRowDoubleClick = (params: any) => {
+        const id = params.row.id;
+        console.log("Double-clicked ID:", id);
+        if (!id) {
+            console.warn("No ID found for this row:", params.row);
+            return;
+        }
+        if (id) {
+            nav('/updateReview', { state: { id } });
+        }
+    };
 
     const handleOpenDialog = (review: Review) => {
         setSelectedReview(review);
@@ -63,8 +74,7 @@ const ManageReviews: React.FC = () => {
         const userProfile: UserProfile = response.data; 
 
         setSelectedEmployee(userProfile);
-        //setSelectedEmployee(employee);
-        setOpenCardDialog(true); // Show employee card dialog
+        setOpenCardDialog(true);
     };
 
     type SimplifiedEmployeeCard = {
@@ -165,6 +175,7 @@ const ManageReviews: React.FC = () => {
                         onRowClick={handleRowClick}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
+                        onRowDoubleClick={handleRowDoubleClick}
                     />
                 </Box>
 
