@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../../components/Layout";
+import Layout from "../../../components/Layout";
 import { Box, Typography } from "@mui/material";
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
-import UserProfile from "../../types/UserProfile";
-import api from "../../app/api";
+import UserProfile from "../../../types/UserProfile";
+import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
-import { Review } from "../../types/Review";
-import { useAuth } from "../../hooks/AuthProvider";
+import { Review } from "../../../types/Review";
+import { useAuth } from "../../../hooks/AuthProvider";
 
 const ManageReviewsZam: React.FC = () => {
     const [reviewRows, setReviewRows] = useState<Review[]>([]);
@@ -31,6 +31,18 @@ const ManageReviewsZam: React.FC = () => {
             });
     }, []);
 
+
+    const handleRowDoubleClick = (params: any) => {
+        const id = params.row.id;
+        console.log("Double-clicked ID:", id);
+        if (!id) {
+            console.warn("No ID found for this row:", params.row);
+            return;
+        }
+        if (id) {
+            nav('/updateReviewZam', { state: { id } });
+        }
+    };
 
     const handleRowClick = (params: any) => {
         const review = reviewRows.find(review => review.id === params.row.id);       
@@ -118,6 +130,7 @@ const ManageReviewsZam: React.FC = () => {
                         columns={columns}
                         rows={reviewRows}
                         onRowClick={handleRowClick}
+                        onRowDoubleClick={handleRowDoubleClick}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                     />
