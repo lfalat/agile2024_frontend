@@ -85,6 +85,7 @@ const UpdateReview: React.FC = () => {
     }, [id, setValue]);
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
+        
         console.log("data:", data);
         const updateData = {
             employeeEndDate: data.employeeEndDate,
@@ -106,6 +107,37 @@ const UpdateReview: React.FC = () => {
                 setLoading(false);
             });
     };
+    
+    const handleSave = async (action: string) => {
+        console.log("Action:", action);
+        const updateData = {
+            employeeEndDate: reviewData?.employeeEndDate,
+            superiorEndDate: reviewData?.superiorEndDate,
+            action: action
+        };
+
+        console.log("to update:", updateData);
+        setLoading(true);
+
+        await api.put(`/Review/Update/${id}`, updateData)
+            .then((res) => {
+                if (action === "finish") {
+                    openSnackbar("Posudok bol úspešne ukončený.", "success");
+                } else {
+                    openSnackbar("Posudok bol úspešne upravený.", "success");
+                }
+                nav("/manageReviews");
+            })
+            .catch((err) => {
+                openSnackbar("Nastala chyba pri aktualizácii.", "error");
+                console.error(err);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
+    
 
     const loadingIndicator = useLoading(reviewData === null);
     if (loadingIndicator) return loadingIndicator;
@@ -162,15 +194,18 @@ const UpdateReview: React.FC = () => {
                         label="Termín zamestnanca"
                         value={reviewData?.employeeEndDate ? dayjs(reviewData?.employeeEndDate) : null}
                         onChange={(newValue) => {
-                            setValue("employeeEndDate", newValue ? newValue.toISOString() : "");
-                        }}
+                            const updatedDate = newValue ? newValue.toISOString() : "";
+                            setValue("employeeEndDate", updatedDate);
+                            setReviewData((prev: any) => ({ ...prev, employeeEndDate: updatedDate })); }}
                         sx={{ mb: 2 }}
                     />
                     <DateTimePicker
                         label="Termín vedúceho zamestnanca"
                         value={reviewData?.superiorEndDate ? dayjs(reviewData?.superiorEndDate) : null}
                         onChange={(newValue) => {
-                            setValue("superiorEndDate", newValue ? newValue.toISOString() : "");
+                            const updatedDate = newValue ? newValue.toISOString() : "";
+                            setValue("superiorEndDate", updatedDate); 
+                            setReviewData((prev: any) => ({ ...prev, superiorEndDate: updatedDate })); 
                         }}
                         sx={{ mb: 2 }}
                     />
@@ -183,17 +218,17 @@ const UpdateReview: React.FC = () => {
 
                     <Box sx={{ display: "flex", justifyContent: "flex-end", mt: "auto" }}>
                         <Stack direction="row" gap={3}>
-                            <Button variant="contained" type="submit"
+                            <Button variant="contained" type="button" onClick={() => handleSave("finish")}
                                 sx={{ backgroundColor: '#D2691E', '&:hover': { backgroundColor: '#FB8C00' },color: 'white',padding: '8px 16px',}}
                             >
                                 Ukončiť posudzovanie
                             </Button>
-                            <Button variant="contained" type="submit"
+                            <Button variant="contained" type="button" onClick={() => handleSave("save")}
                                 sx={{ backgroundColor: '#008B8B','&:hover': { backgroundColor: '#0097A7' }, color: 'white', padding: '8px 16px',}}
                             >
                                 Uložiť
                             </Button>
-                            <Button variant="contained" type="button"
+                            <Button variant="contained" type="button" 
                                 sx={{ backgroundColor: '#B0BEC5', '&:hover': { backgroundColor: '#90A4AE' }, color: 'white', padding: '8px 16px', }}
                                 onClick={() => nav("/manageReviews")}
                             >
