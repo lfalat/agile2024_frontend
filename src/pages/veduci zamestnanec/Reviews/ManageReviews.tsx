@@ -43,7 +43,7 @@ const ManageReviews: React.FC = () => {
             console.warn("No ID found for this row:", params.row);
             return;
         }
-        if (id) {
+        if (id && params.row.completedAt == null) {
             nav('/updateReview', { state: { id } });
         }
     };
