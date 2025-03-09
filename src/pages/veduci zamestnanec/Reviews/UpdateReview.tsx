@@ -12,6 +12,7 @@ import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import ReviewModal from './ReviewModal';
+import { useAuth } from '../../../hooks/AuthProvider';
 
 export type Goal = {
     goalId: string;
@@ -29,6 +30,7 @@ type FormData = z.infer<typeof schema>;
 
 const UpdateReview: React.FC = () => {
 
+    const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
     const { state } = useLocation();
     const { id } = state || {};
     const nav = useNavigate();
@@ -112,7 +114,7 @@ const UpdateReview: React.FC = () => {
     const handleEmployeeClick = (employee: any) => {
         setSelectedEmployee(employee);
         setOpenModal(true);
-        api.get(`/Review/GetEmployeeReviewText/${id}/${employee.id}`)
+        api.get(`/Review/GetReviewText/${userProfile?.id}/${id}/${employee.id}`)
             .then((response) => {
                 setEmployeeGoals(response.data);
                 console.log("goals info ", response.data);
