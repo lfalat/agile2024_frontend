@@ -83,6 +83,22 @@ const UpdateReviewZam: React.FC = () => {
         }
     }, [id, setValue]);
 
+    const onSubmit: SubmitHandler<FormData> = async (data) => {
+        setLoading(true);
+        await api.put(`/Review/Update/${id}`)
+            .then((res) => {
+                openSnackbar("Posudok bol úspešne upravený.", "success");
+                nav("/manageReviews");
+            })
+            .catch((err) => {
+                openSnackbar("Nastala chyba pri aktualizácii.", "error");
+                console.error(err);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
   
     const loadingIndicator = useLoading(reviewData === null);
     if (loadingIndicator) return loadingIndicator;
@@ -173,6 +189,14 @@ const UpdateReviewZam: React.FC = () => {
                 selectedEmployee={selectedEmployee} 
                 setSelectedGoal={setSelectedGoal}
                 reviewData={reviewData}
+                onSave={(superiorDescription) => {
+                    if (selectedGoal) {
+                    setSelectedGoal({
+                        ...selectedGoal,
+                        superiorDescription,
+                    });
+                    }
+                }}
             />
             
         </Layout>

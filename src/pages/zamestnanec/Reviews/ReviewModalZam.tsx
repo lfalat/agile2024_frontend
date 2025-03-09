@@ -10,9 +10,10 @@ type ReviewModalProps = {
   selectedEmployee: any | null;
   setSelectedGoal: React.Dispatch<React.SetStateAction<Goal | null>>;
   reviewData: any;
+  onSave: (superiorDescription: string) => void;
 };
 
-const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData}) => {
+const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave}) => {
 
   const handleGoalClick = (goal: Goal) => {
     setSelectedGoal(goal);
