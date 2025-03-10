@@ -19,7 +19,10 @@ export type Goal = {
     goalName: string;
     employeeDescription?: string;
     superiorDescription?: string;
+    employeeQuestion?: string;
+    superiorQuestion?: string;
 };
+
 const schema = z.object({
     employeeEndDate: z.string().optional(),
     superiorEndDate: z.string().optional(),
@@ -253,6 +256,14 @@ const UpdateReview: React.FC = () => {
                     setSelectedGoal({
                         ...selectedGoal,
                         superiorDescription,
+                    });
+                    }
+                }}
+                onSaveQuestion={(superiorQuestion) => {
+                    if (selectedGoal) {
+                    setSelectedGoal({
+                        ...selectedGoal,
+                        superiorQuestion,
                     });
                     }
                 }}

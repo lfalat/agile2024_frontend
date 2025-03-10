@@ -158,7 +158,7 @@ const ManageReviews: React.FC = () => {
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Ciele a rozvoj môjho tímu
+                    Zoznam posudkov
                 </Typography>
                 <Button
                     variant="contained"

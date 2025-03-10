@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogActions, DialogContent, DialogTitle, Typography, Box, TextField, Button, Stack } from "@mui/material";
 import { Goal } from "./UpdateReviewZam";
+import api from "../../../app/api";
+import { useAuth } from "../../../hooks/AuthProvider";
 
 type ReviewModalProps = {
   open: boolean;
@@ -10,23 +12,85 @@ type ReviewModalProps = {
   selectedEmployee: any | null;
   setSelectedGoal: React.Dispatch<React.SetStateAction<Goal | null>>;
   reviewData: any;
-  onSave: (superiorDescription: string) => void;
+  onSave: (employeeDescription: string) => void;
+  onSaveQuestion: (employeeQuestion: string) => void;
 };
 
-const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave}) => {
+const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave, onSaveQuestion }) => {
 
+  const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
+  const [showQuestions, setShowQuestions] = useState(false);
+
+  const handleToggleQuestions = () => {
+    setShowQuestions(!showQuestions);
+  };
   const handleGoalClick = (goal: Goal) => {
     setSelectedGoal(goal);
   };
 
-  const handleSuperiorDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEmployeeDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (selectedGoal) {
       setSelectedGoal({
         ...selectedGoal,
-        superiorDescription: e.target.value,
+        employeeDescription: e.target.value,
       });
     }
   };
+
+  const handleEmployeeQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (selectedGoal) {
+        setSelectedGoal({
+          ...selectedGoal,
+          employeeQuestion: e.target.value,
+        });
+      }
+    };
+
+  const handleSend = async () => {
+    if (!selectedGoal || !selectedGoal.goalId || !selectedEmployee) {
+      console.error("Missing required data");
+      return;
+    }
+  
+    try {
+      const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
+        employeeDescription: selectedGoal?.employeeDescription || "",
+        superiorDescription: selectedGoal?.superiorDescription || "",
+        employeeQuestion: selectedGoal?.employeeQuestion || "",
+        superiorQuestion: selectedGoal?.superiorQuestion || ""
+      });
+  
+      console.log("Description sent successfully:", response.data);
+      onClose();
+      setRefresh(!refresh);
+    } catch (error) {
+      console.error("Error sending description:", error);
+    }
+  };
+  
+
+  const handleSave = async () => {
+    if (!selectedGoal || !selectedGoal.goalId) {
+      console.error("No goal selected");
+      return;
+    }
+  
+    try {
+        const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
+          employeeDescription: selectedGoal?.employeeDescription || "",
+          superiorDescription: selectedGoal?.superiorDescription || "",
+          employeeQuestion: selectedGoal?.employeeQuestion || "",
+          superiorQuestion: selectedGoal?.superiorQuestion || "",
+      });
+  
+      console.log("Description updated successfully:", response.data);
+      onClose();
+      setRefresh(!refresh);
+    } catch (error) {
+      console.error("Error updating description:", error);
+    }
+  };
+  
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -66,49 +130,93 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
         )}
 
         <Box sx={{ mb: 2 }}>
-            <Button
-                variant="contained"
-                sx={{ backgroundColor: '#ffffff',  color: '#000000',  '&:hover': { backgroundColor: '#0097A7' }, '&:active': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', transform: 'translateY(2px)', }, marginRight: 2 }}
-                onClick={() => console.log("Posudzovany Ciel")}
-                >
-                Posudzovany Ciel
-            </Button>
-            <Button
-                variant="contained"
-                sx={{backgroundColor: '#ffffff', color: '#000000', '&:hover': { backgroundColor: '#0097A7' },'&:active': {boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',transform: 'translateY(2px)',}}}
-                  onClick={() => console.log("Dodatocne Otazky")}
-                    >
-                Dodatocne Otazky
-              </Button>
-        </Box>
-        <Typography variant="body1" fontWeight="bold" sx={{ mb: 2 }}>
-          Poprosím o vyjadrenie k cieľu: {reviewData?.goals?.[0]}
-        </Typography>
-
-        <Box sx={{ mb: 2 }}>
-          <TextField
-            label="Vyjadrenie zamestnanca"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={4}
-            value={selectedGoal?.employeeDescription || ""}
-            sx={{ mb: 2 }}
-            InputProps={{
-              readOnly: true,
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#ffffff',
+              color: '#000000',
+              '&:hover': { backgroundColor: '#0097A7' },
+              '&:active': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', transform: 'translateY(2px)' },
+              marginRight: 2,
             }}
-          />
-          <TextField
-            label="Vyjadrenie vedúceho zamestnanca"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={4}
-            value={selectedGoal?.superiorDescription || ""}
-            sx={{ mb: 2 }}
-            onChange={handleSuperiorDescriptionChange}
-          />
+            onClick={() => setShowQuestions(false)}
+          >
+            Posudzovany Ciel
+          </Button>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#ffffff',
+              color: '#000000',
+              '&:hover': { backgroundColor: '#0097A7' },
+              '&:active': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', transform: 'translateY(2px)' },
+            }}
+            onClick={handleToggleQuestions}
+          >
+            Dodatocne Otazky
+          </Button>
         </Box>
+        {!showQuestions ? (<Typography variant="body1" fontWeight="bold" sx={{ mb: 2 }}>
+          Poprosím o vyjadrenie k položke: {reviewData?.goals?.[0]}
+        </Typography>) : (<Typography variant="body1" fontWeight="bold" sx={{ mb: 2 }}>
+          Dodatočné otázky k položke: {reviewData?.goals?.[0]}
+        </Typography>)}
+
+        {!showQuestions ? (
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              label="Vyjadrenie zamestnanca"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={4}
+              placeholder="Tu môžeš zadať text"
+              value={selectedGoal?.employeeDescription || ""}
+              sx={{ mb: 2 }}
+              onChange={handleEmployeeDescriptionChange}
+            />
+            <TextField
+              label="Vyjadrenie vedúceho zamestnanca"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={4}
+              placeholder="Nemožné vyplniť, len pre vedúceho zamestnanca"
+              value={selectedGoal?.superiorDescription || ""}
+              sx={{ mb: 2 }}
+              InputProps={{
+                readOnly: true,
+              }}
+            />
+          </Box>
+        ) : (
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              label="Otázky vedúceho zamestnanca"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={4}
+              placeholder="Nemožné vyplniť, len pre vedúceho zamestnanca"
+              value={selectedGoal?.superiorQuestion || ""}
+              sx={{ mb: 2 }}
+              InputProps={{
+                readOnly: true,
+              }}
+            />
+            <TextField
+              label="Odpovede zamestnanca"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={4} 
+              placeholder="Tu môžeš zadať text"
+              value={selectedGoal?.employeeQuestion || ""}
+              sx={{ mb: 2 }}
+              onChange={handleEmployeeQuestionChange}
+            />
+          </Box>
+        )}
       </DialogContent>
       <DialogActions>
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: "auto" }}>
@@ -117,14 +225,24 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
           variant="contained"
           type="submit"
           sx={{
-              backgroundColor: '#D2691E',
-              '&:hover': { backgroundColor: '#FB8C00' },
-              color: 'white',
-              padding: '8px 16px',
+            backgroundColor: '#D2691E',
+            '&:hover': { backgroundColor: '#FB8C00' },
+            color: 'white',
+            padding: '8px 16px',
           }}
-          >
+          onClick={handleSend}
+        >
           Odoslať
-        </Button>                                                  
+        </Button>
+
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          sx={{ backgroundColor: '#008B8B', '&:hover': { backgroundColor: '#0097A7' }, color: 'white', padding: '8px 16px' }}
+        >
+          Uložiť
+        </Button>                                                
+        
           <Button variant="contained" onClick={onClose}
               sx={{ backgroundColor: '#B0BEC5', '&:hover': { backgroundColor: '#90A4AE' }, color: 'white', padding: '8px 16px',}}
             >
@@ -138,10 +256,3 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
 };
 
 export default ReviewModalZam;
-
-
-// <Button variant="contained" onClick={() => onSave(selectedGoal?.superiorDescription || "")}
-//sx={{ backgroundColor: '#008B8B', '&:hover': { backgroundColor: '#0097A7' },color: 'white',padding: '8px 16px',}}
-//>
-//  Uložiť
-//</Button>

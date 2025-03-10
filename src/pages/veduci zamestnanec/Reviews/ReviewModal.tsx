@@ -13,9 +13,10 @@ type ReviewModalProps = {
   setSelectedGoal: React.Dispatch<React.SetStateAction<Goal | null>>;
   reviewData: any;
   onSave: (superiorDescription: string) => void;
+  onSaveQuestion: (superiorQuestion: string) => void;
 };
 
-const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave }) => {
+const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave, onSaveQuestion }) => {
 
   const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
   const [showQuestions, setShowQuestions] = useState(false);
@@ -36,6 +37,16 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
     }
   };
 
+
+  const handleSuperiorQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (selectedGoal) {
+      setSelectedGoal({
+        ...selectedGoal,
+        superiorQuestion: e.target.value,
+      });
+    }
+  };
+
   const handleSend = async () => {
     if (!selectedGoal || !selectedGoal.goalId || !selectedEmployee) {
       console.error("Missing required data");
@@ -46,12 +57,15 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
       const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
         employeeDescription: selectedGoal?.employeeDescription || "",
         superiorDescription: selectedGoal?.superiorDescription || "",
+        employeeQuestion: selectedGoal?.employeeQuestion || "",
+        superiorQuestion: selectedGoal?.superiorQuestion || ""
       });
-  
+      
       console.log("Description sent successfully:", response.data);
       onClose();
       setRefresh(!refresh);
     } catch (error) {
+      console.log()
       console.error("Error sending description:", error);
     }
   };
@@ -67,6 +81,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
         const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
           employeeDescription: selectedGoal?.employeeDescription || "",
           superiorDescription: selectedGoal?.superiorDescription || "",
+          employeeQuestion: selectedGoal?.employeeQuestion || "",
+          superiorQuestion: selectedGoal?.superiorQuestion || "",
       });
   
       console.log("Description updated successfully:", response.data);
@@ -156,6 +172,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
               fullWidth
               multiline
               rows={4}
+              placeholder="Nemožné vyplniť, len pre zamestnanca"
               value={selectedGoal?.employeeDescription || ""}
               sx={{ mb: 2 }}
               InputProps={{
@@ -168,6 +185,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
               fullWidth
               multiline
               rows={4}
+              placeholder="Tu môžeš zadať text"
               value={selectedGoal?.superiorDescription || ""}
               sx={{ mb: 2 }}
               onChange={handleSuperiorDescriptionChange}
@@ -176,22 +194,28 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
         ) : (
           <Box sx={{ mb: 2 }}>
             <TextField
-              label="Otázky vedúceho"
+              label="Otázky vedúceho zamestnanca"
               variant="outlined"
               fullWidth
               multiline
               rows={4}
-              value=""
+              placeholder="Tu môžeš zadať text"
+              value={selectedGoal?.superiorQuestion || ""}
               sx={{ mb: 2 }}
+              onChange={handleSuperiorQuestionChange}
             />
             <TextField
-              label="Otázky zamestnanca"
+              label="Odpovede zamestnanca"
               variant="outlined"
               fullWidth
               multiline
               rows={4}
-              value=""
+              placeholder="Nemožné vyplniť, len pre zamestnanca"
+              value={selectedGoal?.employeeQuestion || ""}
               sx={{ mb: 2 }}
+              InputProps={{
+                readOnly: true,
+              }}
             />
           </Box>
         )}

@@ -20,6 +20,8 @@ export type Goal = {
     goalName: string;
     employeeDescription?: string;
     superiorDescription?: string;
+    employeeQuestion?: string;
+    superiorQuestion?: string;
 };
 
 const schema = z.object({
@@ -31,9 +33,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const UpdateReviewZam: React.FC = () => {
+
+    const { userProfile } = useAuth();
     const { state } = useLocation();
     const { id } = state || {};
-    const { userProfile } = useAuth();
     const nav = useNavigate();
     const [loading, setLoading] = useState(false);
     const [reviewData, setReviewData] = useState<any | null>(null);
@@ -107,11 +110,11 @@ const UpdateReviewZam: React.FC = () => {
     const handleEmployeeClick = (employee: any) => {
         setSelectedEmployee(employee);
         setOpenModal(true);
-        api.get(`/Review/GetEmployeeReviewText/${id}/${employee.id}`)
+        api.get(`/Review/GetReviewText/${userProfile?.id}/${id}/${employee.id}`)
             .then((response) => {
                 setEmployeeGoals(response.data);
-                //console.log("goals info ", response.data);
-                //console.log("selected e ", employee);
+                console.log("goals info ", response.data);
+                console.log("selected e ", employee);
             })
             .catch((error) => {
                 console.error("Error fetching employee goals:", error);
@@ -189,11 +192,19 @@ const UpdateReviewZam: React.FC = () => {
                 selectedEmployee={selectedEmployee} 
                 setSelectedGoal={setSelectedGoal}
                 reviewData={reviewData}
-                onSave={(superiorDescription) => {
+                onSave={(employeeDescription) => {
                     if (selectedGoal) {
                     setSelectedGoal({
                         ...selectedGoal,
-                        superiorDescription,
+                        employeeDescription,
+                    });
+                    }
+                }}
+                onSaveQuestion={(employeeQuestion) => {
+                    if (selectedGoal) {
+                    setSelectedGoal({
+                        ...selectedGoal,
+                        employeeQuestion,
                     });
                     }
                 }}
