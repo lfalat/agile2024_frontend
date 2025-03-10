@@ -7,6 +7,7 @@ import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
 import { Review } from "../../../types/Review";
 import { useAuth } from "../../../hooks/AuthProvider";
+import { dataGridStyles } from "../../../styles/gridStyle";
 
 const ManageReviewsZam: React.FC = () => {
     const [reviewRows, setReviewRows] = useState<Review[]>([]);
@@ -133,6 +134,10 @@ const ManageReviewsZam: React.FC = () => {
                         onRowDoubleClick={handleRowDoubleClick}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
+                        getRowClassName={(params) => {
+                            return params.row.completedAt === null ? "notReaded-row" : "";
+                        }} 
+                        sx={dataGridStyles}
                     />
                 </Box>
             </Box>

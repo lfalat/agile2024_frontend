@@ -9,6 +9,8 @@ import { IconButton } from "@mui/material";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 import { Review } from "../../../types/Review";
 import { EmployeeCard } from "../../../types/EmployeeCard";
+import { dataGridStyles } from "../../../styles/gridStyle";
+
 
 const ManageReviews: React.FC = () => {
     const [reviewRows, setReviewRows] = useState<Review[]>([]);
@@ -176,6 +178,10 @@ const ManageReviews: React.FC = () => {
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                         onRowDoubleClick={handleRowDoubleClick}
+                        getRowClassName={(params) => {
+                            return params.row.completedAt === null ? "notReaded-row" : "";
+                        }}                        
+                        sx={dataGridStyles}
                     />
                 </Box>
 

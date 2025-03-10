@@ -18,8 +18,8 @@ import { useAuth } from '../../../hooks/AuthProvider';
 export type Goal = {
     goalId: string;
     goalName: string;
-    employeeDescription?: string;
-    superiorDescription?: string;
+    employeeRecDescription?: string;
+    superiorRecDescription?: string;
     employeeQuestion?: string;
     superiorQuestion?: string;
 };
@@ -196,7 +196,7 @@ const UpdateReviewZam: React.FC = () => {
                     if (selectedGoal) {
                     setSelectedGoal({
                         ...selectedGoal,
-                        employeeDescription,
+                        employeeRecDescription: employeeDescription,
                     });
                     }
                 }}
