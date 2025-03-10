@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogActions, DialogContent, DialogTitle, Typography, Box, TextField, Button, Stack } from "@mui/material";
 import { Goal } from "./UpdateReview";
 import api from "../../../app/api";
@@ -18,6 +18,7 @@ type ReviewModalProps = {
 
 const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave, onSaveQuestion }) => {
 
+  
   const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
   const [showQuestions, setShowQuestions] = useState(false);
 
@@ -32,7 +33,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
     if (selectedGoal) {
       setSelectedGoal({
         ...selectedGoal,
-        superiorDescription: e.target.value,
+        superiorRecDescription: e.target.value,
       });
     }
   };
@@ -55,8 +56,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
   
     try {
       const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
-        employeeDescription: selectedGoal?.employeeDescription || "",
-        superiorDescription: selectedGoal?.superiorDescription || "",
+        employeeDescription: selectedGoal?.employeeRecDescription || "",
+        superiorDescription: selectedGoal?.superiorRecDescription || "",
         employeeQuestion: selectedGoal?.employeeQuestion || "",
         superiorQuestion: selectedGoal?.superiorQuestion || ""
       });
@@ -79,8 +80,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
   
     try {
         const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
-          employeeDescription: selectedGoal?.employeeDescription || "",
-          superiorDescription: selectedGoal?.superiorDescription || "",
+          employeeDescription: selectedGoal?.employeeRecDescription || "",
+          superiorDescription: selectedGoal?.superiorRecDescription || "",
           employeeQuestion: selectedGoal?.employeeQuestion || "",
           superiorQuestion: selectedGoal?.superiorQuestion || "",
       });
@@ -173,7 +174,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
               multiline
               rows={4}
               placeholder="Nemožné vyplniť, len pre zamestnanca"
-              value={selectedGoal?.employeeDescription || ""}
+              value={selectedGoal?.employeeRecDescription || ""}
               sx={{ mb: 2 }}
               InputProps={{
                 readOnly: true,
@@ -186,7 +187,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
               multiline
               rows={4}
               placeholder="Tu môžeš zadať text"
-              value={selectedGoal?.superiorDescription || ""}
+              value={selectedGoal?.superiorRecDescription || ""}
               sx={{ mb: 2 }}
               onChange={handleSuperiorDescriptionChange}
             />

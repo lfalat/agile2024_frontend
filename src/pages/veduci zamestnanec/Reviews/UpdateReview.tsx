@@ -17,8 +17,8 @@ import { useAuth } from '../../../hooks/AuthProvider';
 export type Goal = {
     goalId: string;
     goalName: string;
-    employeeDescription?: string;
-    superiorDescription?: string;
+    employeeRecDescription?: string;
+    superiorRecDescription?: string;
     employeeQuestion?: string;
     superiorQuestion?: string;
 };
@@ -251,11 +251,11 @@ const UpdateReview: React.FC = () => {
                 selectedEmployee={selectedEmployee} 
                 setSelectedGoal={setSelectedGoal}
                 reviewData={reviewData}
-                onSave={(superiorDescription) => {
+                onSave={(superiorRecDescription) => {
                     if (selectedGoal) {
                     setSelectedGoal({
                         ...selectedGoal,
-                        superiorDescription,
+                        superiorRecDescription,
                     });
                     }
                 }}
