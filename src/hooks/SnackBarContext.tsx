@@ -8,11 +8,9 @@ interface SnackbarContextType {
 
 const SnackbarContext = createContext<SnackbarContextType | undefined>(undefined);
 
-// Create a custom SnackbarProvider (rename it to avoid the conflict with notistack's SnackbarProvider)
 export const CustomSnackbarProvider = ({ children }: { children: ReactNode }) => {
     const { enqueueSnackbar } = useNotistackSnackbar();
 
-    // Function to open the snackbar using notistack
     const openSnackbar = (message: string, severity: 'success' | 'error') => {
         const variant: VariantType = severity === 'success' ? 'success' : 'error';
         enqueueSnackbar(message, { variant });
