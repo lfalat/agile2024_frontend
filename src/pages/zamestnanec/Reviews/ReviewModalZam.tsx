@@ -13,7 +13,7 @@ type ReviewModalProps = {
   setSelectedGoal: React.Dispatch<React.SetStateAction<Goal | null>>;
   reviewData: any;
   onSave: (employeeRecDescription: string) => void;
-  onSaveQuestion: (employeeQuestion: string) => void;
+  onSaveQuestion: (employeeQuestionDescription: string) => void;
 };
 
 const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave, onSaveQuestion }) => {
@@ -41,7 +41,7 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
       if (selectedGoal) {
         setSelectedGoal({
           ...selectedGoal,
-          employeeQuestion: e.target.value,
+          employeeQuestionDescription: e.target.value,
         });
       }
     };
@@ -56,8 +56,8 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
       const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}/${selectedEmployee.id}`, {
         employeeDescription: selectedGoal?.employeeRecDescription || "",
         superiorDescription: selectedGoal?.superiorRecDescription || "",
-        employeeQuestion: selectedGoal?.employeeQuestion || "",
-        superiorQuestion: selectedGoal?.superiorQuestion || ""
+        employeeQuestion: selectedGoal?.employeeQuestionDescription || "",
+        superiorQuestion: selectedGoal?.superiorQuestionDescription || ""
       });
   
       console.log("Description sent successfully:", response.data);
@@ -79,8 +79,8 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
         const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
           employeeDescription: selectedGoal?.employeeRecDescription || "",
           superiorDescription: selectedGoal?.superiorRecDescription || "",
-          employeeQuestion: selectedGoal?.employeeQuestion || "",
-          superiorQuestion: selectedGoal?.superiorQuestion || "",
+          employeeQuestion: selectedGoal?.employeeQuestionDescription || "",
+          superiorQuestion: selectedGoal?.superiorQuestionDescription || "",
       });
   
       console.log("Description updated successfully:", response.data);
@@ -198,7 +198,7 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
               multiline
               rows={4}
               placeholder="Nemožné vyplniť, len pre vedúceho zamestnanca"
-              value={selectedGoal?.superiorQuestion || ""}
+              value={selectedGoal?.superiorQuestionDescription || ""}
               sx={{ mb: 2 }}
               InputProps={{
                 readOnly: true,
@@ -211,7 +211,7 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
               multiline
               rows={4} 
               placeholder="Tu môžeš zadať text"
-              value={selectedGoal?.employeeQuestion || ""}
+              value={selectedGoal?.employeeQuestionDescription || ""}
               sx={{ mb: 2 }}
               onChange={handleEmployeeQuestionChange}
             />

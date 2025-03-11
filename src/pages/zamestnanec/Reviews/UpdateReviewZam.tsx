@@ -20,8 +20,8 @@ export type Goal = {
     goalName: string;
     employeeRecDescription?: string;
     superiorRecDescription?: string;
-    employeeQuestion?: string;
-    superiorQuestion?: string;
+    employeeQuestionDescription?: string;
+    superiorQuestionDescription?: string;
 };
 
 const schema = z.object({
@@ -201,11 +201,11 @@ const UpdateReviewZam: React.FC = () => {
                     });
                     }
                 }}
-                onSaveQuestion={(employeeQuestion) => {
+                onSaveQuestion={(employeeQuestionDescription) => {
                     if (selectedGoal) {
                     setSelectedGoal({
                         ...selectedGoal,
-                        employeeQuestion,
+                        employeeQuestionDescription,
                     });
                     }
                 }}

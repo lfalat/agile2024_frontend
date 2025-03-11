@@ -13,7 +13,7 @@ type ReviewModalProps = {
   setSelectedGoal: React.Dispatch<React.SetStateAction<Goal | null>>;
   reviewData: any;
   onSave: (superiorDescription: string) => void;
-  onSaveQuestion: (superiorQuestion: string) => void;
+  onSaveQuestion: (superiorQuestionDescription: string) => void;
 };
 
 const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals, selectedGoal, selectedEmployee, setSelectedGoal, reviewData, onSave, onSaveQuestion }) => {
@@ -43,7 +43,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
     if (selectedGoal) {
       setSelectedGoal({
         ...selectedGoal,
-        superiorQuestion: e.target.value,
+        superiorQuestionDescription: e.target.value,
       });
     }
   };
@@ -58,8 +58,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
       const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}/${selectedEmployee.id}`, {
         employeeDescription: selectedGoal?.employeeRecDescription || "",
         superiorDescription: selectedGoal?.superiorRecDescription || "",
-        employeeQuestion: selectedGoal?.employeeQuestion || "",
-        superiorQuestion: selectedGoal?.superiorQuestion || ""
+        employeeQuestion: selectedGoal?.employeeQuestionDescription || "",
+        superiorQuestion: selectedGoal?.superiorQuestionDescription || ""
       });
       
       console.log("Description sent successfully:", response.data);
@@ -82,8 +82,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
         const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
           employeeDescription: selectedGoal?.employeeRecDescription || "",
           superiorDescription: selectedGoal?.superiorRecDescription || "",
-          employeeQuestion: selectedGoal?.employeeQuestion || "",
-          superiorQuestion: selectedGoal?.superiorQuestion || "",
+          employeeQuestion: selectedGoal?.employeeQuestionDescription || "",
+          superiorQuestion: selectedGoal?.superiorQuestionDescription || "",
       });
   
       console.log("Description updated successfully:", response.data);
@@ -201,7 +201,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
               multiline
               rows={4}
               placeholder="Tu môžeš zadať text"
-              value={selectedGoal?.superiorQuestion || ""}
+              value={selectedGoal?.superiorQuestionDescription || ""}
               sx={{ mb: 2 }}
               onChange={handleSuperiorQuestionChange}
             />
@@ -212,7 +212,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
               multiline
               rows={4}
               placeholder="Nemožné vyplniť, len pre zamestnanca"
-              value={selectedGoal?.employeeQuestion || ""}
+              value={selectedGoal?.employeeQuestionDescription || ""}
               sx={{ mb: 2 }}
               InputProps={{
                 readOnly: true,
