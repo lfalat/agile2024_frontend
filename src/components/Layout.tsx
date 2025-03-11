@@ -1,5 +1,5 @@
 import { AppBar, Avatar, Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Toolbar, Tooltip, Typography } from "@mui/material";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect, useContext } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "../hooks/AuthProvider";
 import PersonIcon from "@mui/icons-material/Person";
@@ -8,6 +8,11 @@ import HttpsIcon from "@mui/icons-material/Https";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 import Roles from "../types/Roles";
+import NotificationMenu from "./NotificationMenu";
+import api from "../app/api";
+import NotificationResponse from "../types/responses/NotificationResponse";
+import { useNotifications } from "../hooks/NotificationContext";
+import { SignalRContext } from "../hooks/signalRConnection";
 
 const drawerWidth = 240;
 
@@ -18,10 +23,11 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
-    const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-
-    const { userProfile } = useAuth();
+    const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null); 
+    const { userProfile,refresh } = useAuth();
     const nav = useNavigate();
+    const { notifications, addNotification, setNotifications } = useNotifications(); 
+    const { connection } = useContext(SignalRContext);
 
     const toggleDrawer = () => {
         if (!isClosing) {
@@ -50,6 +56,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         localStorage.clear();
         window.location.href = "/login";
     };
+
+    useEffect(() => {
+        console.log("Fetching notifications");
+        
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            console.error("JWT token is missing!");
+            return;
+        }
+        
+        api.get<NotificationResponse[]>("Notification/Notifications")
+        .then((response) => {
+            console.log("📩 Fetched notifications:", response.data);
+            setNotifications(response.data.slice(0, 10));
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }, []);
+
 
     const menuItems = [
         {
@@ -143,6 +169,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         style={{ cursor: "pointer" }}
                     />
                     <Box sx={{ flexGrow: 1 }} />
+                    <Box sx={{ flexGrow: 0 }} paddingRight={5} >
+                        <NotificationMenu notificationList ={notifications} />
+                    </Box>
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">
                             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
