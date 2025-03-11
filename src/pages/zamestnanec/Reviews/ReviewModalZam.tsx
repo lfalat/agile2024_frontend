@@ -76,7 +76,7 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
     }
   
     try {
-        const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
+      const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}/${selectedEmployee.id}`, {
           employeeDescription: selectedGoal?.employeeRecDescription || "",
           superiorDescription: selectedGoal?.superiorRecDescription || "",
           employeeQuestion: selectedGoal?.employeeQuestionDescription || "",
