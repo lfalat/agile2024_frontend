@@ -109,7 +109,7 @@ const UpdateReviewZam: React.FC = () => {
     
     const handleEmployeeClick = (employee: any) => {
         setSelectedEmployee(employee);
-        setOpenModal(true);
+        
         api.get(`/Review/GetReviewText/${userProfile?.id}/${id}/${employee.id}`)
             .then((response) => {
                 setEmployeeGoals(response.data);
@@ -120,6 +120,7 @@ const UpdateReviewZam: React.FC = () => {
                 console.error("Error fetching employee goals:", error);
                 openSnackbar("Chyba pri načítaní cieľov zamestnanca.", "error");
             });
+            setOpenModal(true);
     };
 
     const handleCloseModal = () => {
