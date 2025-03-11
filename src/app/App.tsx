@@ -33,6 +33,11 @@ import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
 import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
 import { SnackbarProvider } from 'notistack';
 import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
+import ManageReviews from "../pages/veduci zamestnanec/Reviews/ManageReviews";
+import NewReview from "../pages/veduci zamestnanec/Reviews/NewReview";
+import ManageReviewsZam from "../pages/zamestnanec/Reviews/ManageReviewsZam";
+import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
+import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -85,10 +90,16 @@ const App: React.FC = () => {
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
                             <Route path="/manageGoals" element={<ManageGoals />} />
                             <Route path="/newGoal" element={<NewGoal />} />
-                            <Route path="/editGoal" element={<EditGoal />} />                       
+                            <Route path="/editGoal" element={<EditGoal />} />      
+                            <Route path="/manageReviews" element={<ManageReviews/>} />
+                            <Route path="/newReview" element={<NewReview/>} />
+                            <Route path="/updateReview" element={<UpdateReview/>} />
                         </Route>
                         <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
-                            <Route path="/employeeGoals" element={<EmployeeGoals />} />                     
+                            <Route path="/employeeGoals" element={<EmployeeGoals />} />    
+                            <Route path="/myReviews" element={<ManageReviewsZam/>}/>     
+                            <Route path="/updateReviewZam" element={<UpdateReviewZam/>} />
+                        
                         </Route>
                     
                     </Route>
