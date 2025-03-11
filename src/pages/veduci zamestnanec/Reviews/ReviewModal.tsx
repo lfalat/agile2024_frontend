@@ -55,7 +55,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
     }
   
     try {
-      const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}/${selectedEmployee.id}`, {
+const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}/${selectedEmployee.id}`, {
         employeeDescription: selectedGoal?.employeeRecDescription || "",
         superiorDescription: selectedGoal?.superiorRecDescription || "",
         employeeQuestion: selectedGoal?.employeeQuestionDescription || "",
@@ -79,8 +79,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoals,
     }
   
     try {
-        const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}`, {
-          employeeDescription: selectedGoal?.employeeRecDescription || "",
+      const response = await api.put(`/Review/UpdateDescription/${userProfile?.id}/${reviewData.id}/${selectedGoal.goalId}/${selectedEmployee.id}`, {
+        employeeDescription: selectedGoal?.employeeRecDescription || "",
           superiorDescription: selectedGoal?.superiorRecDescription || "",
           employeeQuestion: selectedGoal?.employeeQuestionDescription || "",
           superiorQuestion: selectedGoal?.superiorQuestionDescription || "",
