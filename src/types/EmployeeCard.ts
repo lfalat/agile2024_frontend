@@ -11,6 +11,7 @@ export type EmployeeCard = {
     titleBefore: string;
     titleAfter: string;
     department: string;
+    departmentId: string;
     organization: string;
     contractType: string;
     workPercentage: number | null;

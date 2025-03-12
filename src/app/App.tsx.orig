@@ -24,26 +24,30 @@ import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
 import EditWorkPosition from "../pages/spravca/Work_Positions/EditWorkPosition";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
-import { CustomSnackbarProvider } from "../hooks/SnackBarContext";
+import { CustomSnackbarProvider } from '../hooks/SnackBarContext';
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
 import ManageFeedback from "../pages/zamestnanec/Feedback/ManageFeedback";
 import NewFeedback from "../pages/zamestnanec/Feedback/NewFeedback";
 import ManageGoals from "../pages/veduci zamestnanec/Goals/ManageGoals";
 import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
 import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
-import { SnackbarProvider } from "notistack";
+import { SnackbarProvider } from 'notistack';
 import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
+<<<<<<< HEAD
 import ManageReviews from "../pages/veduci zamestnanec/Reviews/ManageReviews";
 import NewReview from "../pages/veduci zamestnanec/Reviews/NewReview";
-import { SignalRProvider } from "../hooks/signalRConnection";
-import { NotificationProvider } from "../hooks/NotificationContext";
 import ManageReviewsZam from "../pages/zamestnanec/Reviews/ManageReviewsZam";
 import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
 import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
+
+=======
+import { SignalRProvider } from "../hooks/signalRConnection";
+import { NotificationProvider } from "../hooks/NotificationContext";
+>>>>>>> 339-notifikacie
 const App: React.FC = () => {
     const auth = useAuth();
 
-    return (
+    return (    
         <>
             <SnackbarProvider maxSnack={3}>
                 <CustomSnackbarProvider>
@@ -89,22 +93,36 @@ const App: React.FC = () => {
                                     <Route path="/manageFeedback" element={<ManageFeedback />} />
                                     <Route path="/newFeedback" element={<NewFeedback />} />
                                 </Route>
-                                <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
-                                    <Route path="/manageGoals" element={<ManageGoals />} />
-                                    <Route path="/newGoal" element={<NewGoal />} />
-                                    <Route path="/editGoal" element={<EditGoal />} />                       
+
+<<<<<<< HEAD
+                        <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
+                            <Route path="/manageGoals" element={<ManageGoals />} />
+                            <Route path="/newGoal" element={<NewGoal />} />
+                            <Route path="/editGoal" element={<EditGoal />} />      
                             <Route path="/manageReviews" element={<ManageReviews/>} />
                             <Route path="/newReview" element={<NewReview/>} />
                             <Route path="/updateReview" element={<UpdateReview/>} />
-                                </Route>
-                                <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
+                        </Route>
+                        <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
                             <Route path="/employeeGoals" element={<EmployeeGoals />} />    
                             <Route path="/myReviews" element={<ManageReviewsZam/>}/>     
                             <Route path="/updateReviewZam" element={<UpdateReviewZam/>} />
                         
+                        </Route>
+                    
+                    </Route>
+=======
+                                <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
+                                    <Route path="/manageGoals" element={<ManageGoals />} />
+                                    <Route path="/newGoal" element={<NewGoal />} />
+                                    <Route path="/editGoal" element={<EditGoal />} />                       
+                                </Route>
+                                <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
+                                    <Route path="/employeeGoals" element={<EmployeeGoals />} />                     
                                 </Route>
                             
                             </Route>
+>>>>>>> 339-notifikacie
 
                             
 
@@ -116,7 +134,8 @@ const App: React.FC = () => {
                     </SignalRProvider>
                 </CustomSnackbarProvider>
             </SnackbarProvider>
-        </> 
+        </>  
+        
     );
 };
 
