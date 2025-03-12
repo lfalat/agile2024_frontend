@@ -3,7 +3,9 @@ import axios from 'axios'
 const ax = axios.create();
 const api = axios.create();
 
-var apiUrl = "https://localhost:5092/api";
+var apiUrl = "https://localhost:5002/api";
+export const hubUrl = "https://localhost:5002/notificationHub";
+//export const hubUrl = "https://ingprojektapi.azurewebsites.net/notificationHub";
 //var apiUrl = "https://ingprojektapi.azurewebsites.net/api";
 
 api.defaults.baseURL = apiUrl;

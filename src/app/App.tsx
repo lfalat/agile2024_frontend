@@ -40,6 +40,7 @@ import { NotificationProvider } from "../hooks/NotificationContext";
 import ManageReviewsZam from "../pages/zamestnanec/Reviews/ManageReviewsZam";
 import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
 import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
+
 const App: React.FC = () => {
     const auth = useAuth();
 
@@ -89,19 +90,20 @@ const App: React.FC = () => {
                                     <Route path="/manageFeedback" element={<ManageFeedback />} />
                                     <Route path="/newFeedback" element={<NewFeedback />} />
                                 </Route>
+
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
                                     <Route path="/manageGoals" element={<ManageGoals />} />
                                     <Route path="/newGoal" element={<NewGoal />} />
                                     <Route path="/editGoal" element={<EditGoal />} />                       
-                            <Route path="/manageReviews" element={<ManageReviews/>} />
-                            <Route path="/newReview" element={<NewReview/>} />
-                            <Route path="/updateReview" element={<UpdateReview/>} />
+                                    <Route path="/manageReviews" element={<ManageReviews/>} />
+                                    <Route path="/newReview" element={<NewReview/>} />
+                                    <Route path="/updateReview" element={<UpdateReview/>} />
                                 </Route>
+
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
-                            <Route path="/employeeGoals" element={<EmployeeGoals />} />    
-                            <Route path="/myReviews" element={<ManageReviewsZam/>}/>     
-                            <Route path="/updateReviewZam" element={<UpdateReviewZam/>} />
-                        
+                                    <Route path="/employeeGoals" element={<EmployeeGoals />} />    
+                                    <Route path="/myReviews" element={<ManageReviewsZam/>}/>     
+                                    <Route path="/updateReviewZam" element={<UpdateReviewZam/>} />
                                 </Route>
                             
                             </Route>

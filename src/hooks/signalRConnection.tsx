@@ -1,7 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import React, { createContext, useEffect, useState, ReactNode } from "react";
 import { useAuth } from "./AuthProvider";
-var hubUrl = "https://localhost:5092/notificationHub";
+import { hubUrl } from "../app/api";
 
 interface SignalRContextType {
   connection: signalR.HubConnection | null;
