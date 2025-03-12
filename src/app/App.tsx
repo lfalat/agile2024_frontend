@@ -24,14 +24,14 @@ import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
 import EditWorkPosition from "../pages/spravca/Work_Positions/EditWorkPosition";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
-import { CustomSnackbarProvider } from '../hooks/SnackBarContext';
+import { CustomSnackbarProvider } from "../hooks/SnackBarContext";
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
 import ManageFeedback from "../pages/zamestnanec/Feedback/ManageFeedback";
 import NewFeedback from "../pages/zamestnanec/Feedback/NewFeedback";
 import ManageGoals from "../pages/veduci zamestnanec/Goals/ManageGoals";
 import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
 import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
-import { SnackbarProvider } from 'notistack';
+import { SnackbarProvider } from "notistack";
 import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
 import ManageReviews from "../pages/veduci zamestnanec/Reviews/ManageReviews";
 import NewReview from "../pages/veduci zamestnanec/Reviews/NewReview";
@@ -43,7 +43,7 @@ import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
 const App: React.FC = () => {
     const auth = useAuth();
 
-    return (    
+    return (
         <>
             <SnackbarProvider maxSnack={3}>
                 <CustomSnackbarProvider>
@@ -89,7 +89,6 @@ const App: React.FC = () => {
                                     <Route path="/manageFeedback" element={<ManageFeedback />} />
                                     <Route path="/newFeedback" element={<NewFeedback />} />
                                 </Route>
-
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
                                     <Route path="/manageGoals" element={<ManageGoals />} />
                                     <Route path="/newGoal" element={<NewGoal />} />
@@ -117,8 +116,7 @@ const App: React.FC = () => {
                     </SignalRProvider>
                 </CustomSnackbarProvider>
             </SnackbarProvider>
-        </>  
-        
+        </> 
     );
 };
 

@@ -1,4 +1,27 @@
-import { AppBar, Avatar, Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Toolbar, Tooltip, Typography } from "@mui/material";
+import OrganizationHierarchy from "./OrganizationHierarchy";
+import {
+    AppBar,
+    Avatar,
+    Box,
+    Drawer,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    MenuList,
+    Toolbar,
+    Tooltip,
+    Typography,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+} from "@mui/material";
 import { ReactNode, useState, useEffect, useContext } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "../hooks/AuthProvider";
@@ -23,8 +46,12 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
-    const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null); 
-    const { userProfile,refresh } = useAuth();
+    const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalComponent, setModalComponent] = useState<ReactNode>(null);
+    const [modalLabel, setmodalLabel] = useState<string>("");
+
+    const { userProfile } = useAuth();
     const nav = useNavigate();
     const { notifications, addNotification, setNotifications } = useNotifications(); 
     const { connection } = useContext(SignalRContext);
@@ -57,6 +84,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         window.location.href = "/login";
     };
 
+    const handleOpenModal = (component: ReactNode, label: string) => {
+        setModalComponent(component);
+        setmodalLabel(label);
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setModalComponent(null);
+    };
     useEffect(() => {
         console.log("Fetching notifications");
         
@@ -77,73 +114,85 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }, []);
 
 
-    const menuItems = [
+    const menuItems: { role: string; label: string; path: string | null; component: ReactNode | null }[] = [
         {
             role: Roles.Spravca,
             label: "Správa používateľov",
             path: "/manageUsers",
+            component: null,
         },
         {
             role: Roles.Spravca,
             label: "Správa organizácie",
             path: "/manageOrganizations",
+            component: null,
         },
         {
             role: Roles.Spravca,
             label: "Správa oddelení",
             path: "/manageDivisions",
+            component: null,
         },
         {
             role: Roles.Spravca,
             label: "Správa lokalít",
             path: "/manageLocations",
+            component: null,
         },
         {
             role: Roles.Spravca,
             label: "Správa pracovných pozícií",
             path: "/manageWorkPositions",
+            component: null,
         },
-
         {
             role: Roles.Zamestnanec,
             label: "Spätná vázba",
             path: "/manageFeedback",
+            component: null,
         },
         {
             role: Roles.Veduci,
-            label: "Spätná vázba",
-            path: "/manageFeedback",
-        },
-        // {
-        //     label: "Ciele a rozvoj môjho tímu",
-        //     path: "/cieleRozvojTimu",
-        // },
-        // {
-        //     label: "Moje ciele a rozvoj",
-        //     path: "/cieleRozvojMoje",
-        // },
-
-
-         {
-            role: Roles.Veduci,
             label: "Ciele a rozvoj môjho tímu",
             path: "/manageGoals",
-         },
+            component: null,
+        },
+        {
+            role: Roles.Zamestnanec,
+            label: "Moje ciele a rozvoj",
+            path: "/employeeGoals",
+            component: null,
+        },
+        {
+            role: Roles.Veduci,
+            label: "Organizačná hierarchia",
+            path: null,
+            component: <OrganizationHierarchy />,
+        },
+        {
+            role: Roles.Zamestnanec,
+            label: "Organizačná hierarchia",
+            path: null,
+            component: <OrganizationHierarchy />,
+        },
 
          {
             role: Roles.Veduci,
             label: "Posudzovanie cieľov",
             path: "/manageReviews",
+            component: null,
          },
          {
             role: Roles.Zamestnanec,
              label: "Moje ciele a rozvoj",
              path: "/employeeGoals",
+            component: null,
          },
          {
             role: Roles.Zamestnanec,
              label: "Posudzovanie cieľov",
              path: "/myReviews",
+           component: null,
          },
     ];
 
@@ -175,7 +224,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">
                             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                <Avatar src={userProfile?.profilePicLink || "https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg"} sx={{ backgroundColor: "black" }} />
+                                <Avatar
+                                    src={
+                                        userProfile?.profilePicLink ||
+                                        "https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg"
+                                    }
+                                    sx={{ backgroundColor: "black" }}
+                                />
                             </IconButton>
                         </Tooltip>
                         <Menu
@@ -196,35 +251,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             }}
                         >
                             <MenuList>
-                                <ListItemText>{userProfile?.role}</ListItemText>
-                                <ListItemText>
-                                    {userProfile?.titleBefore} {userProfile?.firstName} {userProfile?.lastName} {userProfile?.titleAfter}
-                                </ListItemText>
-
-                                <MenuItem onClick={() => nav("/profile")}>
-                                    <ListItemIcon>
-                                        <PersonIcon fontSize="small" />
-                                    </ListItemIcon>
-                                    <ListItemText>Profil</ListItemText>
-                                </MenuItem>
-                                <MenuItem onClick={() => nav("/settings")}>
-                                    <ListItemIcon>
-                                        <SettingsIcon fontSize="small" />
-                                    </ListItemIcon>
-                                    <ListItemText>Nastavenia</ListItemText>
-                                </MenuItem>
-                                <MenuItem onClick={() => nav("/passwordChange")}>
-                                    <ListItemIcon>
-                                        <HttpsIcon fontSize="small" />
-                                    </ListItemIcon>
-                                    <ListItemText>Zmena hesla</ListItemText>
-                                </MenuItem>
-                                <MenuItem onClick={handleLogout}>
-                                    <ListItemIcon>
-                                        <LogoutIcon fontSize="small" />
-                                    </ListItemIcon>
-                                    <ListItemText>Odhlásiť</ListItemText>
-                                </MenuItem>
+                                {menuItems.map(
+                                    (item) =>
+                                        (item.role ? userProfile?.role === item.role : true) && (
+                                            <ListItem
+                                                key={item.label}
+                                                disablePadding
+                                                onClick={() =>
+                                                    item.path
+                                                        ? nav(item.path)
+                                                        : handleOpenModal(item.component, item.label)
+                                                }
+                                            >
+                                                <ListItemButton>
+                                                    <ListItemText primary={item.label} />
+                                                </ListItemButton>
+                                            </ListItem>
+                                        )
+                                )}
                             </MenuList>
                         </Menu>
                     </Box>
@@ -254,7 +298,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {menuItems.map(
                         (item) =>
                             (item.role ? userProfile?.role === item.role : true) && (
-                                <ListItem key={item.label} disablePadding onClick={() => nav(item.path)}>
+                                <ListItem
+                                    key={item.label}
+                                    disablePadding
+                                    onClick={() =>
+                                        item.path
+                                            ? nav(item.path)
+                                            : handleOpenModal(item.component, item.label)
+                                    }
+                                >
                                     <ListItemButton>
                                         <ListItemText primary={item.label} />
                                     </ListItemButton>
@@ -275,6 +327,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Toolbar />
                 {children}
             </Box>
+
+            <Dialog
+                open={modalOpen}
+                onClose={handleCloseModal}
+                PaperProps={{
+                    sx: {
+                        width: "90%", // Set width to 90% of the viewport
+                        height: "90%", // Set height to 90% of the viewport
+                        maxWidth: "none", // Remove max width restriction
+                        maxHeight: "none", // Remove max height restriction
+                    },
+                }}
+            >
+                <DialogTitle sx={{ fontWeight: "bold" }}>{modalLabel}</DialogTitle>
+
+                <DialogContent>{modalComponent}</DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseModal}>Close</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
