@@ -24,85 +24,99 @@ import Settings from "../pages/common/Settings";
 import PasswordChange from "../pages/common/PasswordChange";
 import EditWorkPosition from "../pages/spravca/Work_Positions/EditWorkPosition";
 import UpdateOrganization from "../pages/spravca/Organizations/UpdateOrganization";
-import { CustomSnackbarProvider } from '../hooks/SnackBarContext';
+import { CustomSnackbarProvider } from "../hooks/SnackBarContext";
 import UpdateLocation from "../pages/spravca/Locations/UpdateLocation";
 import ManageFeedback from "../pages/zamestnanec/Feedback/ManageFeedback";
 import NewFeedback from "../pages/zamestnanec/Feedback/NewFeedback";
 import ManageGoals from "../pages/veduci zamestnanec/Goals/ManageGoals";
 import NewGoal from "../pages/veduci zamestnanec/Goals/NewGoal";
 import EditGoal from "../pages/veduci zamestnanec/Goals/EditGoal";
-import { SnackbarProvider } from 'notistack';
+import { SnackbarProvider } from "notistack";
 import EmployeeGoals from "../pages/zamestnanec/EmployeeGoals";
 
 const App: React.FC = () => {
     const auth = useAuth();
 
-    return (    
+    return (
         <>
-        <SnackbarProvider maxSnack={3}>
-        <CustomSnackbarProvider>
-            <BrowserRouter>
-                <Routes>
-                    {/* Public routes */}
-                    <Route path="/login" element={localStorage.getItem("accessToken") ? <Navigate to={"/home"} /> : <LoginPage />} />
+            <SnackbarProvider maxSnack={3}>
+                <CustomSnackbarProvider>
+                    <BrowserRouter>
+                        <Routes>
+                            {/* Public routes */}
+                            <Route
+                                path="/login"
+                                element={
+                                    localStorage.getItem("accessToken") ? (
+                                        <Navigate to={"/home"} />
+                                    ) : (
+                                        <LoginPage />
+                                    )
+                                }
+                            />
 
-                    {/* Requires auth */}
-                    <Route element={<RequiresAuth />}>
-                        <Route path="/home" element={<HomePage />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/passwordChange" element={<PasswordChange />} />
+                            {/* Requires auth */}
+                            <Route element={<RequiresAuth />}>
+                                <Route path="/home" element={<HomePage />} />
+                                <Route path="/profile" element={<Profile />} />
+                                <Route path="/settings" element={<Settings />} />
+                                <Route path="/passwordChange" element={<PasswordChange />} />
 
-                        {/* Role protected routes */}
-                        {/* Spravca */}
-                        <Route element={<ProtectedRoute allowedRoles={[Roles.Spravca]} />}>
-                            <Route path="/manageUsers" element={<ManageUsers />} />
-                            <Route path="/registerUser" element={<RegisterUser />} />
-                            <Route path="/changeUser/:email" element={<ChangeUser />} />
+                                {/* Role protected routes */}
+                                {/* Spravca */}
+                                <Route element={<ProtectedRoute allowedRoles={[Roles.Spravca]} />}>
+                                    <Route path="/manageUsers" element={<ManageUsers />} />
+                                    <Route path="/registerUser" element={<RegisterUser />} />
+                                    <Route path="/changeUser/:email" element={<ChangeUser />} />
 
-                            <Route path="/manageOrganizations" element={<ManageOrganizations />} />
-                            <Route path="/newOrganization" element={<NewOrganization />} />
-                            <Route path="/updateOrganization" element={<UpdateOrganization />} />
+                                    <Route path="/manageOrganizations" element={<ManageOrganizations />} />
+                                    <Route path="/newOrganization" element={<NewOrganization />} />
+                                    <Route path="/updateOrganization" element={<UpdateOrganization />} />
 
-                            <Route path="/manageDivisions" element={<ManageDivisions />} />
-                            <Route path="/newDivision" element={<NewDivision />} />
-                            <Route path="/editDivision" element={<EditDivision />} />
+                                    <Route path="/manageDivisions" element={<ManageDivisions />} />
+                                    <Route path="/newDivision" element={<NewDivision />} />
+                                    <Route path="/editDivision" element={<EditDivision />} />
 
-                            <Route path="/manageLocations" element={<ManageLocations />} />
-                            <Route path="/newLocation" element={<NewLocation />} />
-                            <Route path="/updateLocation" element={<UpdateLocation/>}/>
+                                    <Route path="/manageLocations" element={<ManageLocations />} />
+                                    <Route path="/newLocation" element={<NewLocation />} />
+                                    <Route path="/updateLocation" element={<UpdateLocation />} />
 
-                            <Route path="/manageWorkPositions" element={<ManageWorkPositions />} />
-                            <Route path="/newWorkPosition" element={<NewWorkPosition />} />
-                            <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
-                        </Route>
+                                    <Route path="/manageWorkPositions" element={<ManageWorkPositions />} />
+                                    <Route path="/newWorkPosition" element={<NewWorkPosition />} />
+                                    <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
+                                </Route>
 
-                        <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci, Roles.Zamestnanec]} />}>
-                            <Route path="/manageFeedback" element={<ManageFeedback />} />
-                            <Route path="/newFeedback" element={<NewFeedback />} />
-                        </Route>
+                                <Route
+                                    element={
+                                        <ProtectedRoute allowedRoles={[Roles.Veduci, Roles.Zamestnanec]} />
+                                    }
+                                >
+                                    <Route path="/manageFeedback" element={<ManageFeedback />} />
+                                    <Route path="/newFeedback" element={<NewFeedback />} />
+                                </Route>
 
-                        <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
-                            <Route path="/manageGoals" element={<ManageGoals />} />
-                            <Route path="/newGoal" element={<NewGoal />} />
-                            <Route path="/editGoal" element={<EditGoal />} />                       
-                        </Route>
-                        <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
-                            <Route path="/employeeGoals" element={<EmployeeGoals />} />                     
-                        </Route>
-                    
-                    </Route>
+                                <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]} />}>
+                                    <Route path="/manageGoals" element={<ManageGoals />} />
+                                    <Route path="/newGoal" element={<NewGoal />} />
+                                    <Route path="/editGoal" element={<EditGoal />} />
+                                </Route>
+                                <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]} />}>
+                                    <Route path="/employeeGoals" element={<EmployeeGoals />} />
+                                </Route>
+                            </Route>
 
-                    
-
-                    {/* Default route */}
-                    <Route path="*" element={<Navigate to={localStorage.getItem("accessToken") ? "/home" : "/login"} />} />
-                </Routes>
-            </BrowserRouter>
-        </CustomSnackbarProvider>
-        </SnackbarProvider>
-        </>  
-        
+                            {/* Default route */}
+                            <Route
+                                path="*"
+                                element={
+                                    <Navigate to={localStorage.getItem("accessToken") ? "/home" : "/login"} />
+                                }
+                            />
+                        </Routes>
+                    </BrowserRouter>
+                </CustomSnackbarProvider>
+            </SnackbarProvider>
+        </>
     );
 };
 
