@@ -87,7 +87,6 @@ const OrganizationHierarchy: React.FC = () => {
                     gap={1}
                     sx={{
                         bgcolor: node.userId === userId ? "primary.main" : "cyan", // Change background color based on userId
-
                         paddingY: 1,
                         fontWeight: "bold",
                         borderBottom: "1px solid #ddd",

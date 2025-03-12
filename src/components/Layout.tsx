@@ -53,7 +53,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     const { userProfile } = useAuth();
     const nav = useNavigate();
-    const { notifications, addNotification, setNotifications } = useNotifications(); 
+    const { notifications, addNotification, setNotifications } = useNotifications();
     const { connection } = useContext(SignalRContext);
 
     const toggleDrawer = () => {
@@ -96,23 +96,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
     useEffect(() => {
         console.log("Fetching notifications");
-        
+
         const token = localStorage.getItem("accessToken");
         if (!token) {
             console.error("JWT token is missing!");
             return;
         }
-        
-        api.get<NotificationResponse[]>("Notification/Notifications")
-        .then((response) => {
-            console.log("📩 Fetched notifications:", response.data);
-            setNotifications(response.data.slice(0, 10));
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-    }, []);
 
+        api.get<NotificationResponse[]>("Notification/Notifications")
+            .then((response) => {
+                console.log("📩 Fetched notifications:", response.data);
+                setNotifications(response.data.slice(0, 10));
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }, []);
 
     const menuItems: { role: string; label: string; path: string | null; component: ReactNode | null }[] = [
         {
@@ -176,24 +175,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             component: <OrganizationHierarchy />,
         },
 
-         {
+        {
             role: Roles.Veduci,
             label: "Posudzovanie cieľov",
             path: "/manageReviews",
             component: null,
-         },
-         {
+        },
+        {
             role: Roles.Zamestnanec,
-             label: "Moje ciele a rozvoj",
-             path: "/employeeGoals",
+            label: "Moje ciele a rozvoj",
+            path: "/employeeGoals",
             component: null,
-         },
-         {
+        },
+        {
             role: Roles.Zamestnanec,
-             label: "Posudzovanie cieľov",
-             path: "/myReviews",
-           component: null,
-         },
+            label: "Posudzovanie cieľov",
+            path: "/myReviews",
+            component: null,
+        },
     ];
 
     return (
@@ -218,8 +217,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         style={{ cursor: "pointer" }}
                     />
                     <Box sx={{ flexGrow: 1 }} />
-                    <Box sx={{ flexGrow: 0 }} paddingRight={5} >
-                        <NotificationMenu notificationList ={notifications} />
+                    <Box sx={{ flexGrow: 0 }} paddingRight={5}>
+                        <NotificationMenu notificationList={notifications} />
                     </Box>
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">
@@ -251,24 +250,36 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             }}
                         >
                             <MenuList>
-                                {menuItems.map(
-                                    (item) =>
-                                        (item.role ? userProfile?.role === item.role : true) && (
-                                            <ListItem
-                                                key={item.label}
-                                                disablePadding
-                                                onClick={() =>
-                                                    item.path
-                                                        ? nav(item.path)
-                                                        : handleOpenModal(item.component, item.label)
-                                                }
-                                            >
-                                                <ListItemButton>
-                                                    <ListItemText primary={item.label} />
-                                                </ListItemButton>
-                                            </ListItem>
-                                        )
-                                )}
+                                <ListItemText>{userProfile?.role}</ListItemText>
+                                <ListItemText>
+                                    {userProfile?.titleBefore} {userProfile?.firstName}{" "}
+                                    {userProfile?.lastName} {userProfile?.titleAfter}
+                                </ListItemText>
+
+                                <MenuItem onClick={() => nav("/profile")}>
+                                    <ListItemIcon>
+                                        <PersonIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>Profil</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={() => nav("/settings")}>
+                                    <ListItemIcon>
+                                        <SettingsIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>Nastavenia</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={() => nav("/passwordChange")}>
+                                    <ListItemIcon>
+                                        <HttpsIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>Zmena hesla</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={handleLogout}>
+                                    <ListItemIcon>
+                                        <LogoutIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>Odhlásiť</ListItemText>
+                                </MenuItem>
                             </MenuList>
                         </Menu>
                     </Box>
