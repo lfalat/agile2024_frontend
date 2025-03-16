@@ -40,6 +40,9 @@ import { NotificationProvider } from "../hooks/NotificationContext";
 import ManageReviewsZam from "../pages/zamestnanec/Reviews/ManageReviewsZam";
 import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
 import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
+import ManageSuccessions from "../pages/veduci zamestnanec/Succession/ManageSuccessions";
+import NewSuccession from "../pages/veduci zamestnanec/Succession/NewSuccession";
+
 const App: React.FC = () => {
     const auth = useAuth();
 
@@ -93,9 +96,11 @@ const App: React.FC = () => {
                                     <Route path="/manageGoals" element={<ManageGoals />} />
                                     <Route path="/newGoal" element={<NewGoal />} />
                                     <Route path="/editGoal" element={<EditGoal />} />                       
-                            <Route path="/manageReviews" element={<ManageReviews/>} />
-                            <Route path="/newReview" element={<NewReview/>} />
-                            <Route path="/updateReview" element={<UpdateReview/>} />
+                                    <Route path="/manageReviews" element={<ManageReviews/>} />
+                                    <Route path="/newReview" element={<NewReview/>} />
+                                    <Route path="/updateReview" element={<UpdateReview/>} />
+                                    <Route path="/manageSuccessions" element={<ManageSuccessions/>} />
+                                    <Route path="/newSuccession" element={<NewSuccession/>} />
                                 </Route>
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
                             <Route path="/employeeGoals" element={<EmployeeGoals />} />    
