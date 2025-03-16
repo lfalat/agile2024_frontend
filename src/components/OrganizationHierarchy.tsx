@@ -17,24 +17,55 @@ import {
     styled,
     Typography,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import Person4Icon from "@mui/icons-material/Person4";
 import "primereact/resources/themes/lara-light-cyan/theme.css";
 const OrganizationHierarchy: React.FC = () => {
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
-    const [userId] = useState(userProfile?.id);
+    const [userId, setUserId] = useState(userProfile?.id);
     const [hierarchy, setHierarchy] = useState<OrgTree | null>(null);
     const fetchData = async () => {
-        try {
-            const res = await api.get(`/OrgHierarchyShow/GetLevelByID?userId=${userId}`);
-            console.log("API Response:", res.data); // Log the API response
-            const fetchedData: OrgTree = res.data;
-            setHierarchy(fetchedData);
-            console.log(fetchedData); // Log the fetched data
-        } catch (err) {
-            console.error("API call failed:", err); // Log the error
+        console.log("User id:", userId);
+        if (userId != "") {
+            await api
+                .get(`/OrgHierarchyShow/GetLevelByID?userId=${userId}`)
+                .then((res) => {
+                    console.log("API Response:", res.data); // Log the API response
+                    const fetchedData: OrgTree = res.data;
+                    setHierarchy(fetchedData);
+                    console.log(fetchedData); // Log the fetched data
+                })
+                .catch((err) => {
+                    console.error("API call failed:", err); // Log the error
+                });
+        } else {
+            await api
+                .get(`/OrgHierarchyShow/Get0LevelOrganization?userId=${userProfile?.id}`)
+                .then((res) => {
+                    console.log("API Response:", res.data); // Log the API response
+                    const fetchedData: OrgTree = res.data;
+                    setHierarchy(fetchedData);
+                    console.log(fetchedData); // Log the fetched data
+                })
+                .catch((err) => {
+                    console.error("API call failed:", err); // Log the error
+                });
         }
+    };
+
+    const moveUp = async () => {
+        console.log("UserID:", userId);
+        await api
+            .get(`/OrgHierarchyShow/MoveUp?userId=${userId}`)
+            .then((res) => {
+                console.log("API Response:", res.data); // Log the API response
+                setUserId(res.data);
+            })
+            .catch((err) => {
+                console.error("API call failed:", err); // Log the error
+                setUserId("");
+            });
     };
 
     useEffect(() => {
@@ -51,8 +82,9 @@ const OrganizationHierarchy: React.FC = () => {
     const nodeTemplate = (node: OrgNode) => {
         return (
             <Box
+                onClick={node.isSuperior ? () => setUserId(node.userId) : undefined}
                 sx={{
-                    minWidth: 300,
+                    minWidth: 100,
                     textAlign: "center",
                     border: "2px solid #000",
                     borderRadius: 2,
@@ -62,22 +94,28 @@ const OrganizationHierarchy: React.FC = () => {
                     position: "relative",
                     paddingBottom: 1,
                     paddingTop: 1,
+                    cursor: node.isSuperior ? "pointer" : "default", // Pointer cursor only if clickable
+                    "&:hover": node.isSuperior ? { bgcolor: "lightgray" } : {}, // Hover effect only if clickable
                 }}
             >
-                {/* Profile Image */}
-                <Avatar
-                    src={node.image}
-                    alt="https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg"
-                    sx={{
-                        width: 80,
-                        height: 80,
-                        margin: "0 auto",
-                        marginTop: "0 auto",
-                        marginBottom: 2,
-                        border: "3px solid white",
-                        boxShadow: 2,
-                    }}
-                />
+                {(userId || (!userId && node.level == 1)) && (
+                    <div>
+                        {/* Profile Image */}
+                        <Avatar
+                            src={node.image}
+                            alt="https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg"
+                            sx={{
+                                width: 60,
+                                height: 60,
+                                margin: "0 auto",
+                                marginTop: "0 auto",
+                                marginBottom: 2,
+                                border: "3px solid white",
+                                boxShadow: 2,
+                            }}
+                        />
+                    </div>
+                )}
 
                 {/* Name with Icon */}
                 <Box
@@ -86,16 +124,17 @@ const OrganizationHierarchy: React.FC = () => {
                     justifyContent="center"
                     gap={1}
                     sx={{
-                        bgcolor: node.userId === userId ? "primary.main" : "cyan", // Change background color based on userId
+                        bgcolor: node.level == 0 ? "primary.main" : "cyan", // Change background color based on userId
                         paddingY: 1,
                         fontWeight: "bold",
                         borderBottom: "1px solid #ddd",
+                        paddingInline: 1,
                     }}
                 >
                     {node.userId === userProfile?.id ? (
-                        <ThumbUpIcon fontSize="small" />
-                    ) : node.isSuperior ? (
                         <Person4Icon fontSize="small" />
+                    ) : node.isSuperior ? (
+                        <ThumbUpIcon fontSize="small" />
                     ) : null}
                     <Typography fontWeight="bold">{node.name}</Typography>
                 </Box>
@@ -129,13 +168,13 @@ const OrganizationHierarchy: React.FC = () => {
                 {/* Right-aligned Buttons */}
                 <Box display="flex" alignItems="center" gap={1}>
                     {/* Show Level Button */}
-                    <Button variant="contained" color="primary">
+                    <Button variant="contained" color="primary" component="div" onClick={() => setUserId("")}>
                         Zobraziť 1. úroveň
                     </Button>
 
                     {/* Search Icon Button */}
-                    <IconButton color="primary">
-                        <SearchIcon />
+                    <IconButton color="primary" component="div" onClick={() => moveUp()}>
+                        <ZoomOutIcon />
                     </IconButton>
                 </Box>
             </Box>

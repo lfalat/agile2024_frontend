@@ -1,6 +1,7 @@
 type OrgNode  = {
     emplyeeCardId: string,
     userId: string,
+    level: number,
     name: string,
     position: string,
     location: string,
