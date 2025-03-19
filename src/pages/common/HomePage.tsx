@@ -32,6 +32,7 @@ const HomeScreen: React.FC = () => {
   const [goalData, setGoalData] = useState<{ id: number; value: number; label: string; color: string }[]>([]);
   const [totalGoals, setTotalGoals] = useState(0);
   const [reviews, setReviews] = useState([]);
+  const isEmployee = userProfile?.role === "Zamestnanec";
 
 
   useEffect(() => {
@@ -118,8 +119,8 @@ const HomeScreen: React.FC = () => {
           Vitajte doma {userProfile?.titleBefore} {userProfile?.firstName} {userProfile?.lastName} {userProfile?.titleAfter}
         </Typography>
       </Box>
-
-      {/* Grid container pre tabuľky a graf */}
+      {isEmployee && (
+      
       <Grid container spacing={3} sx={{ paddingLeft: "150px", minWidth: "1350px", margin: "auto" }}>
         
         {/* Ľavý stĺpec s tabuľkami */}
@@ -270,6 +271,7 @@ const HomeScreen: React.FC = () => {
 
 
       </Grid>
+      )}
     </Layout>
   );
 };
