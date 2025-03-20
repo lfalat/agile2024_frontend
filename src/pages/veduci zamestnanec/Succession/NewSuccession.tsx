@@ -32,7 +32,7 @@ const schema = z.object({
     leavingId: z.string(),
     leaveReason: z.string().min(1, "Dôvod odchodu je povinný."), 
     leaveType: z.string(), 
-    leaveDate: z.string().min(1, "Dátum je povinný."),
+    leaveDate: z.string(),
     successorId: z.string(),
     readyStatus: z.string()
 });
@@ -46,13 +46,9 @@ const NewSuccession: React.FC = () => {
     const [error, setError] = useState<string>();
     const [openModal, setOpenModal] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
-    
-    const [leavingId, setLeavingId] = useState<string[]>([]);
     const [leaveReason, setLeaveReason] = useState<string[]>([]);
     const [leaveType, setLeaveType] = useState<string[]>([]);
     const [leaveDate, setLeaveDate] = useState<Dayjs | null>(dayjs());
-    const [successorId, setSuccessorId] = useState<string[]>([]);
-    const [readyStatus, setEeadyStatus] = useState<string[]>([]);
     const [leaveTypesOptions, setleaveTypesOptions] = useState<{ id: string; label: string }[]>([]);
     const [readyStatusesOptions, setReadyStatusesOptions] = useState<{ id: string; label: string }[]>([]);
     const [leavingEmployeeOptions, setLeavingEmployeeOptions] = useState<EmployeeCard[]>([]);
@@ -103,16 +99,19 @@ const NewSuccession: React.FC = () => {
             }, []);
     
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-        const senderId = userProfile?.id;
-        const dataToSend = {
-            leavingId,
-            leaveReason, 
-            leaveDate: leaveDate?.toISOString(),
-            successorId,
-            readyStatus
-        };
 
-        await api.post("/Succession/CreateSuccession", dataToSend)
+        
+        const skillsData = fields.map(field => ({
+            description: field.text,
+            isReady: field.checked
+        }));
+
+        const dataToSend = {
+            ...data,
+            skills: skillsData,
+        };
+        console.log(" created data:", dataToSend);
+        await api.post("/Succession/Create", dataToSend)
             .then((res) => {
                 console.log(" created:", res.data);
                 openSnackbar("Nástupníctvo bolo úspešne vytvorené", "success");
@@ -123,8 +122,6 @@ const NewSuccession: React.FC = () => {
                 console.error("Error creating:", err);
             });
     };
-    
-    
 
     const openEmployeeModal = (type: 'leaving' | 'successor') => {
         setModalType(type);
@@ -134,11 +131,17 @@ const NewSuccession: React.FC = () => {
     const handleSelectEmployee = (employeeId: string) => {
         if (modalType === 'leaving') {
             setSelectedEmployee(employeeId);
+            setValue('leavingId', employeeId ?? "");
         } else if (modalType === 'successor') {
             setSelectedSuccessor(employeeId);
+            setValue('successorId', employeeId ?? "");
+            console.log("successor:", selectedSuccessor)
         }
         setOpenModal(false);
     };
+    useEffect(() => {
+        console.log("Aktualizovaný successor:", selectedSuccessor);
+    }, [selectedSuccessor]);
     const setExternist = () => {
         setSelectedSuccessor(null); 
         setSelectedSuccessor('externist');
@@ -201,7 +204,8 @@ const NewSuccession: React.FC = () => {
    
         return (
             <Layout>
-                <Box sx={{ padding: 3, display: "flex", gap: 20 }}>               
+                <form onSubmit={handleSubmit(onSubmit)}>
+                <Box sx={{ padding: 3, display: "flex", gap: 20 }} >               
                 {/* ĽAVÁ STRANA */}
                 <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                     <Typography variant="h6" fontWeight="bold" gutterBottom> Odstupujúci zamestnanec </Typography>
@@ -256,13 +260,17 @@ const NewSuccession: React.FC = () => {
                             : ""}
                     </Typography>
 
-                    <Stack direction="column"  gap={2} sx={{ width: "70%"  }} component="form" onSubmit={handleSubmit(onSubmit)}>
+                    <Stack direction="column"  gap={2} sx={{ width: "70%"  }} component="form">
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DateTimePicker
                             label="Termín odchodu zamestnanca *"
                             value={leaveDate}
-                            {...register('leaveDate', { required: 'Termín je povinný.' })}
-                            onChange={setLeaveDate}
+                            {...register('leaveDate', { required: 'Termín je povinný.' })}                           
+                            onChange={(newDate) => {
+                                const formattedDate = dayjs(newDate).format('YYYY-MM-DD');
+                                setValue('leaveDate', formattedDate);
+                                setLeaveDate(newDate); 
+                            }}
                             
                             //renderInput={(params) => <TextField {...params} fullWidth />}
                             />                                  
@@ -272,7 +280,9 @@ const NewSuccession: React.FC = () => {
                             fullWidth
                             options={leaveTypesOptions}
                             onChange={(e, value) => setValue("leaveType", value?.id ?? "")}
-                            renderInput={(params) => <TextField {...params} label="Typ odchodu" error={!!errors.leaveType} helperText={errors.leaveType?.message ?? ""} required/>}
+                            renderInput={(params) => <TextField {...params} label="Typ odchodu" 
+                            //error={!!errors.leaveType} helperText={errors.leaveType?.message ?? ""} required
+                            />}
                         />
                         
                         {selectedEmployeeObj && (
@@ -323,8 +333,10 @@ const NewSuccession: React.FC = () => {
                     <Autocomplete
                         fullWidth
                         options={readyStatusesOptions}
-                        onChange={(e, value) => setValue("leaveType", value?.id ?? "")}
-                        renderInput={(params) => <TextField {...params} label="Pripravenosť zamestnanca" error={!!errors.leaveType} helperText={errors.leaveType?.message ?? ""} required/>}                            
+                        onChange={(e, value) => setValue("readyStatus", value?.id ?? "")}
+                        renderInput={(params) => <TextField {...params} label="Pripravenosť zamestnanca" 
+                        error={!!errors.readyStatus} helperText={errors.readyStatus?.message ?? ""} required
+                        />}                            
                     />
 
                     {selectedSuccessor && selectedSuccessor !== 'externist' && (
@@ -403,18 +415,19 @@ const NewSuccession: React.FC = () => {
                         )}
                     </Box>
                 
+                    
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 4, paddingRight: 3, paddingBottom: 3 }}>
                 
-                    <Stack direction="row" gap={3}>
-                        <Button type="submit" variant="contained" color="info" onClick={handleSubmit(onSubmit)}>
-                            Uložiť
-                        </Button>
-                        <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageSuccessions')}>
-                            Zrušiť
-                        </Button>
-                    </Stack>
-                </Box>
+                <Stack direction="row" gap={3} >
+                    <Button type="submit" variant="contained" color="info" >
+                        Uložiť
+                    </Button>
+                    <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageSuccessions')}>
+                        Zrušiť
+                    </Button>
+                </Stack>
+            </Box>
 
                 <EmployeeCardDialog
                     userId={selectedEmployeeCard?.id ?? null}
@@ -422,6 +435,7 @@ const NewSuccession: React.FC = () => {
                     open={openCardDialog}
                     handleClose={() => setOpenCardDialog(false)}
                 />
+                </form>
             </Layout>
         );
     
