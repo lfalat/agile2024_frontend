@@ -205,7 +205,7 @@ const ProfilePage: React.FC = () => {
                             </Grid>
                             <Grid size={{ xs: 6, sm: 6, md: 2.4 }}>
                                 <Typography>Pracovná pozícia:</Typography>
-                                <Typography variant="body2">{employeeCard?.position}</Typography>
+                                <Typography variant="body2">{employeeCard?.jobPosition}</Typography>
                             </Grid>
                             <Grid size={{ xs: 6, sm: 6, md: 2.4 }}>
                                 <Typography>Dátum nástupu:</Typography>

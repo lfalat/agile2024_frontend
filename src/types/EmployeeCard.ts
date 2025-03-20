@@ -4,7 +4,7 @@ export type EmployeeCard = {
     id: string;
     email: string;
     birthdate: string | null; 
-    position: string;
+    jobPosition: string;
     startWorkDate: string | null;
     name: string;
     middleName: string;
