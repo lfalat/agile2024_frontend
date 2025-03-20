@@ -3,10 +3,10 @@ import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack, Tooltip } from "@mui/material";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
-import { Table, TableBody, TableCell, TableHead, TableRow, IconButton, Divider } from "@mui/material";
+import { Alert, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Divider } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import SuccessionPlan from "../../../types/SuccessionPlan";
+import DeleteDialog from "../../../components/DeleteDialog";
 
 type GroupedSuccessionPlans = {
     leaveTypeName: string;
@@ -36,6 +36,10 @@ const columnConfig: Record<string, string[]> = {
 
 const ManageSuccessions: React.FC = () => {
     const [successionPlans, setSuccessionPlans] = useState<GroupedSuccessionPlans[]>([]);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isSnackbarOpen, setSnackbarOpen] = useState(false);
+    const [isDialogOpen, setDialogOpen] = useState(false);
+    const [selectedPlanId, setSelectedPlanId] = useState<SuccessionPlan | null>(null);
     const nav = useNavigate();
 
     useEffect(() => {
@@ -69,7 +73,36 @@ const ManageSuccessions: React.FC = () => {
     
     const handleDelete = (plan: SuccessionPlan) => {
         console.log("Delete plan", plan);
+        setSelectedPlanId(plan);
+        setDialogOpen(true);
         //TODO 
+    };
+
+    const confirmDelete = async () => {
+        if (selectedPlanId) {
+            try {
+                await api.delete(`/Succession/Delete/${selectedPlanId.id}`);
+                setSuccessionPlans((prevGroups) =>
+                    prevGroups.map((group) => ({
+                        ...group,
+                        successionPlans: group.successionPlans.filter(
+                            (plan) => plan.id !== selectedPlanId.id
+                        ),
+                    }))
+                );
+                setSnackbarOpen(true);
+            } catch (err: any) {
+                if (err.response && err.response.status === 400) {
+                    setErrorMessage(err.response.data.message);
+                    setSnackbarOpen(true);
+                } else {
+                    console.error("Error deleting plan:", err);
+                }
+            } finally {
+                setDialogOpen(false);
+                setSelectedPlanId(null);
+            }
+        }
     };
 
     const renderCell = (col: string, plan: SuccessionPlan) => {
@@ -192,6 +225,27 @@ const ManageSuccessions: React.FC = () => {
                 {["Kritický odchod", "Plánovaný odchod", "Redundancia týmu"].map((type) => (
                     <SuccessionTable key={type} leaveType={type} plans={successionPlans.find(g => g.leaveTypeName === type)?.successionPlans || []} />
                 ))}
+            
+                <DeleteDialog
+                    open={isDialogOpen}
+                    onClose={() => setDialogOpen(false)}
+                    onConfirm={confirmDelete}
+                />
+
+                <Snackbar
+                    open={isSnackbarOpen}
+                    autoHideDuration={6000}
+                    onClose={() => setSnackbarOpen(false)}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                >
+                    <Alert
+                        onClose={() => setSnackbarOpen(false)}
+                        severity={errorMessage ? "error" : "success"}
+                        sx={{ width: "100%" }}
+                    >
+                        {errorMessage || "Položka bola úspešne vymazaná."}
+                    </Alert>
+                </Snackbar>
             </Box>
         </Layout>
         

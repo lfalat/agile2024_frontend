@@ -1,5 +1,5 @@
 type SuccessionPlan = {
-    id: number;                       
+    id: string;                       
     leaveType: string;                
     leavingFullName: string;
     leavingJobPosition: string;
