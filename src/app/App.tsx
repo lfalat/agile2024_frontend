@@ -40,6 +40,7 @@ import { NotificationProvider } from "../hooks/NotificationContext";
 import ManageReviewsZam from "../pages/zamestnanec/Reviews/ManageReviewsZam";
 import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
 import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
+import NotificationsPage from "../pages/common/NotificationsPage";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -61,7 +62,7 @@ const App: React.FC = () => {
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/passwordChange" element={<PasswordChange />} />
-
+                                <Route path="/notifications" element={<NotificationsPage />} />
                                 {/* Role protected routes */}
                                 {/* Spravca */}
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Spravca]} />}>
