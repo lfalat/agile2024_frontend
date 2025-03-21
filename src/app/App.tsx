@@ -42,6 +42,7 @@ import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
 import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
 import ManageSuccessions from "../pages/veduci zamestnanec/Succession/ManageSuccessions";
 import NewSuccession from "../pages/veduci zamestnanec/Succession/NewSuccession";
+import EditSuccession from "../pages/veduci zamestnanec/Succession/EditSuccession";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -101,6 +102,7 @@ const App: React.FC = () => {
                                     <Route path="/updateReview" element={<UpdateReview/>} />
                                     <Route path="/manageSuccessions" element={<ManageSuccessions/>} />
                                     <Route path="/newSuccession" element={<NewSuccession/>} />
+                                    <Route path="/editSuccession" element={<EditSuccession/>} />
                                 </Route>
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
                             <Route path="/employeeGoals" element={<EmployeeGoals />} />    

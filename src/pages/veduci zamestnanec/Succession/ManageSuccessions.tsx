@@ -101,8 +101,8 @@ const ManageSuccessions: React.FC = () => {
     const handleEdit = (plan: SuccessionPlan) => {
         console.log("Edit plan", plan);
         const planId = plan.id;
-        setSelectedPlanId(plan);
-        nav(`/editSuccession/${plan.id}`); 
+        //setSelectedPlanId(plan);
+        nav('/editSuccession', { state: {planId} }); 
     };
     
     const handleDelete = (plan: SuccessionPlan) => {
