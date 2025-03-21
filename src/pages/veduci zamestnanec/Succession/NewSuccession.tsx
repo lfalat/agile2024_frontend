@@ -33,7 +33,7 @@ const schema = z.object({
     leaveReason: z.string().min(1, "Dôvod odchodu je povinný."), 
     leaveType: z.string(), 
     leaveDate: z.string(),
-    successorId: z.string(),
+    successorId: z.string().nullable(),
     readyStatus: z.string()
 });
 
@@ -52,11 +52,13 @@ const NewSuccession: React.FC = () => {
     const [leaveTypesOptions, setleaveTypesOptions] = useState<{ id: string; label: string }[]>([]);
     const [readyStatusesOptions, setReadyStatusesOptions] = useState<{ id: string; label: string }[]>([]);
     const [leavingEmployeeOptions, setLeavingEmployeeOptions] = useState<EmployeeCard[]>([]);
+    const [successorOptions, setSuccessorOptions] = useState<EmployeeCard[]>([]);
     const [selectedEmployeeCard, setSelectedEmployeeCard] = useState<UserProfile | null>(null); 
     const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null); 
     const [selectedSuccessor, setSelectedSuccessor] = useState<string | null>(null); 
     const [modalType, setModalType] = useState<'leaving' | 'successor' | null>(null);
     const [fields, setFields] = useState<{ text: string, checked: boolean }[]>([]);
+    const [isNotified, setIsNotified] = useState(false);
 
    const {
             register,
@@ -96,6 +98,13 @@ const NewSuccession: React.FC = () => {
                 console.log("employeeCards", res.data); 
             })
             .catch((err) => console.error(err));
+
+            api.get(`/EmployeeCard/GetEmployeesWithouSuperiors/`)
+            .then((res) => {
+                setSuccessorOptions(res.data); 
+                console.log("successors:", res.data); 
+            })
+            .catch((err) => console.error(err));
             }, []);
     
     const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -109,6 +118,7 @@ const NewSuccession: React.FC = () => {
         const dataToSend = {
             ...data,
             skills: skillsData,
+            isNotified: isNotified,
         };
         console.log(" created data:", dataToSend);
         await api.post("/Succession/Create", dataToSend)
@@ -145,6 +155,7 @@ const NewSuccession: React.FC = () => {
     const setExternist = () => {
         setSelectedSuccessor(null); 
         setSelectedSuccessor('externist');
+        setValue('successorId', null);
     };
     
     // pridava pole pre zručnosti a checkbox
@@ -181,6 +192,7 @@ const NewSuccession: React.FC = () => {
 
     const selectedEmployeeObj = leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee);
     const selectedSuccessorObj = leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor);
+    const rows = modalType === 'successor' ? successorOptions : leavingEmployeeOptions;
 
     const columnsUser: GridColDef<EmployeeCard>[] = [
             { field: "employeeId", headerName: "ID zamestnanca", width: 150 },
@@ -225,7 +237,7 @@ const NewSuccession: React.FC = () => {
                             <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
                                 <DataGridPro
                                     columns={columnsUser}
-                                    rows={leavingEmployeeOptions}
+                                    rows={rows}
                                     initialState={{
                                     pagination: {
                                         paginationModel: {
@@ -366,6 +378,7 @@ const NewSuccession: React.FC = () => {
                     <Box sx={{ display: "flex", flexDirection: "row", gap: 4, marginTop: 4 }}>
                     {/* Left Column: TextFields */}
                     <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2"><b>Požadované zručnosti: :</b></Typography>
                         {fields.map((field, index) => (
                             <TextField
                                 key={index}
@@ -380,6 +393,7 @@ const NewSuccession: React.FC = () => {
 
                     {/* Right Column: Checkboxes */}
                     <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <Typography variant="body2"><b>Súčasné zručnosti: :</b></Typography>
                         {fields.map((field, index) => (
                             <FormControlLabel
                                 key={index}
@@ -418,7 +432,16 @@ const NewSuccession: React.FC = () => {
                     
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 4, paddingRight: 3, paddingBottom: 3 }}>
-                
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={isNotified}
+                                onChange={(e) => setIsNotified(e.target.checked)}
+                            />
+                        }
+                        label="Želám si notifikovať priradeného nástupcu po uložení zmien"
+                        sx={{ marginRight: 3 }}
+                    />
                 <Stack direction="row" gap={3} >
                     <Button type="submit" variant="contained" color="info" >
                         Uložiť
