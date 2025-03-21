@@ -3,8 +3,9 @@ import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack, Tooltip } from "@mui/material";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
-import { Alert, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Divider } from "@mui/material";
+import { Alert, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Divider, Tabs, Tab  } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
+import { styled } from "@mui/system";
 import SuccessionPlan from "../../../types/SuccessionPlan";
 import DeleteDialog from "../../../components/DeleteDialog";
 
@@ -14,9 +15,9 @@ type GroupedSuccessionPlans = {
 };
 
 const colorMap: Record<string, string> = {
-    "Kritický odchod": "#FF7F0E",
-    "Plánovaný odchod": "#17BECF",
-    "Redundancia týmu": "#A9A9A9",
+    "Kritický odchod": "#EC6602",
+    "Plánovaný odchod": "#009999",
+    "Redundancia týmu": "#616366",
   };
 
 
@@ -40,6 +41,8 @@ const ManageSuccessions: React.FC = () => {
     const [isSnackbarOpen, setSnackbarOpen] = useState(false);
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [selectedPlanId, setSelectedPlanId] = useState<SuccessionPlan | null>(null);
+    const [activeTab, setActiveTab] = useState(0);
+    const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
     const nav = useNavigate();
 
     useEffect(() => {
@@ -65,17 +68,47 @@ const ManageSuccessions: React.FC = () => {
         });
     };
 
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setActiveTab(newValue);
+    };
+
+    const CustomTabs = styled(Tabs)({
+        borderBottom: "1px solid #e0e0e0", 
+        minHeight: "auto",
+        "& .MuiTabs-indicator": {
+            backgroundColor: "#008080", 
+            height: "3px",
+        },
+    });
+    
+    const CustomTab = styled(Tab)({
+        textTransform: "none", // Keep original casing
+        minWidth: 0,
+        minHeight: "auto",
+        fontWeight: 500,
+        fontSize: "14px",
+        "&.Mui-selected": {
+            color: "#000000", // Selected tab text color
+        },
+        "&:not(.Mui-selected)": {
+            color: "#555555", // Unselected tab text color (grayish)
+        },
+        "&:not(:last-of-type)": {
+            borderRight: "1px solid #e0e0e0", // Light gray line
+        },
+    });
+
     const handleEdit = (plan: SuccessionPlan) => {
         console.log("Edit plan", plan);
+        const planId = plan.id;
+        setSelectedPlanId(plan);
         nav(`/editSuccession/${plan.id}`); 
-        //TODO
     };
     
     const handleDelete = (plan: SuccessionPlan) => {
         console.log("Delete plan", plan);
         setSelectedPlanId(plan);
         setDialogOpen(true);
-        //TODO 
     };
 
     const confirmDelete = async () => {
@@ -130,12 +163,26 @@ const ManageSuccessions: React.FC = () => {
               <Stack direction="row" spacing={1}>
                 <Button
                   variant="contained"
-                  color="warning"
                   size="small"
                   onClick={() => handleEdit(plan)}
+                  sx={{
+                    backgroundColor: '#BA4400',
+                    textTransform: 'none', 
+                    '&:hover': {
+                      backgroundColor: '#A53D00', 
+                    },
+                  }}
                 >
                   Editovať
                 </Button>
+                <Box
+                    sx={{
+                        height: 24, 
+                        width: '1px',
+                        backgroundColor: 'black',
+                        alignSelf: 'center'
+                    }}
+                />
                 <Tooltip title="Odstrániť">
                   <IconButton color="error" onClick={() => handleDelete(plan)}>
                     <DeleteIcon />
@@ -156,7 +203,7 @@ const ManageSuccessions: React.FC = () => {
         
         return (
             <Box sx={{width: leaveType === "Redundancia týmu" ? "50%" : "100%", marginBottom: 4 }}>
-                <Typography variant="h6" sx={{ color, fontWeight: "bold" }}>
+                <Typography variant="h6" sx={{ color }}>
                     {leaveType}
                 </Typography>
                 <Table  sx={{ borderCollapse: "separate", borderSpacing: "0 4px" }}>
@@ -168,7 +215,8 @@ const ManageSuccessions: React.FC = () => {
                                 maxWidth: "200px",
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
-                                textOverflow: "ellipsis"
+                                textOverflow: "ellipsis",
+                                fontStyle: "italic"
                               }}
                             >{col}</TableCell>))}
                         </TableRow>
@@ -185,8 +233,8 @@ const ManageSuccessions: React.FC = () => {
                 
                             {columns.map((col, idx) => (
                                 <TableCell key={idx} sx={{
-                                    borderLeft: col === "Meno a priezvisko" ? "2px solid  " + color: undefined,
-                                    borderRight: col === "Dátum odchodu" ? "2px solid  " + color: undefined,
+                                    borderLeft: col === "Meno a priezvisko" ? "6px solid  " + color: undefined,
+                                    borderRight: col === "Dátum odchodu" ? "6px solid  " + color: undefined,
                                   }}>
                                     {renderCell(col, plan)}
                                 </TableCell>
@@ -213,19 +261,54 @@ const ManageSuccessions: React.FC = () => {
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Zoznam nastupíckych zamestnancov 
                 </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ marginBottom: 2 }}
-                    onClick={() => nav("/newSuccession")}
-                >
-                    Pridať
-                </Button>
-               
-                {["Kritický odchod", "Plánovaný odchod", "Redundancia týmu"].map((type) => (
-                    <SuccessionTable key={type} leaveType={type} plans={successionPlans.find(g => g.leaveTypeName === type)?.successionPlans || []} />
-                ))}
-            
+
+                {/* Tabs */}
+                <CustomTabs value={activeTab} onChange={handleTabChange} sx={{ marginBottom: 3 }}>
+                    <CustomTab label="Hlavný zoznam" />
+                    <CustomTab label="Personalizovaný plán" />
+                </CustomTabs>
+
+                {activeTab === 0 && (
+                    <>
+                        {/*  Hlavný zoznam */}
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ marginBottom: 2 }}
+                            onClick={() => nav("/newSuccession")}
+                        >
+                            Pridať
+                        </Button>
+                    
+                        {["Kritický odchod", "Plánovaný odchod", "Redundancia týmu"].map((type) => (
+                            <SuccessionTable key={type} leaveType={type} plans={successionPlans.find(g => g.leaveTypeName === type)?.successionPlans || []} />
+                        ))}
+                    </>
+                )}
+
+                {activeTab === 1 && (
+                    <>
+                        {/* Personalizovaný plán */}
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ marginBottom: 2 }}
+                            onClick={() => {
+                                // TODO
+                            }}
+                        >
+                            Hľadať zamestnanca
+                        </Button>
+
+                        
+                        <Typography variant="subtitle1" sx={{ marginBottom: 2 }}>
+                            Personalizovaný plán zamestnanca: <strong>{selectedEmployee}</strong>
+                        </Typography>
+                        
+                        
+                    </>
+                )}
+
                 <DeleteDialog
                     open={isDialogOpen}
                     onClose={() => setDialogOpen(false)}
