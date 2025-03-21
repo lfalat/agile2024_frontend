@@ -27,6 +27,7 @@ const schema = z.object({
     leavingFullName: z.string(),  
     leavingJobPosition: z.string(),
     leavingDepartment: z.string(),
+    leavingOrganization: z.string(),
     reason: z.string(),
     leaveType: z.string(),
     leaveDate: z.string(),
@@ -36,25 +37,18 @@ const schema = z.object({
 
 type SuccessionData = {
     id: string;
+    leavingId: string;
+    leaveType:string;
     leavingFullName: string;
     leavingJobPosition: string;
     leavingDepartment: string;
+    leavingOrganization: string;
     reason: string;
     leaveDate: string;
     successorFullName: string;
     successorJobPosition: string;
     successorDepartment: string;
     readyStatus: string;
-};
-
-type LeaveType = {
-  id: string,
-  description: string;
-};
-
-type ReadyStatus = {
-    id: string,
-    description: string;
 };
 
 
@@ -87,85 +81,86 @@ const EditSuccession: React.FC = () => {
     const [successionData, setSuccessionData] = useState<SuccessionData | null>(null);
     
     
-       
-
    const {
         register,
         handleSubmit,
         setValue,
-        watch,
-        control,
-        formState: { errors },
-        reset
+        formState: { errors }
     } = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: {
             leavingId: "",
+            leavingFullName: "",
+            leavingJobPosition: "",
+            leavingDepartment: "",
+            leavingOrganization: "",
             reason: "",
             leaveType: "",
             leaveDate: "",
             successorId: null,
             readyStatus: ""
-        }
+        }    
     });
 
-          // Fetch dropdown options (leaveTypes, readyStatuses, employees)
+          
     useEffect(() => {
         api.get(`/Succession/GetLeaveTypes/`).then(res => {
             setLeaveTypesOptions(res.data.map((x: any) => ({ id: x.id, label: x.description })));
-        });
+        }).catch(err => {
+            console.error(err);
+            openSnackbar("Nepodarilo sa načítať údaje o leave types.", "error");
+          });
         api.get(`/Succession/GetReadyStatuses/`).then(res => {
             setReadyStatusesOptions(res.data.map((x: any) => ({ id: x.id, label: x.description })));
-        });
-        api.get(`/EmployeeCard/GetEmployeesInTeam/`).then(res => {
-            setLeavingEmployeeOptions(res.data);
-        });
+        }).catch(err => {
+            console.error(err);
+            openSnackbar("Nepodarilo sa načítať údaje o statuses.", "error");
+          });
+        // api.get(`/EmployeeCard/GetEmployeesInTeam/`).then(res => {
+        //     setLeavingEmployeeOptions(res.data);
+        // });
         api.get(`/EmployeeCard/GetEmployeesWithouSuperiors/`).then(res => {
             setSuccessorOptions(res.data);
-        });
+        }).catch(err => {
+            console.error(err);
+            openSnackbar("Nepodarilo sa načítať údaje o employees.", "error");
+          });
+        
+        
     }, []);
 
 
     useEffect(() => {
-        //if (!id) return;
         console.log("id:", id);
         api.get(`/Succession/GetById/${id}`).then(res => {
-          //const successionData = res.data;
-          const successionData = res.data;
-          setSuccessionData(res.data);
-          console.log("recieved:", res.data);
-          reset({
-            leavingId: successionData.id,
-            leavingFullName: successionData.leavingFullName,
-            leavingJobPosition: successionData.leavingJobPosition,
-            leavingDepartment: successionData.leavingDepartment,
-            reason: successionData.reason,
-            leaveDate: successionData.leaveDate,
-            //successorFullName: successionData.successorFullName !== "N/A" ? successionData.successorFullName : "",
-            //successorJobPosition: successionData.successorJobPosition !== "N/A" ? successionData.successorJobPosition : "",
-            //successorDepartment: successionData.successorDepartment !== "N/A" ? successionData.successorDepartment : "",
-            readyStatus: successionData.readyStatus
-        });
-
-        setSelectedEmployee(successionData.leavingId);
-        setSelectedSuccessor(successionData.successorId);
-        setFields(successionData.skills || []);
-        setIsNotified(successionData.isNotified);
-
-        setLeaveDate(dayjs(successionData.leaveDate)); 
-        setLeaveReason(successionData.reason);
-
-        setValue("leavingId", successionData.leavingId);
-                        setValue("reason", successionData.leaveReason);
-                        setValue("leaveType", successionData.leaveTypeName);
-                        setValue("readyStatus", successionData.readyStatus);
-                        setValue("leaveDate", successionData.leaveDate );             
-        
+            const successionData = res.data;
+            setSuccessionData(res.data);
+            console.log("recieved:", res.data);
+          
+            setSelectedEmployee(successionData.leavingId);
+            setSelectedSuccessor(successionData.successorId);
+            setFields(successionData.skills || []);
+            setIsNotified(successionData.isNotified);
+            setLeaveDate(dayjs(successionData.leaveDate)); 
+            setLeaveReason(successionData.reason);
+            
+            setValue("leavingFullName", successionData.leavingFullName);
+            setValue("leavingJobPosition", successionData.leavingJobPosition);
+            setValue("leavingDepartment", successionData.leavingDepartment);
+            setValue("leavingOrganization", successionData.leavingOrganization)
+            setValue("leavingId", successionData.leavingId);
+            setValue("reason", successionData.leaveReason);
+            setValue("leaveType", successionData.leaveType);
+            setValue("readyStatus", successionData.readyStatus);
+            setValue("leaveDate", successionData.leaveDate );             
+            setValue("successorId", successionData.successorId);
+            
+            
         }).catch(err => {
           console.error(err);
           openSnackbar("Nepodarilo sa načítať údaje o nástupníctve.", "error");
         });
-      }, [id]);
+      }, [id, setValue]);
 
     
     const onSubmit: SubmitHandler<FormData> = async (data) => {        
@@ -194,6 +189,7 @@ const EditSuccession: React.FC = () => {
             });
     };
 
+    
     const openEmployeeModal = (type: 'leaving' | 'successor') => {
         setModalType(type);
         setOpenModal(true);
@@ -274,24 +270,37 @@ const EditSuccession: React.FC = () => {
                             
                         ),}          
         ];
-   
-        return (
-            <Layout>
-                <Typography variant="h4" fontWeight="bold" gutterBottom>Editovať nástupníctvo</Typography>
+    
 
-                <form onSubmit={handleSubmit(onSubmit)}>
-                <Box sx={{ padding: 3, display: "flex", gap: 20 }} >               
-                {/* ĽAVÁ STRANA */}
-                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom> Odstupujúci zamestnanec </Typography>
+    return (
+        <Layout>
+            <form onSubmit={handleSubmit(onSubmit)}>
+            <Box sx={{ padding: 3, display: "flex", gap: 20 }} >               
+            {/* ĽAVÁ STRANA */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom> Odstupujúci zamestnanec </Typography>
+                
+                <Typography variant="body1"  gutterBottom sx={{ marginBottom: 3, marginTop: 2}} >
+                    Meno zamestnanca: {successionData?.leavingFullName}
+                </Typography>
 
-                    <Button variant="contained" color="primary" onClick={() => openEmployeeModal('leaving')} sx={{ float: "right", marginTop:2 }}>
-                        Pridať zamestnanca
-                    </Button>
+                          
+                <Box sx={{ marginTop: 2, paddingTop: 2, color: '#A5A7A9', opacity: 0.8 , width: "100%", borderTop: "1px solid #e0e0e0", }}>
+                    <Typography variant="body1">Súčasná pozícia: {successionData?.leavingJobPosition}</Typography>
+                    <Typography variant="body1">Dátum odchodu: {leaveDate?.toString()}</Typography>
+                    <Typography variant="body1">Oddelenie: {successionData?.leavingDepartment}</Typography>
+                    <Typography variant="body1">Organizácia: {successionData?.leavingOrganization}</Typography>
+                    <Typography variant="body1">Dôvod odchodu: {successionData?.reason}</Typography>
+                    <Typography variant="body1">Typ odchodu:{successionData?.leaveType}</Typography>
+                </Box>    
+            </Box>
 
-                    <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
+
+            {/* PRAVÁ STRANA */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-start", borderLeft: "2px solid #ddd", paddingLeft: 4 }}>
+                <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
                         <DialogTitle>
-                            {modalType === 'leaving' ? 'Pridať odstupujúceho zamestnanca' : 'Pridať nastupujúceho zamestnanca'}
+                            {'Pridať nastupujúceho zamestnanca'}
                             <Stack direction="row" spacing={2} sx={{ float: "right"}}>
                                 <Button color="primary" >
                                     Zoznam zamestnancov
@@ -315,232 +324,158 @@ const EditSuccession: React.FC = () => {
                                     pagination
                                     getRowId={(row) => row.employeeId}     
                                     onCellClick={(params) => {
-                                                        /*if (params.field === "name" || params.field === "surname") {
-                                                            handleEmployeeCardClick(params.row.employeeId);
-                                                        }*/
+                                        /*if (params.field === "name" || params.field === "surname") {
+                                            handleEmployeeCardClick(params.row.employeeId);
+                                        }*/
                                     }}
                                     />
                                     </Box>
                         </DialogTitle>
                     </Dialog>
-
-                    <Typography variant="body1"  gutterBottom sx={{ marginBottom: 3, marginTop: 2}} onClick={() => {
-                        if (selectedEmployeeObj) {
-                            handleEmployeeCardClick(selectedEmployeeObj.employeeId);
-                        }
-                    }}>
-                        Pridaný zamestnanec: 
-                        {watch("leavingFullName") || "N/A"}
-                    </Typography>
-
-                    <Stack direction="column"  gap={2} sx={{ width: "70%"  }} component="form">
-                        <Controller
-                            name="leaveDate"
-                            control={control}
-                            render={({ field }) => (
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DateTimePicker
-                                        label="Termín odchodu zamestnanca *"
-                                        value={dayjs(field.value)}
-                                        onChange={(date) => {
-                                            field.onChange(dayjs(date).format("YYYY-MM-DD"));
-                                        }}
-                                    />                                  
-                                </LocalizationProvider>
-                            )}
-                        />
-
-                        <TextField 
-                            label="Dôvod odchodu" 
-                            required
-                            fullWidth 
-                            value={leaveReason} // Nastavenie hodnoty zo stavu
-                            //onChange={(e) => setLeaveReason(e.target.value)}
-                            {...register("reason")} 
-                            error={!!errors.reason} 
-                            helperText={errors.reason?.message}
-                        />
-
-                        
-                        <Controller
-                            name="leaveType"
-                            control={control}
-                            render={({ field }) => (
-                            <Autocomplete
-                                fullWidth
-                                options={leaveTypesOptions}
-                                getOptionLabel={(option) => option.label}
-                                value={leaveTypesOptions.find(option => option.id === field.value) || null}
-                                onChange={(e, value) => field.onChange(value ? value.id : "")}
-                                renderInput={(params) => <TextField {...params} label="Typ odchodu" />}
-                            />
-                            )}
-                        />
-
-                        {selectedEmployeeObj && (
-                            <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px", width: "150%"  }}>
-                                {leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee) ? (
-                                    <> 
-                                    <Typography variant="body2"><b>Súčasná pozícia:</b> {selectedEmployeeObj.jobPosition}</Typography>
-                                    <Typography variant="body2"><b>Dátum odchodu:</b> {leaveDate?.toString()}</Typography>
-                                    <Typography variant="body2"><b>Oddelenie:</b> {selectedEmployeeObj.department}</Typography>
-                                    <Typography variant="body2"><b>Organizácia:</b> {selectedEmployeeObj.organization}</Typography>
-                                    <Typography variant="body2"><b>Dôvod odchodu:</b> {leaveReason}</Typography>
-                                    <Typography variant="body2"><b>Typ odchodu:</b> {leaveType}</Typography>
-                                    </>
-                                ) : (
-                                    <Typography variant="body2">Nie sú dostupné žiadne informácie.</Typography>
-                                )}
-                            </Box>
-                        )}
-                    </Stack>
-                </Box>
-
-                    {/* PRAVÁ STRANA */}
-                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-start", borderLeft: "2px solid #ddd", paddingLeft: 4 }}>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom > Nastupujúci zamestnanec </Typography>
-
-                    <Stack direction="row" spacing={2} sx={{ display: "flex", flexDirection: "row", marginY: 2 }}>
-                        <Button variant="contained" color="info" onClick={() => openEmployeeModal('successor')}>
-                            Interný zamestnanec
-                        </Button>
-                        <Button variant="contained" color="info" onClick={() => setExternist()}>
-                            Externý zamestnanec
-                        </Button>
-                    </Stack>                   
-
-                    <Typography variant="body1"  gutterBottom sx={{ marginBottom: 2 }} onClick={() => {
-                        if (selectedSuccessorObj) {
-                            handleEmployeeCardClick(selectedSuccessorObj.employeeId);
-                        }
-                    }}>
-                        Pridaný zamestnanec: 
-                        {selectedSuccessor === 'externist' 
-                            ? "Externý zamestnanec"
-                            : successorOptions.find(emp => emp.employeeId === selectedSuccessor)
-                            ? `${successorOptions.find(emp => emp.employeeId === selectedSuccessor)?.name} ${successorOptions.find(emp => emp.employeeId === selectedSuccessor)?.surname}`
-                            : ""}
-                    </Typography>
-
-                    <Autocomplete
-                        fullWidth
-                        options={readyStatusesOptions}
-                        onChange={(e, value) => setValue("readyStatus", value?.id ?? "")}
-                        renderInput={(params) => <TextField {...params} label="Pripravenosť zamestnanca" 
-                        error={!!errors.readyStatus} helperText={errors.readyStatus?.message ?? ""} required
-                        />}                            
-                    />
-
-                    {selectedSuccessor && selectedSuccessor !== 'externist' && (
-                        <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px"}}>                               
-                            {leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor) ? (
-                                <>
-                                <Typography variant="body2"><b>Súčasná pozícia:</b> {selectedSuccessorObj?.jobPosition}</Typography>
-                                <Typography variant="body2"><b>Dátum odchodu:</b> {leaveDate?.toString()}</Typography>
-                                <Typography variant="body2"><b>Oddelenie:</b> {selectedSuccessorObj?.department}</Typography>
-                                <Typography variant="body2"><b>Organizácia:</b> {selectedSuccessorObj?.organization}</Typography>
-                                <Typography variant="body2"><b>Pripravenosť :</b> {leaveReason}</Typography>
-                                </>
-                            ) : (
-                                <Typography variant="body2">Nie sú dostupné žiadne informácie.</Typography>
-                            )}
-                        </Box>
-                    )}  
-                    {/* externista */}
-                    {selectedSuccessor === 'externist' && (
-                        <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px" }}>
-                            <Typography variant="body2"><b>Súčasná pozícia:</b> N/A</Typography>
-                            <Typography variant="body2"><b>Oddelenie:</b> N/A</Typography>
-                            <Typography variant="body2"><b>Organizácia:</b> N/A</Typography>
-                            <Typography variant="body2"><b>Pripravenosť :</b> {leaveReason}</Typography>
-                        </Box>
-                    )}  
-                    <Box sx={{ display: "flex", flexDirection: "row", gap: 4, marginTop: 4 }}>
-                    {/* Left Column: TextFields */}
-                    <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2"><b>Požadované zručnosti: :</b></Typography>
-                        {fields.map((field, index) => (
-                            <TextField
-                                key={index}
-                                label={`Zručnosť č. ${index + 1}`}
-                                value={field.text}
-                                onChange={(e) => handleTextChange(index, e.target.value)}
-                                fullWidth
-                                sx={{ marginBottom: 2 }}
-                            />
-                        ))}
-                    </Box>
-
-                    {/* Right Column: Checkboxes */}
-                    <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                    <Typography variant="body2"><b>Súčasné zručnosti: :</b></Typography>
-                        {fields.map((field, index) => (
-                            <FormControlLabel
-                                key={index}
-                                control={
-                                    <Checkbox
-                                        checked={field.checked}
-                                        onChange={(e) => handleCheckboxChange(index, e.target.checked)}
-                                    />
-                                }
-                                label={field.checked ? "Spĺňa" : "Nespĺňa"}
-                                sx={{ marginBottom: 2 }}
-                            />
-                        ))}
-                    </Box>
-                </Box>
+                
+                <Typography variant="h6" fontWeight="bold" gutterBottom > Nastupujúci zamestnanec </Typography>
 
                 <Stack direction="row" spacing={2} sx={{ display: "flex", flexDirection: "row", marginY: 2 }}>
-                    <Button
-                        variant="contained"
-                        color="info" onClick={handleAddField}
-                    >
-                        +
+                    <Button variant="contained" color="info" onClick={() => openEmployeeModal('successor')}>
+                        Interný zamestnanec
                     </Button>
-                </Stack>
+                    <Button variant="contained" color="info" onClick={() => setExternist()}>
+                        Externý zamestnanec
+                    </Button>
+                </Stack>                   
 
-                {fields.length > 0 && (
-                            <Box sx={{ width: "100%", marginTop: 3 }}>
-                                <Typography variant="body1" sx={{ marginBottom: 1 }}>
-                                    Zručnosti: {completedTasks}/{totalTasks} dokončené
-                                </Typography>
-                                <LinearProgress variant="determinate" value={progress} />
-                            </Box>
+                <Typography variant="body1"  gutterBottom sx={{ marginBottom: 2 }} onClick={() => {
+                    if (selectedSuccessorObj) {
+                        handleEmployeeCardClick(selectedSuccessorObj.employeeId);
+                    }
+                }}>
+                    Pridaný zamestnanec: 
+                    {selectedSuccessor === 'externist' 
+                        ? "Externý zamestnanec"
+                        : successorOptions.find(emp => emp.employeeId === selectedSuccessor)
+                        ? `${successorOptions.find(emp => emp.employeeId === selectedSuccessor)?.name} ${successorOptions.find(emp => emp.employeeId === selectedSuccessor)?.surname}`
+                        : ""}
+                </Typography>
+
+                <Autocomplete
+                    fullWidth
+                    options={readyStatusesOptions}
+                    onChange={(e, value) => setValue("readyStatus", value?.id ?? "")}
+                    renderInput={(params) => <TextField {...params} label="Pripravenosť zamestnanca" 
+                    error={!!errors.readyStatus} helperText={errors.readyStatus?.message ?? ""} required
+                    />}                            
+                />
+
+                {selectedSuccessor && selectedSuccessor !== 'externist' && (
+                    <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px"}}>                               
+                        {leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor) ? (
+                            <>
+                            <Typography variant="body2"><b>Súčasná pozícia:</b> {selectedSuccessorObj?.jobPosition}</Typography>
+                            <Typography variant="body2"><b>Dátum odchodu:</b> {leaveDate?.toString()}</Typography>
+                            <Typography variant="body2"><b>Oddelenie:</b> {selectedSuccessorObj?.department}</Typography>
+                            <Typography variant="body2"><b>Organizácia:</b> {selectedSuccessorObj?.organization}</Typography>
+                            <Typography variant="body2"><b>Pripravenosť :</b> {leaveReason}</Typography>
+                            </>
+                        ) : (
+                            <Typography variant="body2">Nie sú dostupné žiadne informácie.</Typography>
                         )}
                     </Box>
-                
-                    
+                )}  
+                {/* externista */}
+                {selectedSuccessor === 'externist' && (
+                    <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px" }}>
+                        <Typography variant="body2"><b>Súčasná pozícia:</b> N/A</Typography>
+                        <Typography variant="body2"><b>Oddelenie:</b> N/A</Typography>
+                        <Typography variant="body2"><b>Organizácia:</b> N/A</Typography>
+                        <Typography variant="body2"><b>Pripravenosť :</b> {leaveReason}</Typography>
+                    </Box>
+                )}  
+                <Box sx={{ display: "flex", flexDirection: "row", gap: 4, marginTop: 4 }}>
+                {/* Left Column: TextFields */}
+                <Box sx={{ flex: 1 }}>
+                <Typography variant="body2"><b>Požadované zručnosti: :</b></Typography>
+                    {fields.map((field, index) => (
+                        <TextField
+                            key={index}
+                            label={`Zručnosť č. ${index + 1}`}
+                            value={field.text}
+                            onChange={(e) => handleTextChange(index, e.target.value)}
+                            fullWidth
+                            sx={{ marginBottom: 2 }}
+                        />
+                    ))}
                 </Box>
-                <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 4, paddingRight: 3, paddingBottom: 3 }}>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={isNotified}
-                                onChange={(e) => setIsNotified(e.target.checked)}
-                            />
-                        }
-                        label="Želám si notifikovať priradeného nástupcu po uložení zmien"
-                        sx={{ marginRight: 3 }}
-                    />
-                <Stack direction="row" gap={3} >
-                    <Button type="submit" variant="contained" color="info" >
-                        Uložiť zmeny
-                    </Button>
-                    <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageSuccessions')}>
-                        Zrušiť
-                    </Button>
-                </Stack>
+
+                {/* Right Column: Checkboxes */}
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <Typography variant="body2"><b>Súčasné zručnosti: :</b></Typography>
+                    {fields.map((field, index) => (
+                        <FormControlLabel
+                            key={index}
+                            control={
+                                <Checkbox
+                                    checked={field.checked}
+                                    onChange={(e) => handleCheckboxChange(index, e.target.checked)}
+                                />
+                            }
+                            label={field.checked ? "Spĺňa" : "Nespĺňa"}
+                            sx={{ marginBottom: 2 }}
+                        />
+                    ))}
+                </Box>
             </Box>
 
-                <EmployeeCardDialog
-                    userId={selectedEmployeeCard?.id ?? null}
-                    user={selectedEmployeeCard}
-                    open={openCardDialog}
-                    handleClose={() => setOpenCardDialog(false)}
+            <Stack direction="row" spacing={2} sx={{ display: "flex", flexDirection: "row", marginY: 2 }}>
+                <Button
+                    variant="contained"
+                    color="info" onClick={handleAddField}
+                >
+                    +
+                </Button>
+            </Stack>
+
+            {fields.length > 0 && (
+                        <Box sx={{ width: "100%", marginTop: 3 }}>
+                            <Typography variant="body1" sx={{ marginBottom: 1 }}>
+                                Zručnosti: {completedTasks}/{totalTasks} dokončené
+                            </Typography>
+                            <LinearProgress variant="determinate" value={progress} />
+                        </Box>
+                    )}
+                </Box>
+            
+                
+            </Box>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 4, paddingRight: 3, paddingBottom: 3 }}>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={isNotified}
+                            onChange={(e) => setIsNotified(e.target.checked)}
+                        />
+                    }
+                    label="Želám si notifikovať priradeného nástupcu po uložení zmien"
+                    sx={{ marginRight: 3 }}
                 />
-                </form>
-            </Layout>
-        );
+            <Stack direction="row" gap={3} >
+                <Button type="submit" variant="contained" color="info" >
+                    Uložiť zmeny
+                </Button>
+                <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageSuccessions')}>
+                    Zrušiť
+                </Button>
+            </Stack>
+        </Box>
+
+            <EmployeeCardDialog
+                userId={selectedEmployeeCard?.id ?? null}
+                user={selectedEmployeeCard}
+                open={openCardDialog}
+                handleClose={() => setOpenCardDialog(false)}
+            />
+            </form>
+        </Layout>
+    );
     
 };
 
