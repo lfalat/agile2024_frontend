@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import {Autocomplete, Box, Stack, TextField, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Checkbox, LinearProgress } from "@mui/material";
 import { z } from "zod";
-import {useForm, SubmitHandler } from "react-hook-form";
+import {useForm, SubmitHandler, Controller } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "../../../app/api";
@@ -71,10 +71,19 @@ const EditSuccession: React.FC = () => {
         register,
         handleSubmit,
         setValue,
+        control,
         formState: { errors },
+        reset
     } = useForm<FormData>({
         resolver: zodResolver(schema),
-    
+        defaultValues: {
+            leavingId: "",
+            leaveReason: "",
+            leaveType: "",
+            leaveDate: "",
+            successorId: null,
+            readyStatus: ""
+        }
     });
 
           // Fetch dropdown options (leaveTypes, readyStatuses, employees)
@@ -99,27 +108,26 @@ const EditSuccession: React.FC = () => {
         api.get(`/Succession/GetById/${id}`).then(res => {
           const succession = res.data;
     
-          // Prefill form fields
-          setValue('leavingId', succession.leavingId);
-          setSelectedEmployee(succession.leavingId);
-    
-          setValue('leaveReason', succession.leaveReason);
-          setValue('leaveType', succession.leaveType);
-          setValue('leaveDate', succession.leaveDate);
-          setLeaveDate(dayjs(succession.leaveDate));
-    
-          setValue('successorId', succession.successorId);
-          setSelectedSuccessor(succession.successorId);
-    
-          setValue('readyStatus', succession.readyStatus);
-    
-          setFields(succession.skills || []);
-          setIsNotified(succession.isNotified);
+          reset({
+            leavingId: succession.leavingId,
+            leaveReason: succession.leaveReason,
+            leaveType: succession.leaveType,
+            leaveDate: succession.leaveDate,
+            successorId: succession.successorId,
+            readyStatus: succession.readyStatus
+        });
+
+        setSelectedEmployee(succession.leavingId);
+        setSelectedSuccessor(succession.successorId);
+        setFields(succession.skills || []);
+        setIsNotified(succession.isNotified);
+
+        setLeaveDate(dayjs(succession.leaveDate)); 
         }).catch(err => {
           console.error(err);
           openSnackbar("Nepodarilo sa načítať údaje o nástupníctve.", "error");
         });
-      }, [id, setValue, openSnackbar]);
+      }, [id]);
 
     
     const onSubmit: SubmitHandler<FormData> = async (data) => {        
@@ -290,43 +298,47 @@ const EditSuccession: React.FC = () => {
                     </Typography>
 
                     <Stack direction="column"  gap={2} sx={{ width: "70%"  }} component="form">
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DateTimePicker
-                                label="Termín odchodu zamestnanca *"
-                                value={leaveDate}
-                            
-                                onChange={(newDate) => {
-                                    const formattedDate = dayjs(newDate).format('YYYY-MM-DD');
-                                    setValue('leaveDate', formattedDate);
-                                    setLeaveDate(newDate); 
-                            }}
-                            />                                  
-                        </LocalizationProvider>
-                        <TextField label="Dôvod odchodu" 
+                        <Controller
+                            name="leaveDate"
+                            control={control}
+                            render={({ field }) => (
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DateTimePicker
+                                        label="Termín odchodu zamestnanca *"
+                                        value={dayjs(field.value)}
+                                        onChange={(date) => {
+                                            field.onChange(dayjs(date).format("YYYY-MM-DD"));
+                                        }}
+                                    />                                  
+                                </LocalizationProvider>
+                            )}
+                        />
+
+                        <TextField 
+                            label="Dôvod odchodu" 
                             required
                             fullWidth 
                             {...register("leaveReason")} 
                             error={!!errors.leaveReason} 
-                            helperText={errors.leaveReason?.message ?? ""}
-                            value={leaveReason}
-                            onChange={(e) => {
-                                setLeaveReason(e.target.value);
-                                setValue("leaveReason", e.target.value);
-                            }}
-                            >
-
-                        </TextField>
-                        <Autocomplete
-                            fullWidth
-                            options={leaveTypesOptions}
-                            onChange={(e, value) => {
-                                setLeaveType(value?.label ?? "");
-                                setValue("leaveType", value?.id ?? "")
-                            }}
-                            renderInput={(params) => <TextField {...params} label="Typ odchodu" 
-                            />}
+                            helperText={errors.leaveReason?.message}
                         />
+
                         
+                        <Controller
+                            name="leaveType"
+                            control={control}
+                            render={({ field }) => (
+                            <Autocomplete
+                                fullWidth
+                                options={leaveTypesOptions}
+                                getOptionLabel={(option) => option.label}
+                                value={leaveTypesOptions.find(option => option.id === field.value) || null}
+                                onChange={(e, value) => field.onChange(value ? value.id : "")}
+                                renderInput={(params) => <TextField {...params} label="Typ odchodu" />}
+                            />
+                            )}
+                        />
+
                         {selectedEmployeeObj && (
                             <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px", width: "150%"  }}>
                                 {leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee) ? (
