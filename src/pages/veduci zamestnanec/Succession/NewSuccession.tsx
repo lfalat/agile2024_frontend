@@ -191,7 +191,7 @@ const NewSuccession: React.FC = () => {
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
     const selectedEmployeeObj = leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee);
-    const selectedSuccessorObj = leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor);
+    const selectedSuccessorObj = successorOptions.find(emp => emp.employeeId === selectedSuccessor);
     const rows = modalType === 'successor' ? successorOptions : leavingEmployeeOptions;
 
     const columnsUser: GridColDef<EmployeeCard>[] = [
@@ -337,8 +337,8 @@ const NewSuccession: React.FC = () => {
                         Pridaný zamestnanec: 
                         {selectedSuccessor === 'externist' 
                             ? "Externý zamestnanec"
-                            : leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor)
-                            ? `${leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor)?.name} ${leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor)?.surname}`
+                            : successorOptions.find(emp => emp.employeeId === selectedSuccessor)
+                            ? `${successorOptions.find(emp => emp.employeeId === selectedSuccessor)?.name} ${successorOptions.find(emp => emp.employeeId === selectedSuccessor)?.surname}`
                             : ""}
                     </Typography>
 
@@ -353,7 +353,7 @@ const NewSuccession: React.FC = () => {
 
                     {selectedSuccessor && selectedSuccessor !== 'externist' && (
                         <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px"}}>                               
-                            {leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor) ? (
+                            {successorOptions.find(emp => emp.employeeId === selectedSuccessor) ? (
                                 <>
                                 <Typography variant="body2"><b>Súčasná pozícia:</b> {selectedSuccessorObj?.jobPosition}</Typography>
                                 <Typography variant="body2"><b>Dátum odchodu:</b> {leaveDate?.toString()}</Typography>
