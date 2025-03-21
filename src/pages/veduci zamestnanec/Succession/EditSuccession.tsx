@@ -18,16 +18,34 @@ import UserProfile from "../../../types/UserProfile";
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 //import { DataGrid} from "@mui/x-data-grid";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
+import { useLocation } from "react-router-dom";
+
+
 
 const schema = z.object({
     leavingId: z.string(),
-    leaveReason: z.string().min(1, "Dôvod odchodu je povinný."), 
-    leaveType: z.string(), 
+    leavingFullName: z.string(),  
+    leavingJobPosition: z.string(),
+    leavingDepartment: z.string(),
+    reason: z.string(),
+    leaveType: z.string(),
     leaveDate: z.string(),
     successorId: z.string().nullable(),
     readyStatus: z.string()
 });
 
+type SuccessionData = {
+    id: string;
+    leavingFullName: string;
+    leavingJobPosition: string;
+    leavingDepartment: string;
+    reason: string;
+    leaveDate: string;
+    successorFullName: string;
+    successorJobPosition: string;
+    successorDepartment: string;
+    readyStatus: string;
+};
 
 type LeaveType = {
   id: string,
@@ -43,10 +61,12 @@ type ReadyStatus = {
 type FormData = z.infer<typeof schema>;
 
 const EditSuccession: React.FC = () => {
-    const { id } = useParams(); // Get succession ID from route
+    //const { id } = useParams(); // Get succession ID from route
     const nav = useNavigate();
     const { openSnackbar } = useSnackbar();
     const { userProfile } = useAuth();
+     const { state } = useLocation();
+        const { id } = state || {};
 
     const [leaveReason, setLeaveReason] = useState<string>("");
     const [leaveType, setLeaveType] = useState<string>("");
@@ -64,6 +84,8 @@ const EditSuccession: React.FC = () => {
     const [isNotified, setIsNotified] = useState(false);
     const [modalType, setModalType] = useState<'leaving' | 'successor' | null>(null);
     const [selectedEmployeeCard, setSelectedEmployeeCard] = useState<UserProfile | null>(null); 
+    const [successionData, setSuccessionData] = useState<SuccessionData | null>(null);
+    
     
        
 
@@ -71,6 +93,7 @@ const EditSuccession: React.FC = () => {
         register,
         handleSubmit,
         setValue,
+        watch,
         control,
         formState: { errors },
         reset
@@ -78,7 +101,7 @@ const EditSuccession: React.FC = () => {
         resolver: zodResolver(schema),
         defaultValues: {
             leavingId: "",
-            leaveReason: "",
+            reason: "",
             leaveType: "",
             leaveDate: "",
             successorId: null,
@@ -104,25 +127,40 @@ const EditSuccession: React.FC = () => {
 
 
     useEffect(() => {
-        if (!id) return;
+        //if (!id) return;
+        console.log("id:", id);
         api.get(`/Succession/GetById/${id}`).then(res => {
-          const succession = res.data;
-    
+          //const successionData = res.data;
+          const successionData = res.data;
+          setSuccessionData(res.data);
+          console.log("recieved:", res.data);
           reset({
-            leavingId: succession.leavingId,
-            leaveReason: succession.leaveReason,
-            leaveType: succession.leaveType,
-            leaveDate: succession.leaveDate,
-            successorId: succession.successorId,
-            readyStatus: succession.readyStatus
+            leavingId: successionData.id,
+            leavingFullName: successionData.leavingFullName,
+            leavingJobPosition: successionData.leavingJobPosition,
+            leavingDepartment: successionData.leavingDepartment,
+            reason: successionData.reason,
+            leaveDate: successionData.leaveDate,
+            //successorFullName: successionData.successorFullName !== "N/A" ? successionData.successorFullName : "",
+            //successorJobPosition: successionData.successorJobPosition !== "N/A" ? successionData.successorJobPosition : "",
+            //successorDepartment: successionData.successorDepartment !== "N/A" ? successionData.successorDepartment : "",
+            readyStatus: successionData.readyStatus
         });
 
-        setSelectedEmployee(succession.leavingId);
-        setSelectedSuccessor(succession.successorId);
-        setFields(succession.skills || []);
-        setIsNotified(succession.isNotified);
+        setSelectedEmployee(successionData.leavingId);
+        setSelectedSuccessor(successionData.successorId);
+        setFields(successionData.skills || []);
+        setIsNotified(successionData.isNotified);
 
-        setLeaveDate(dayjs(succession.leaveDate)); 
+        setLeaveDate(dayjs(successionData.leaveDate)); 
+        setLeaveReason(successionData.reason);
+
+        setValue("leavingId", successionData.leavingId);
+                        setValue("reason", successionData.leaveReason);
+                        setValue("leaveType", successionData.leaveTypeName);
+                        setValue("readyStatus", successionData.readyStatus);
+                        setValue("leaveDate", successionData.leaveDate );             
+        
         }).catch(err => {
           console.error(err);
           openSnackbar("Nepodarilo sa načítať údaje o nástupníctve.", "error");
@@ -292,9 +330,7 @@ const EditSuccession: React.FC = () => {
                         }
                     }}>
                         Pridaný zamestnanec: 
-                        {leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee) 
-                            ? `${leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee)?.name} ${leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee)?.surname}`
-                            : ""}
+                        {watch("leavingFullName") || "N/A"}
                     </Typography>
 
                     <Stack direction="column"  gap={2} sx={{ width: "70%"  }} component="form">
@@ -318,9 +354,11 @@ const EditSuccession: React.FC = () => {
                             label="Dôvod odchodu" 
                             required
                             fullWidth 
-                            {...register("leaveReason")} 
-                            error={!!errors.leaveReason} 
-                            helperText={errors.leaveReason?.message}
+                            value={leaveReason} // Nastavenie hodnoty zo stavu
+                            //onChange={(e) => setLeaveReason(e.target.value)}
+                            {...register("reason")} 
+                            error={!!errors.reason} 
+                            helperText={errors.reason?.message}
                         />
 
                         
