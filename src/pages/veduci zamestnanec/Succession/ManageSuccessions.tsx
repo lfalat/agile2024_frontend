@@ -24,11 +24,11 @@ const colorMap: Record<string, string> = {
 const columnConfig: Record<string, string[]> = {
     "Kritický odchod": [
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu",
-    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Akcia"
+    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Pripravenosť %", "Akcia"
     ],
     "Plánovaný odchod": [
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu",
-    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Akcia"
+    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Pripravenosť %", "Akcia"
     ],
     "Redundancia týmu": [
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu"
@@ -156,6 +156,9 @@ const ManageSuccessions: React.FC = () => {
             return plan.successorDepartment;
           case "Pripravenosť":
             return plan.readyStatus;
+
+          case "Pripravenosť %":
+            return plan.readyState;
           case "Akcia":
             return (
               <Stack direction="row" spacing={1}>

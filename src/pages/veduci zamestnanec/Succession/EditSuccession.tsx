@@ -23,16 +23,10 @@ import { useLocation } from "react-router-dom";
 
 
 const schema = z.object({
-    leavingId: z.string(),
-    leavingFullName: z.string(),  
-    leavingJobPosition: z.string(),
-    leavingDepartment: z.string(),
-    leavingOrganization: z.string(),
-    reason: z.string(),
-    leaveType: z.string(),
-    leaveDate: z.string(),
     successorId: z.string().nullable(),
-    readyStatus: z.string()
+    readyStatus: z.string(),
+    readyStatusId: z.string(),
+
 });
 
 type SuccessionData = {
@@ -45,9 +39,11 @@ type SuccessionData = {
     leavingOrganization: string;
     reason: string;
     leaveDate: string;
+    successorId: string;
     successorFullName: string;
     successorJobPosition: string;
     successorDepartment: string;
+    readyStatusId: string;
     readyStatus: string;
 };
 
@@ -55,12 +51,11 @@ type SuccessionData = {
 type FormData = z.infer<typeof schema>;
 
 const EditSuccession: React.FC = () => {
-    //const { id } = useParams(); // Get succession ID from route
     const nav = useNavigate();
     const { openSnackbar } = useSnackbar();
     const { userProfile } = useAuth();
-     const { state } = useLocation();
-        const { id } = state || {};
+    const { state } = useLocation();
+    const { id } = state || {};
 
     const [leaveReason, setLeaveReason] = useState<string>("");
     const [leaveType, setLeaveType] = useState<string>("");
@@ -79,29 +74,30 @@ const EditSuccession: React.FC = () => {
     const [modalType, setModalType] = useState<'leaving' | 'successor' | null>(null);
     const [selectedEmployeeCard, setSelectedEmployeeCard] = useState<UserProfile | null>(null); 
     const [successionData, setSuccessionData] = useState<SuccessionData | null>(null);
+
+
     
     
    const {
         register,
         handleSubmit,
         setValue,
+        watch,
+        reset,
         formState: { errors }
     } = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: {
-            leavingId: "",
-            leavingFullName: "",
-            leavingJobPosition: "",
-            leavingDepartment: "",
-            leavingOrganization: "",
-            reason: "",
-            leaveType: "",
-            leaveDate: "",
             successorId: null,
-            readyStatus: ""
+            readyStatusId: "",
+            readyStatus: "",
+            
         }    
     });
 
+    useEffect(() => {
+        console.log("Aktuálne hodnoty vo formulári:", watch());
+    }, [watch]); 
           
     useEffect(() => {
         api.get(`/Succession/GetLeaveTypes/`).then(res => {
@@ -112,13 +108,11 @@ const EditSuccession: React.FC = () => {
           });
         api.get(`/Succession/GetReadyStatuses/`).then(res => {
             setReadyStatusesOptions(res.data.map((x: any) => ({ id: x.id, label: x.description })));
+            console.log("readystatuses ids:", readyStatusesOptions);
         }).catch(err => {
             console.error(err);
             openSnackbar("Nepodarilo sa načítať údaje o statuses.", "error");
           });
-        // api.get(`/EmployeeCard/GetEmployeesInTeam/`).then(res => {
-        //     setLeavingEmployeeOptions(res.data);
-        // });
         api.get(`/EmployeeCard/GetEmployeesWithouSuperiors/`).then(res => {
             setSuccessorOptions(res.data);
         }).catch(err => {
@@ -143,24 +137,27 @@ const EditSuccession: React.FC = () => {
             setIsNotified(successionData.isNotified);
             setLeaveDate(dayjs(successionData.leaveDate)); 
             setLeaveReason(successionData.reason);
+            setIsNotified(false);
             
-            setValue("leavingFullName", successionData.leavingFullName);
-            setValue("leavingJobPosition", successionData.leavingJobPosition);
-            setValue("leavingDepartment", successionData.leavingDepartment);
-            setValue("leavingOrganization", successionData.leavingOrganization)
-            setValue("leavingId", successionData.leavingId);
-            setValue("reason", successionData.leaveReason);
-            setValue("leaveType", successionData.leaveType);
-            setValue("readyStatus", successionData.readyStatus);
-            setValue("leaveDate", successionData.leaveDate );             
-            setValue("successorId", successionData.successorId);
-            
+            reset({          
+                successorId: successionData.successorId,
+                readyStatus: successionData.readyStatus,
+                readyStatusId: successionData.readyStatusId,
+            });
+            if (successionData?.skills) {
+                setFields(
+                    successionData.skills.map((skill: { description: any; isReady: any; }) => ({
+                        text: skill.description,
+                        checked: skill.isReady
+                    }))
+                );
+            }
             
         }).catch(err => {
           console.error(err);
           openSnackbar("Nepodarilo sa načítať údaje o nástupníctve.", "error");
         });
-      }, [id, setValue]);
+      }, [id, reset]);
 
     
     const onSubmit: SubmitHandler<FormData> = async (data) => {        
@@ -177,7 +174,7 @@ const EditSuccession: React.FC = () => {
 
         console.log("Updating succession: ", dataToSend);
         
-        await api.post(`/Succession/Update/${id}`, dataToSend)
+        await api.put(`/Succession/Update/${id}`, dataToSend)
             .then((res) => {
                 console.log("Updated:", res.data);
                 openSnackbar("Nástupníctvo bolo úspešne aktualizované", "success");
@@ -196,10 +193,7 @@ const EditSuccession: React.FC = () => {
     };
     
     const handleSelectEmployee = (employeeId: string) => {
-        if (modalType === 'leaving') {
-            setSelectedEmployee(employeeId);
-            setValue('leavingId', employeeId ?? "");
-        } else if (modalType === 'successor') {
+        if (modalType === 'successor') {
             setSelectedSuccessor(employeeId);
             setValue('successorId', employeeId ?? "");
             console.log("successor:", selectedSuccessor)
@@ -222,16 +216,26 @@ const EditSuccession: React.FC = () => {
 
     // zmena textu pri zručnostiach
     const handleTextChange = (index: number, value: string) => {
-        const newFields = [...fields];
+        /*const newFields = [...fields];
         newFields[index].text = value;
-        setFields(newFields);
+        setFields(newFields);*/
+        setFields(prevFields =>
+            prevFields.map((field, i) =>
+                i === index ? { ...field, text: value } : field
+            )
+        );
     };
 
     // zmena v checkboxe
     const handleCheckboxChange = (index: number, checked: boolean) => {
-        const newFields = [...fields];
+        /*const newFields = [...fields];
         newFields[index].checked = checked;
-        setFields(newFields);
+        setFields(newFields);*/
+        setFields(prevFields =>
+            prevFields.map((field, i) =>
+                i === index ? { ...field, checked } : field
+            )
+        );
     };
 
     const handleEmployeeCardClick = async (employeeCardId: string) => {
@@ -247,7 +251,6 @@ const EditSuccession: React.FC = () => {
     const totalTasks = fields.length;
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-    const selectedEmployeeObj = leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee);
     const selectedSuccessorObj = successorOptions.find(emp => emp.employeeId === selectedSuccessor);
     const rows = modalType === 'successor' ? successorOptions : leavingEmployeeOptions;
 
@@ -255,6 +258,7 @@ const EditSuccession: React.FC = () => {
             { field: "employeeId", headerName: "ID zamestnanca", width: 150 },
             { field: "surname", headerName: "Meno zamestnanca", width: 150, renderCell: (params: any) => (<span>{params.row.name} {params.row.surname}</span>)},
             { field: "department", headerName: "Oddelenie", width: 150 },
+            
             {
                         field: "actions",
                         headerName: "Akcie",
@@ -360,26 +364,39 @@ const EditSuccession: React.FC = () => {
                 <Autocomplete
                     fullWidth
                     options={readyStatusesOptions}
-                    onChange={(e, value) => setValue("readyStatus", value?.id ?? "")}
-                    renderInput={(params) => <TextField {...params} label="Pripravenosť zamestnanca" 
-                    error={!!errors.readyStatus} helperText={errors.readyStatus?.message ?? ""} required
-                    />}                            
+                    getOptionLabel={(option) => option.label} 
+                    value={readyStatusesOptions.find(st => st.id === watch("readyStatusId")) || null} 
+                    onChange={(e, value) => {
+                        setValue("readyStatusId", value?.id ?? "");
+                        setValue("readyStatus", value?.label ?? "");
+                    }}
+                    renderInput={(params) => (
+                        <TextField 
+                            {...params} 
+                            label="Pripravenosť zamestnanca" 
+                            error={!!errors.readyStatusId} 
+                            helperText={errors.readyStatusId?.message ?? ""} 
+                            required
+                        />
+                    )}
                 />
 
+
                 {selectedSuccessor && selectedSuccessor !== 'externist' && (
-                    <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px"}}>                               
-                        {leavingEmployeeOptions.find(emp => emp.employeeId === selectedSuccessor) ? (
+                    <Box sx={{ marginTop: 2, paddingTop: 2, color: '#A5A7A9', opacity: 0.8 , width: "100%", borderTop: "1px solid #e0e0e0", }}>
+                    {successorOptions.find(emp => emp.employeeId === selectedSuccessor) ? (
                             <>
-                            <Typography variant="body2"><b>Súčasná pozícia:</b> {selectedSuccessorObj?.jobPosition}</Typography>
-                            <Typography variant="body2"><b>Dátum odchodu:</b> {leaveDate?.toString()}</Typography>
-                            <Typography variant="body2"><b>Oddelenie:</b> {selectedSuccessorObj?.department}</Typography>
-                            <Typography variant="body2"><b>Organizácia:</b> {selectedSuccessorObj?.organization}</Typography>
-                            <Typography variant="body2"><b>Pripravenosť :</b> {leaveReason}</Typography>
+                            <Typography variant="body1">Súčasná pozícia: {selectedSuccessorObj?.jobPosition}</Typography>
+                            <Typography variant="body1">Dátum odchodu: {leaveDate?.toString()}</Typography>
+                            <Typography variant="body1">Oddelenie: {selectedSuccessorObj?.department}</Typography>
+                            <Typography variant="body1">Organizácia: {selectedSuccessorObj?.organization}</Typography>
+                            <Typography variant="body1">Pripravenosť : {watch("readyStatus")}</Typography>
                             </>
                         ) : (
-                            <Typography variant="body2">Nie sú dostupné žiadne informácie.</Typography>
+                            <Typography variant="body1">Nie sú dostupné žiadne informácie.</Typography>
                         )}
-                    </Box>
+                </Box>   
+                    
                 )}  
                 {/* externista */}
                 {selectedSuccessor === 'externist' && (
@@ -473,6 +490,9 @@ const EditSuccession: React.FC = () => {
                 open={openCardDialog}
                 handleClose={() => setOpenCardDialog(false)}
             />
+            {Object.keys(errors).length > 0 && (
+                <Typography color="error">Formulár obsahuje chyby!</Typography>
+)}
             </form>
         </Layout>
     );

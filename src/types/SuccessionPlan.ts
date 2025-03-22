@@ -9,7 +9,8 @@ type SuccessionPlan = {
     successorFullName: string;
     successorJobPosition: string;
     successorDepartment: string;
-    readyStatus: string;      
+    readyStatus: string;
+    readyState: string;      
 }
 
 export default SuccessionPlan 

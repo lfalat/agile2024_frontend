@@ -298,18 +298,18 @@ const NewSuccession: React.FC = () => {
                         />
                         
                         {selectedEmployeeObj && (
-                            <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px", width: "150%"  }}>
-                                {leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee) ? (
+                            <Box sx={{ marginTop: 2, paddingTop: 2, color: '#A5A7A9', opacity: 0.8 , width: "100%", borderTop: "1px solid #e0e0e0", }}>
+                                    {leavingEmployeeOptions.find(emp => emp.employeeId === selectedEmployee) ? (
                                     <> 
-                                    <Typography variant="body2"><b>Súčasná pozícia:</b> {selectedEmployeeObj.jobPosition}</Typography>
-                                    <Typography variant="body2"><b>Dátum odchodu:</b> {leaveDate?.toString()}</Typography>
-                                    <Typography variant="body2"><b>Oddelenie:</b> {selectedEmployeeObj.department}</Typography>
-                                    <Typography variant="body2"><b>Organizácia:</b> {selectedEmployeeObj.organization}</Typography>
-                                    <Typography variant="body2"><b>Dôvod odchodu:</b> {leaveReason}</Typography>
-                                    <Typography variant="body2"><b>Typ odchodu:</b> {leaveType}</Typography>
+                                    <Typography variant="body1">Súčasná pozícia: {selectedEmployeeObj.jobPosition}</Typography>
+                                    <Typography variant="body1">Dátum odchodu: {leaveDate?.toString()}</Typography>
+                                    <Typography variant="body1">Oddelenie: {selectedEmployeeObj.department}</Typography>
+                                    <Typography variant="body1">Organizácia: {selectedEmployeeObj.organization}</Typography>
+                                    <Typography variant="body1">Dôvod odchodu: {leaveReason}</Typography>
+                                    <Typography variant="body1">Typ odchodu: {leaveType}</Typography>
                                     </>
                                 ) : (
-                                    <Typography variant="body2">Nie sú dostupné žiadne informácie.</Typography>
+                                    <Typography variant="body1">Nie sú dostupné žiadne informácie.</Typography>
                                 )}
                             </Box>
                         )}
@@ -352,17 +352,17 @@ const NewSuccession: React.FC = () => {
                     />
 
                     {selectedSuccessor && selectedSuccessor !== 'externist' && (
-                        <Box sx={{ marginTop: 2, padding: 2, backgroundColor: "#f5f5f5", borderRadius: "8px"}}>                               
+                        <Box sx={{ marginTop: 2, paddingTop: 2, color: '#A5A7A9', opacity: 0.8 , width: "100%", borderTop: "1px solid #e0e0e0", }}>
                             {successorOptions.find(emp => emp.employeeId === selectedSuccessor) ? (
                                 <>
-                                <Typography variant="body2"><b>Súčasná pozícia:</b> {selectedSuccessorObj?.jobPosition}</Typography>
-                                <Typography variant="body2"><b>Dátum odchodu:</b> {leaveDate?.toString()}</Typography>
-                                <Typography variant="body2"><b>Oddelenie:</b> {selectedSuccessorObj?.department}</Typography>
-                                <Typography variant="body2"><b>Organizácia:</b> {selectedSuccessorObj?.organization}</Typography>
-                                <Typography variant="body2"><b>Pripravenosť :</b> {leaveReason}</Typography>
+                                <Typography variant="body1">Súčasná pozícia: {selectedSuccessorObj?.jobPosition}</Typography>
+                                <Typography variant="body1">Dátum odchodu: {leaveDate?.toString()}</Typography>
+                                <Typography variant="body1">Oddelenie: {selectedSuccessorObj?.department}</Typography>
+                                <Typography variant="body1">Organizácia: {selectedSuccessorObj?.organization}</Typography>
+                                <Typography variant="body1">Pripravenosť : {leaveReason}</Typography>
                                 </>
                             ) : (
-                                <Typography variant="body2">Nie sú dostupné žiadne informácie.</Typography>
+                                <Typography variant="body1">Nie sú dostupné žiadne informácie.</Typography>
                             )}
                         </Box>
                     )}  
