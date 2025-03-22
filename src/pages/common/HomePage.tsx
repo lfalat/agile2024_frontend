@@ -106,8 +106,10 @@ const HomeScreen: React.FC = () => {
         }
         if (message == 1) {
           nav(`/manageFeedback/`, { state: { reviewId } });
-      } else {
+      } else if (isEmployee){
           nav('/updateReviewZam', { state: { id } });
+      } else if (!isEmployee) {
+        nav('/updateReview', { state: { id } });
       }
     
 };
@@ -119,38 +121,81 @@ const HomeScreen: React.FC = () => {
           Vitajte doma {userProfile?.titleBefore} {userProfile?.firstName} {userProfile?.lastName} {userProfile?.titleAfter}
         </Typography>
       </Box>
-      {isEmployee && (
+      
       
       <Grid container spacing={3} sx={{ paddingLeft: "150px", minWidth: "1350px", margin: "auto" }}>
-        
         {/* Ľavý stĺpec s tabuľkami */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ marginBottom: "20px", background: "#008080", color: "#fff" }}>
-            <CardContent>
-              <Typography variant="h6">Prebiehajúce úlohy</Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              width: "100%",
+              height: 330,  // Výška pre tabuľku
+              background: "#fff",
+              color: "#000",
+              marginTop: "10px",
+              overflowY: "auto",  // Povolenie posúvania
+            }}
+          >
+            <DataGrid
+              rows={reviews}
+              columns={columnsTasks}
+              hideFooter
+              onRowClick={handleRowClickTasks}
+              sx={{
+                maxHeight: 325,
+                "& .MuiDataGrid-columnHeader": {
+                  backgroundColor: "#008080 !important", 
+                  color: "#fff", 
+                  fontSize: "18px",
+                  position: "sticky",  
+                  top: 0,
+                  zIndex: 1,
+                },
+                "& .MuiDataGrid-cell": {
+                  whiteSpace: "normal",
+                  wordBreak: "break-word",
+                  overflow: "visible",
+                  lineHeight: "1.7",
+                },
+                "& .MuiDataGrid-root": {
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+                  overflowY: "auto",
+                },
+              }}
+            />
+          </Box>
+ 
+          {isEmployee && (
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "flex-start",
                   width: "100%",
-                  height: 250, 
                   background: "#fff",
                   color: "#000",
-                  marginTop: "10px",
-                  overflowY: "auto", 
+                  marginTop: "30px",
+                  overflowY: "auto",
                 }}
               >
                 <DataGrid
-                  rows={reviews}
-                  columns={columnsTasks}
+                  rows={filteredGoals}
+                  columns={columnsGoals}
                   hideFooter
-                  autoPageSize={true}
-                  autoHeight={true} 
-                  onRowClick={handleRowClickTasks}
+                  autoHeight
+                  onRowClick={handleRowClickGoals}
                   sx={{
-                    "& .MuiDataGrid-columnHeaders": {
-                      display: "none",
+                    maxHeight: 325,
+                    "& .MuiDataGrid-columnHeader": {
+                      backgroundColor: "#FFA500 !important", 
+                      color: "#fff", 
+                      fontSize: "18px",
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 1,
                     },
                     "& .MuiDataGrid-cell": {
                       whiteSpace: "normal",
@@ -158,31 +203,15 @@ const HomeScreen: React.FC = () => {
                       overflow: "visible",
                       lineHeight: "1.7",
                     },
-
+                    "& .MuiDataGrid-root": {
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+                      overflowY: "auto",
+                    },
                   }}
                 />
-              </Box>
-            </CardContent>
-          </Card>
-
-          <Card sx={{ background: "#FFA500", color: "#fff" }}>
-            <CardContent>
-              <Typography variant="h6">Prebiehajúce ciele</Typography>
-              <Box sx={{ height: 200, background: "#fff", color: "#000", marginTop: "10px" }}>
-                <DataGrid
-                  rows={filteredGoals}
-                  columns={columnsGoals}
-                  hideFooter
-                  autoHeight
-                  onRowClick={handleRowClickGoals}
-                  sx={{ "& .MuiDataGrid-columnHeaders": { display: "none" } }}
-                />
-              </Box>
-            </CardContent>
-          </Card>
+              </Box>)}
         </Grid>
-
-        {/* Pravý stĺpec s grafom a legendou */}
+        {isEmployee && (
         <Grid item xs={12} md={6} sx={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start" }}>
           <Box
             sx={{
@@ -191,29 +220,26 @@ const HomeScreen: React.FC = () => {
               alignItems: "flex-start",
               justifyContent: "flex-start", 
               width: "100%",
-              height: 330,
+              height: 325,
               padding: "20px",
               border: "2px solid #008080", 
               borderRadius: "8px", 
               backgroundColor: "#f7f7f7", 
+              marginTop: "10px"
             }}
           >
-            {/* Title */}
-            <Typography variant="h5" sx={{ marginBottom: "16px" }}>
-              Stav cieľov
-            </Typography>
+            <Typography variant="h5" sx={{ marginBottom: "16px" }}>Stav cieľov</Typography>
 
-            {/* Container for PieChart and Legend aligned horizontally */}
             <Box
               sx={{
-                display: "flex", // Align PieChart and legend side by side
-                flexDirection: "row", // Horizontal layout for PieChart and Legend
-                justifyContent: "flex-start", // Align to the left
-                alignItems: "flex-start", // Align them at the top (no vertical centering)
-                width: "100%", // Make sure it takes full width
+                display: "flex",
+                flexDirection: "row", 
+                justifyContent: "flex-start", 
+                alignItems: "flex-start",
+                width: "100%",
+                
               }}
             >
-              {/* Render PieChart only if there is data */}
               {pieData.length > 0 && (
                 <>
                   {/* PieChart */}
@@ -267,11 +293,11 @@ const HomeScreen: React.FC = () => {
               )}
             </Box>
           </Box>
-        </Grid>
+        </Grid>)}
 
 
       </Grid>
-      )}
+      
     </Layout>
   );
 };
