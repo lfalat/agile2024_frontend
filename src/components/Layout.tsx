@@ -169,6 +169,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             component: <OrganizationHierarchy />,
         },
         {
+            role: Roles.PowerUser,
+            label: "Organizačná hierarchia",
+            path: null,
+            component: <OrganizationHierarchy />,
+        },
+        {
+            role: Roles.Spravca,
+            label: "Organizačná hierarchia",
+            path: null,
+            component: <OrganizationHierarchy />,
+        },
+        {
             role: Roles.Zamestnanec,
             label: "Organizačná hierarchia",
             path: null,
