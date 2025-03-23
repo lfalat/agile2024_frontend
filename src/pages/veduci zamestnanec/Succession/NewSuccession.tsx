@@ -298,10 +298,11 @@ const NewSuccession: React.FC = () => {
                             value={leaveDate}
                             {...register('leaveDate', { required: 'Termín je povinný.' })}                           
                             onChange={(newDate) => {
-                                const formattedDate = dayjs(newDate).format('YYYY-MM-DD');
+                                const formattedDate = dayjs(newDate).format('DD.MM.YYYY');
                                 setValue('leaveDate', formattedDate);
                                 setLeaveDate(newDate); 
                             }}
+                            format="DD.MM.YYYY"
                             
                             //renderInput={(params) => <TextField {...params} fullWidth />}
                             />                                  

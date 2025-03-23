@@ -24,11 +24,11 @@ const colorMap: Record<string, string> = {
 const columnConfig: Record<string, string[]> = {
     "Kritický odchod": [
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu",
-    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Pripravenosť %", "Akcia"
+    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Zručnosti", "Akcia"
     ],
     "Plánovaný odchod": [
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu",
-    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Pripravenosť %", "Akcia"
+    "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Zručnosti", "Akcia"
     ],
     "Redundancia týmu": [
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu"
@@ -157,7 +157,7 @@ const ManageSuccessions: React.FC = () => {
           case "Pripravenosť":
             return plan.readyStatus;
 
-          case "Pripravenosť %":
+          case "Zručnosti":
             return plan.readyState;
           case "Akcia":
             return (
@@ -260,7 +260,7 @@ const ManageSuccessions: React.FC = () => {
         <Layout >
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Zoznam nastupíckych zamestnancov 
+                    Zoznam nastupníckych zamestnancov 
                 </Typography>
 
                 {/* Tabs */}
