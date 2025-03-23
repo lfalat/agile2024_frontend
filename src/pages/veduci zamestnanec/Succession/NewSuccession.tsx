@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Layout from "../../../components/Layout";
 import {Autocomplete, Box, Stack, TextField, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Checkbox, LinearProgress } from "@mui/material";
 import { z } from "zod";
@@ -28,13 +28,14 @@ type ReadyStatus = {
     id: string,
     description: string;
   };
+
 const schema = z.object({
     leavingId: z.string(),
     leaveReason: z.string().min(1, "Dôvod odchodu je povinný."), 
     leaveType: z.string(), 
     leaveDate: z.string(),
     successorId: z.string().nullable(),
-    readyStatus: z.string()
+    readyStatus: z.string().optional()
 });
 
 type FormData = z.infer<typeof schema>;
@@ -50,6 +51,7 @@ const NewSuccession: React.FC = () => {
     const [leaveType, setLeaveType] = useState<string[]>([]);
     const [leaveDate, setLeaveDate] = useState<Dayjs | null>(dayjs());
     const [leaveTypesOptions, setleaveTypesOptions] = useState<{ id: string; label: string }[]>([]);
+    const [leaveTypeVyber, setLeaveTypeVyber] = useState<string | null>(null);
     const [readyStatusesOptions, setReadyStatusesOptions] = useState<{ id: string; label: string }[]>([]);
     const [leavingEmployeeOptions, setLeavingEmployeeOptions] = useState<EmployeeCard[]>([]);
     const [successorOptions, setSuccessorOptions] = useState<EmployeeCard[]>([]);
@@ -65,6 +67,7 @@ const NewSuccession: React.FC = () => {
             handleSubmit,
             setValue,
             formState: { errors },
+            reset
         } = useForm<FormData>({
             resolver: zodResolver(schema),
            
@@ -89,6 +92,7 @@ const NewSuccession: React.FC = () => {
                     label: leaveType.description,
                 }));
                 setReadyStatusesOptions(options);
+                console.log("statuses", res.data);
             })
             .catch((err) => console.error(err));
 
@@ -214,6 +218,21 @@ const NewSuccession: React.FC = () => {
                         ),}          
         ];
    
+
+        useEffect(() => {
+            console.log("leaveTypeVyber updated:", leaveTypeVyber);
+          }, [leaveTypeVyber]);
+
+        const leaveTypeVyberRef = useRef(leaveTypeVyber);
+
+        useEffect(() => {
+        leaveTypeVyberRef.current = leaveTypeVyber;
+        }, [leaveTypeVyber]);
+
+        useEffect(() => {
+            reset(undefined, { keepValues: true });
+        }, [leaveTypeVyber, reset]);
+
         return (
             <Layout>
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -291,7 +310,22 @@ const NewSuccession: React.FC = () => {
                         <Autocomplete
                             fullWidth
                             options={leaveTypesOptions}
-                            onChange={(e, value) => setValue("leaveType", value?.id ?? "")}
+                            onChange={(e, value) => {
+                                const selectedId = value?.id ?? "";
+                                const selectedLabel = value?.label ?? null;
+                                
+                                setValue("leaveType", selectedId);
+                                setLeaveTypeVyber(selectedLabel);
+                                console.log("sl:", leaveTypeVyber);
+
+                                if (selectedLabel === "Redundancia týmu") {
+                                    // Clear the successor if it's redundancia
+                                    setSelectedSuccessor(null);
+                                    setValue("successorId", null);
+                                    setValue("readyStatus", "08dd6326-5eb2-43e8-811e-3387aa0ea870")
+                                  }
+                                }}
+                                
                             renderInput={(params) => <TextField {...params} label="Typ odchodu" 
                             //error={!!errors.leaveType} helperText={errors.leaveType?.message ?? ""} required
                             />}
@@ -345,10 +379,18 @@ const NewSuccession: React.FC = () => {
                     <Autocomplete
                         fullWidth
                         options={readyStatusesOptions}
-                        onChange={(e, value) => setValue("readyStatus", value?.id ?? "")}
-                        renderInput={(params) => <TextField {...params} label="Pripravenosť zamestnanca" 
-                        error={!!errors.readyStatus} helperText={errors.readyStatus?.message ?? ""} required
-                        />}                            
+                        onChange={(e, value) => {
+                            setValue("readyStatus", value?.id ?? "");
+                            console.log("Leave type from ref:", leaveTypeVyberRef.current);}}
+                        renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Pripravenosť zamestnanca"
+                              error={!!errors.readyStatus}
+                              helperText={errors.readyStatus?.message ?? ""}
+                              required={leaveTypeVyber !== "Redundancia týmu"} 
+                            />
+                          )}                          
                     />
 
                     {selectedSuccessor && selectedSuccessor !== 'externist' && (
