@@ -163,12 +163,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             component: null,
         },
         {
-            role: Roles.Zamestnanec,
-            label: "Moje ciele a rozvoj",
-            path: "/employeeGoals",
-            component: null,
-        },
-        {
             role: Roles.Veduci,
             label: "Organizačná hierarchia",
             path: null,

@@ -9,8 +9,9 @@ import NotificationResponse from "../types/responses/NotificationResponse";
 import api from "../app/api";
 import { useAuth } from "../hooks/AuthProvider";
 import Roles from "../types/Roles";
+import { NavigateFunction } from "react-router-dom";
 
-const getNotificationIcon = (notificationType: NotificationType) => {
+export const getNotificationIcon = (notificationType: NotificationType) => {
   switch (notificationType) {
     case NotificationType.GoalCreated:
       return <CheckCircle color="success" />;
@@ -23,10 +24,9 @@ const getNotificationIcon = (notificationType: NotificationType) => {
     case NotificationType.NewSuccession:
       return <Flag color="secondary" />;
     case NotificationType.ReviewUnset:
-      
-    case NotificationType.General: 
+    case NotificationType.General:
     default:
-      return <NotificationsNone color="disabled" />;
+      return <Notifications color="disabled" />;
   }
 };
 
@@ -34,13 +34,45 @@ interface NotificationMenuProps {
   notificationList: NotificationResponse[];
 }
 
+export const handleNavigate = (
+  referencedItem: string | undefined,
+  notificationType: NotificationType,
+  currentRole: string | undefined,
+  navigate: NavigateFunction
+) => {
+  console.log(`${currentRole}  ${notificationType}`);
+
+  switch (notificationType) {
+    case NotificationType.GoalCreated:
+    case NotificationType.GoalUpdated:
+    case NotificationType.GoalUnsent:
+      if (currentRole === Roles.Zamestnanec) {
+        navigate("/employeeGoals");
+      } else if (currentRole === Roles.Veduci) {
+        navigate("/manageGoals");
+      }
+      break;
+    case NotificationType.ReviewUnset:
+      navigate("/manageReviews");
+      break;
+    case NotificationType.FeedbackUnsent:
+      navigate("/manageFeedback");
+      break;
+    case NotificationType.NewSuccession:
+      navigate("/manageSuccesion");
+      break;
+    case NotificationType.General:
+    default:
+      break;
+  }
+};
+
 const NotificationMenu: React.FC<NotificationMenuProps> = ({ notificationList }) => {
   const [anchorElNotification, setAnchorElNotification] = useState<null | HTMLElement>(null);
-  const { notifications, addNotification, setNotifications } = useNotifications(); 
   const nav = useNavigate();
   const { userProfile,refresh } = useAuth();
   const { connection } = useContext(SignalRContext);
-
+  const { notifications, addNotification, setNotifications,ignoreNotification } = useNotifications(); 
   const handleClickNotification = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNotification(event.currentTarget);
   };
@@ -48,30 +80,6 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({ notificationList })
   const handleCloseNotification = () => {
     setAnchorElNotification(null);
   };
-
-  const handleNavigate = (referencedItem: string | undefined, notificationType: NotificationType) => {
-    const currentRole = userProfile?.role; 
-    console.log(`${currentRole}  ${notificationType}`);
-    switch(notificationType) {
-      case NotificationType.General:  
-        break;
-      case NotificationType.GoalCreated:
-      case NotificationType.GoalUpdated: 
-      case NotificationType.GoalUnsent: 
-        if (currentRole === Roles.Zamestnanec) {
-          nav('/employeeGoals');
-        } else if (currentRole === Roles.Veduci) {
-          nav('/manageGoals');
-        }
-        break;
-      case NotificationType.ReviewUnset:
-        break;
-      case NotificationType.FeedbackUnsent: 
-        break;
-      case NotificationType.NewSuccession: 
-        break;
-    }
-};
 
   useEffect(() => {
     if (!userProfile || !connection) return;
@@ -85,15 +93,6 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({ notificationList })
       connection.off("ReceiveNotification");
     };
   }, [connection, setNotifications]);
-
-  const ignoreNotification = async (notificationId: string) => {
-    try {
-      await api.put(`Notification/MarkAsRead/${notificationId}`);
-      setNotifications(notifications.filter(n => n.id !== notificationId));
-    } catch (error) {
-      console.error("Failed to ignore notification:", error);
-    }
-  };
 
   return (
     <Box sx={{ flexGrow: 0, }} paddingRight={5}>
@@ -125,30 +124,54 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({ notificationList })
         >
         </Box>
         {notifications.length > 0 ? (
-          notifications.map((notification, index) => (
-            <Box key={index} sx={{ minWidth:400, paddingLeft:1}}>
-              <Box display="flex" alignItems="center">
-                {getNotificationIcon(notification.notificationType)}
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ marginLeft: 1 }}>
-                  {notification.title || "Notification"}
-                </Typography>
-              </Box>
+  notifications.map((notification, index) => {
+    const createdDate = new Date(notification.createdAt);
+    const formattedDate = createdDate.toLocaleDateString("sk-SK");
+    const formattedTime = createdDate.toLocaleTimeString("sk-SK", { hour: "2-digit", minute: "2-digit" });
 
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1,wordWrap: 'break-word'}}>
-                {notification.message}
-              </Typography>
-              
-              <Box display="flex" justifyContent="end">
-                <Button size="small" onClick={() => handleNavigate(notification.referencedItem, notification.notificationType)}> Detail </Button>
-                <Button size="small" onClick={() => ignoreNotification(notification.id)}>Ignorovať</Button>
-              </Box>
-              {index < notifications.length - 1 && <Divider sx={{ mt: 1, mb: 1 }} />}
-            </Box>
-          ))
-        ) : (
-          <MenuItem onClick={handleCloseNotification} sx={{padding:1}}>Žiadne nové notifikácie</MenuItem>
-        )}
-        {notifications.length > 0 && (
+    return (
+      <Box key={index} sx={{ minWidth: 400, paddingLeft: 1 }}>
+        <Box display="flex" alignItems="center">
+          {getNotificationIcon(notification.notificationType)}
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ marginLeft: 1 }}>
+            {notification.title || "Notification"}
+          </Typography>
+        </Box>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, wordWrap: 'break-word' }}>
+          {notification.message}
+        </Typography>
+
+        {/* Date & Time on the left, Buttons on the right */}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          {/* Display Date and Time */}
+          <Typography variant="body2" fontWeight="bold" color="text.secondary">
+            {formattedDate} - {formattedTime}
+          </Typography>
+
+          {/* Buttons */}
+          <Box display="flex">
+            <Button
+              size="small"
+              onClick={() => {
+                ignoreNotification(notification.id);
+                handleNavigate(notification.referencedItem, notification.notificationType, userProfile?.role, nav);
+              }}
+            >
+              Detail
+            </Button>
+            <Button size="small" onClick={() => ignoreNotification(notification.id)}>Ignorovať</Button>
+          </Box>
+        </Box>
+
+        {index < notifications.length - 1 && <Divider sx={{ mt: 1, mb: 1 }} />}
+      </Box>
+    );
+  })
+  ) : (
+    <MenuItem onClick={handleCloseNotification} sx={{ padding: 1 }}>Žiadne nové notifikácie</MenuItem>
+  )}
+        
         <Box
           sx={{
             borderTop: "1px solid #ddd",
@@ -159,7 +182,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({ notificationList })
             backgroundColor: "white",
           }}
         >
-          <MenuItem onClick={() => console.log("všetky")}
+          <MenuItem onClick={() => nav('/notifications')}
             sx={{
               textAlign:"center",
               justifyContent:"center",
@@ -169,7 +192,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({ notificationList })
             Zobraziť všetky notifikácie
           </MenuItem>
         </Box>
-        )}
+        
       </Menu>
     </Box>
   );
