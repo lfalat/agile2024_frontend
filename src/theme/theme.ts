@@ -9,5 +9,8 @@ export const themeOptions: ThemeOptions = {
     secondary: {
       main: '#dedede',
     },
+    info: {
+      main: '#008B8B',
+    },
   },
 };

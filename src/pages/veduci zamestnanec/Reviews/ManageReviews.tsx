@@ -98,6 +98,9 @@ const ManageReviews: React.FC = () => {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
         });
     };
     
@@ -110,7 +113,8 @@ const ManageReviews: React.FC = () => {
     const columns: GridColDef<Review>[] = [
         { field: "reviewName", headerName: "Názov posudku", width: 250 },
         { field: "status", headerName: "Stav", width: 150 },
-        {   field: "assignedEmployees", 
+        {   
+            field: "assignedEmployees", 
             headerName: "Priradený zamestnanec", 
             width: 200,
             renderCell: (params) => {
@@ -144,13 +148,41 @@ const ManageReviews: React.FC = () => {
             field: "createdAt", 
             headerName: "Dátum a čas vytvorenia posudku", 
             width: 250, 
-            //valueGetter: (params: { row: Review }) => getDate(params.row.createdAt) 
+            valueGetter: (value, row) => {
+                if (!row.createdAt) return "-";
+                return new Date(row.createdAt)
+                .toLocaleDateString("sk-SK", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric"
+                })
+                .replace(/\s/g, "") + ", " + 
+                new Date(row.createdAt).toLocaleTimeString("sk-SK", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false
+                });
+            }
         },
         { 
             field: "completedAt", 
             headerName: "Dátum a čas dokončenia posudku", 
             width: 250, 
-            //valueGetter: (params: { row: Review }) => getDate(params.row.completedAt) 
+            valueGetter: (value, row) => {
+                if (!row.completedAt) return "-";
+                return new Date(row.completedAt)
+                .toLocaleDateString("sk-SK", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric"
+                })
+                .replace(/\s/g, "") + ", " + 
+                new Date(row.completedAt).toLocaleTimeString("sk-SK", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false
+                });
+            }
         },
     ];
 
