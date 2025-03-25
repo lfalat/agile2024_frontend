@@ -17,7 +17,7 @@ type GroupedSuccessionPlans = {
 const colorMap: Record<string, string> = {
     "Kritický odchod": "#EC6602",
     "Plánovaný odchod": "#009999",
-    "Redundancia týmu": "#616366",
+    "Redundancia tímu": "#616366",
   };
 
 
@@ -30,7 +30,7 @@ const columnConfig: Record<string, string[]> = {
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu",
     "Nástupca", "Pozícia nástupcu", "Oddelenie nástupcu", "Pripravenosť", "Zručnosti", "Akcia"
     ],
-    "Redundancia týmu": [
+    "Redundancia tímu": [
     "Meno a priezvisko", "Súčasná pozícia", "Oddelenie", "Dôvod odchodu", "Dátum odchodu"
     ]
 };
@@ -203,7 +203,7 @@ const ManageSuccessions: React.FC = () => {
         const columns = columnConfig[leaveType];
         
         return (
-            <Box sx={{width: leaveType === "Redundancia týmu" ? "50%" : "100%", marginBottom: 4 }}>
+            <Box sx={{width: leaveType === "Redundancia tímu" ? "50%" : "100%", marginBottom: 4 }}>
                 <Typography variant="h6" sx={{ color }}>
                     {leaveType}
                 </Typography>
@@ -281,7 +281,7 @@ const ManageSuccessions: React.FC = () => {
                             Pridať
                         </Button>
                     
-                        {["Kritický odchod", "Plánovaný odchod", "Redundancia týmu"].map((type) => (
+                        {["Kritický odchod", "Plánovaný odchod", "Redundancia tímu"].map((type) => (
                             <SuccessionTable key={type} leaveType={type} plans={successionPlans.find(g => g.leaveTypeName === type)?.successionPlans || []} />
                         ))}
                     </>
