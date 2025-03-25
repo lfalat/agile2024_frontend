@@ -18,13 +18,16 @@ import {
 import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
 import api from "../../../app/api";
 import Layout from "../../../components/Layout";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Feedback from "../../../types/Feedback/Feedback";
 import FeedbackRecipient from "../../../types/Feedback/FeedbackRecipient";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { dataGridStyles } from "../../../styles/gridStyle";
 
 const ManageFeedback: React.FC = () => {
+    const location = useLocation();
+    const feedbackId  = location.state?.reviewId;
+    const [hasOpened, setHasOpened] = useState(false);
     const [feedbackList, setFeedbackList] = useState<FeedbackRecipient[]>([]);
     const [selectedFeedback, setSelectedFeedback] = useState<FeedbackRecipient | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
@@ -32,6 +35,36 @@ const ManageFeedback: React.FC = () => {
     const nav = useNavigate();
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
     const [isSender, setIsSender] = useState<boolean>(false);
+
+    useEffect(() => {
+        GetRequiredFeedback();
+        if (!feedbackId || hasOpened) return;
+
+        if (!feedbackId) {
+            GetDeliveredFeedback();
+            return;
+        }
+        
+        if (feedbackList.length === 0) {
+            console.log("Feedback list is empty, waiting for data...");
+            return;
+        }
+        if (feedbackId) {
+            const foundFeedback = feedbackList.find((f) => String(f.id) === String(feedbackId));
+            console.log("found:", foundFeedback);
+            if(foundFeedback) {
+                const fetchFeedbackById = async () => {
+                    try {
+                        setHasOpened(true); 
+                        handleOpenDialog(foundFeedback);
+                    } catch (error) {
+                        console.error("Error fetching feedback:", error);
+                    }
+                };
+                fetchFeedbackById();
+            }
+        }
+    }, [feedbackId, feedbackList]); 
 
     useEffect(() => {
         GetDeliveredFeedback();
