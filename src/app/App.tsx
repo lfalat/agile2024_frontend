@@ -42,6 +42,7 @@ import UpdateReview from "../pages/veduci zamestnanec/Reviews/UpdateReview";
 import UpdateReviewZam from "../pages/zamestnanec/Reviews/UpdateReviewZam";
 import ManageSuccessions from "../pages/veduci zamestnanec/Succession/ManageSuccessions";
 import NewSuccession from "../pages/veduci zamestnanec/Succession/NewSuccession";
+import NotificationsPage from "../pages/common/NotificationsPage";
 import EditSuccession from "../pages/veduci zamestnanec/Succession/EditSuccession";
 
 const App: React.FC = () => {
@@ -64,7 +65,7 @@ const App: React.FC = () => {
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/passwordChange" element={<PasswordChange />} />
-
+                                <Route path="/notifications" element={<NotificationsPage />} />
                                 {/* Role protected routes */}
                                 {/* Spravca */}
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Spravca]} />}>
@@ -93,6 +94,7 @@ const App: React.FC = () => {
                                     <Route path="/manageFeedback" element={<ManageFeedback />} />
                                     <Route path="/newFeedback" element={<NewFeedback />} />
                                 </Route>
+
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
                                     <Route path="/manageGoals" element={<ManageGoals />} />
                                     <Route path="/newGoal" element={<NewGoal />} />
@@ -104,11 +106,11 @@ const App: React.FC = () => {
                                     <Route path="/newSuccession" element={<NewSuccession/>} />
                                     <Route path="/editSuccession" element={<EditSuccession/>} />
                                 </Route>
+
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
-                            <Route path="/employeeGoals" element={<EmployeeGoals />} />    
-                            <Route path="/myReviews" element={<ManageReviewsZam/>}/>     
-                            <Route path="/updateReviewZam" element={<UpdateReviewZam/>} />
-                        
+                                    <Route path="/employeeGoals" element={<EmployeeGoals />} />    
+                                    <Route path="/myReviews" element={<ManageReviewsZam/>}/>     
+                                    <Route path="/updateReviewZam" element={<UpdateReviewZam/>} />
                                 </Route>
                             
                             </Route>

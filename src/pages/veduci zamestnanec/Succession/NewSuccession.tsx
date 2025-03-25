@@ -319,7 +319,7 @@ const NewSuccession: React.FC = () => {
                                 setLeaveTypeVyber(selectedLabel);
                                 console.log("sl:", leaveTypeVyber);
 
-                                if (selectedLabel === "Redundancia týmu") {
+                                if (selectedLabel === "Redundancia tímu") {
                                     // Clear the successor if it's redundancia
                                     setSelectedSuccessor(null);
                                     setValue("successorId", null);
@@ -389,7 +389,7 @@ const NewSuccession: React.FC = () => {
                               label="Pripravenosť zamestnanca"
                               error={!!errors.readyStatus}
                               helperText={errors.readyStatus?.message ?? ""}
-                              required={leaveTypeVyber !== "Redundancia týmu"} 
+                              required={leaveTypeVyber !== "Redundancia tímu"} 
                             />
                           )}                          
                     />
