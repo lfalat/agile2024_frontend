@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Button, Typography, Tabs, Tab, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, IconButton, InputLabel, styled, TableRow, TableCell, Table, TableBody, TableHead, Tooltip } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -15,9 +15,7 @@ import { EmployeeCard } from "../../../types/EmployeeCard";
 import TaskModal from './TaskModal';
 import DocumentModal from './DocumentModal';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { useProfile, ProfileProvider } from "../../../hooks/ProfileProvider";
-import { useAuth } from "../../../hooks/AuthProvider";
-
+import { format as formatDate } from 'date-fns';
 
 type Task = {
     id: string;
@@ -43,7 +41,7 @@ type FormData = z.infer<typeof schema>;
 
 const NewAdaptation: React.FC = () => {
     //const [employee, setEmployee] = useState<{ id: string; name: string } | null>(null);
-    const [creator, setCreator] = useState<string | null>(null); 
+    const [creator, setCreator] = useState<EmployeeCard | null>(null); 
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCard | null>(null); 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [error, setError] = useState<string>();
@@ -63,9 +61,6 @@ const NewAdaptation: React.FC = () => {
     const [editTaskIndex, setEditTaskIndex] = useState<number | null>(null);
     const [editDocIndex, setEditDocIndex] = useState<number | null>(null);
 
-    const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
-    const { employeeCard } = useProfile();
-
     const {
         register,
         handleSubmit,
@@ -78,54 +73,71 @@ const NewAdaptation: React.FC = () => {
 
 
     useEffect(() => {
-        api.get(`/EmployeeCard/GetEmployeesWithouSuperiors/`)
+        api.get(`/EmployeeCard/GetEmployeesInTeam/`)
         .then((res) => {
             setEmployeeOptions(res.data); 
             console.log("employees:", res.data); 
         })
+        
+        api.get(`/EmployeeCard/GetEmployeeCardLoggedIn/`)
+        .then((res) => {
+            setCreator(res.data); 
+            console.log("creator:", res.data); 
+        })
+
         .catch((err) => console.error(err));
         }, []);
 
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-            const tasksData = fieldsTask.map(field => ({
-                description: field.text,
-                finishDate: field.date,
-                isDone: field.checked
-            }));
+        console.log("form is submitting", data)
 
-            const documentsData = fieldsDocs.map(field => ({
-                description: field.text,
-                filePath: field.filePath
-            }));
-    
-            const dataToSend = {
-                ...data,
-                tasks: tasksData,
-                documents: documentsData
-            };
+        const tasksData = fieldsTask.map(field => ({
+            description: field.text,
+            finishDate: formatDate(field.date, 'yyyy-MM-dd'),
+            isDone: field.checked
+        }));
 
-            console.log(" created data:", dataToSend);
-            await api.post("/Adaptation/Create", dataToSend)
-                .then((res) => {
-                    console.log(" created:", res.data);
-                    openSnackbar("Adaptacia bola úspešne vytvorena", "success");
-                    nav('/manageAdaptations');
-                })
-                .catch((err) => {
-                    setError(err.response.data.title);
-                    console.error("Error creating:", err);
-                });
+        const documentsData = fieldsDocs.map(field => ({
+            description: field.text,
+            filePath: field.filePath
+        }));
+
+        const dataToSend = {
+            ...data,
+            tasks: tasksData,
+            documents: documentsData
         };
 
+        console.log(" created data:", dataToSend);
+        await api.post("/Adaptation/Create", dataToSend)
+            .then((res) => {
+                console.log(" created:", res.data);
+                openSnackbar("Adaptacia bola úspešne vytvorena", "success");
+                nav('/manageAdaptations');
+            })
+            .catch((err) => {
+                setError(err.response.data.title);
+                console.error("Error creating:", err);
+            });
+    };
 
-    const readyDate = tasks.length
-    ? format(new Date(Math.max(...tasks.map(t => new Date(t.finishDate).getTime()))), "d.M.yyyy")
-    : "-";
+    useEffect(() => {
+        console.log("form errors", errors);
+    }, [errors]);
 
-    const completedDate = tasks.length && tasks.every(t => t.isDone)
-        ? format(new Date(), "d.M.yyyy")
-        : "-";
+
+    const readyDate = useMemo(() => {
+        if (!fieldsTask.length) return "-";
+        const maxDate = Math.max(...fieldsTask.map(t => t.date.getTime()));
+        return format(new Date(maxDate), "d.M.yyyy");
+    }, [fieldsTask]);
+    
+    const completedDate = useMemo(() => {
+        if (!fieldsTask.length) return "-";
+        const allChecked = fieldsTask.every(t => t.checked);
+        return allChecked ? format(new Date(), "d.M.yyyy") : "-";
+    }, [fieldsTask]);
 
     
     const openEmployeeModal = () => {
@@ -180,7 +192,10 @@ const NewAdaptation: React.FC = () => {
                     variant="contained"
                     sx={{ backgroundColor: "turquoise", color: "black", fontSize: "12px", textWrap: "wrap" }}
                     disabled={selectedEmployee == params.row.employeeId }
-                    onClick={() => handleSelectEmployee(params.row)} >
+                    onClick={() => {
+                        handleSelectEmployee(params.row)
+                        setValue('createdEmployeeId', creator?.employeeId ?? "")
+                    }} >
                     Vybrať
                 </Button>
         ),}          
@@ -189,7 +204,7 @@ const NewAdaptation: React.FC = () => {
     type DocumentItem = {
         text: string;
         filePath: string;
-        file?: File; // optional if you handle uploads
+        file?: File;
       };
 
     const handleDownload = (doc: { filePath: string; text?: string }) => {
@@ -249,10 +264,10 @@ const NewAdaptation: React.FC = () => {
                             Meno zamestnanca: {selectedEmployee ? `${selectedEmployee.name} ${selectedEmployee.surname}` : "-"}
                         </Typography>
                         <Typography sx={{ marginTop: 1 }}>
-                            Zodpovedný zamestnanec: {employeeCard ? `${employeeCard.name} ${employeeCard.surname}`: "-"}
+                            Zodpovedný zamestnanec: {creator ? `${creator.name} ${creator.surname}`: "-"}
                         </Typography>
                         <Typography sx={{ marginTop: 1 }}>Termín pripravenosti: {readyDate}</Typography>
-                        <Typography sx={{ marginTop: 1 }}>Dátum dokončenia: {"-"}</Typography>
+                        <Typography sx={{ marginTop: 1 }}>Dátum dokončenia: {completedDate}</Typography>
                     </Box>
 
                   
@@ -478,7 +493,7 @@ const NewAdaptation: React.FC = () => {
                 <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 4, paddingRight: 3, paddingBottom: 3 }}>           
                     <Stack direction="row" gap={3} margin={3} >
                         <Button type="submit" variant="contained" color="info" >
-                            Uložiť
+                            Vytvoriť
                         </Button>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageAdaptations')}>
                             Zrušiť
