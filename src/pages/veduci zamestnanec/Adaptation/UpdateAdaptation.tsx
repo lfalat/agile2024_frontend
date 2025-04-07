@@ -7,7 +7,7 @@ import { format, parseISO } from "date-fns";
 import dayjs from "dayjs";
 import api from "../../../app/api";
 import { z } from "zod";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
 import {useForm, SubmitHandler } from "react-hook-form";
@@ -39,26 +39,28 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 
-const NewAdaptation: React.FC = () => {
+const UpdateAdaptation: React.FC = () => {
     //const [employee, setEmployee] = useState<{ id: string; name: string } | null>(null);
     const [creator, setCreator] = useState<EmployeeCard | null>(null); 
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCard | null>(null); 
+
+    const [tasks, setTasks] = useState<Task[]>([]);
     const [error, setError] = useState<string>();
     const nav = useNavigate();  
     const [fieldsTask, setFieldsTask] = useState<{ text: string, date: Date, checked: boolean }[]>([]);
     const [fieldsDocs, setFieldsDocs] = useState<{ text: string, filePath: string }[]>([]);
     
-    const [employeeOptions, setEmployeeOptions] = useState<EmployeeCard[]>([]);
-    
     const { openSnackbar } = useSnackbar();
-  
-    const [openModal, setOpenModal] = useState(false);
+
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showDocModal, setShowDocModal] = useState(false);
 
     const [activeTab, setActiveTab] = useState(0);
     const [editTaskIndex, setEditTaskIndex] = useState<number | null>(null);
     const [editDocIndex, setEditDocIndex] = useState<number | null>(null);
+
+    const { state } = useLocation();
+    const { adaptationId } = state || {};
 
     const {
         register,
@@ -72,18 +74,36 @@ const NewAdaptation: React.FC = () => {
 
 
     useEffect(() => {
-        api.get(`/EmployeeCard/GetEmployeesInTeam/`)
-        .then((res) => {
-            setEmployeeOptions(res.data); 
-        })
         
-        api.get(`/EmployeeCard/GetEmployeeCardLoggedIn/`)
+        api.get(`/Adaptation/GetById/${adaptationId}`)
         .then((res) => {
-            setCreator(res.data); 
-        })
+            const data = res.data;
+            setSelectedEmployee(data.employee); 
+            setCreator(data.creator);
 
-        .catch((err) => console.error(err));
-        }, []);
+            setValue("employeeId", data.employeeId);
+            setValue("createdEmployeeId", data.createdEmployeeId)
+
+            const loadedTasks = data.tasks.map((t: Task) => ({
+                text: t.description,
+                date: new Date(t.finishDate),
+                checked: t.isDone
+            }));
+            const loadedDocs = data.documents.map((d: Document) => ({
+                text: d.description,
+                filePath: d.file
+            }));
+
+            setFieldsTask(loadedTasks);
+            setFieldsDocs(loadedDocs);
+            setValue('employeeId', data.employee.employeeId);
+            setValue('createdEmployeeId', data.creator.employeeId);
+            
+        }).catch((err) => {
+            console.error("Failed to load adaptation:", err);
+            setError("Nepodarilo sa načítať údaje.");
+        });
+    }, [adaptationId]);
 
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -105,7 +125,7 @@ const NewAdaptation: React.FC = () => {
             documents: documentsData
         };
 
-        await api.post("/Adaptation/Create", dataToSend)
+        await api.put(`/Adaptation/Update/${adaptationId}`, dataToSend)
             .then((res) => {
                 openSnackbar("Adaptacia bola úspešne vytvorena", "success");
                 nav('/manageAdaptations');
@@ -116,6 +136,8 @@ const NewAdaptation: React.FC = () => {
             });
     };
 
+
+    
     const handleDocUpload = async (file: File): Promise<string> => {
         const formData = new FormData();
         formData.append("file", file);
@@ -128,7 +150,6 @@ const NewAdaptation: React.FC = () => {
     
         return res.data.filePath; 
     };
-    
 
     useEffect(() => {
         console.log("form errors", errors);
@@ -148,9 +169,6 @@ const NewAdaptation: React.FC = () => {
     }, [fieldsTask]);
 
     
-    const openEmployeeModal = () => {
-        setOpenModal(true);
-    };
 
     const CustomTabs = styled(Tabs)({
          
@@ -181,33 +199,6 @@ const NewAdaptation: React.FC = () => {
         setActiveTab(newValue);
     };
 
-    const handleSelectEmployee = (employee: EmployeeCard) => {
-        setSelectedEmployee(employee);
-        setValue('employeeId', employee.employeeId ?? "");
-
-        setOpenModal(false);
-    };
-
-    const columnsUser: GridColDef<EmployeeCard>[] = [
-        { field: "employeeId", headerName: "ID zamestnanca", width: 150 },
-        { field: "surname", headerName: "Meno zamestnanca", width: 150, renderCell: (params: any) => (<span>{params.row.name} {params.row.surname}</span>)},
-        {
-            field: "actions",
-            headerName: "Akcie",
-            width: 200,
-            renderCell: (params: any ) => (
-                <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "turquoise", color: "black", fontSize: "12px", textWrap: "wrap" }}
-                    disabled={selectedEmployee == params.row.employeeId }
-                    onClick={() => {
-                        handleSelectEmployee(params.row)
-                        setValue('createdEmployeeId', creator?.employeeId ?? "")
-                    }} >
-                    Vybrať
-                </Button>
-        ),}          
-    ];
 
     type DocumentItem = {
         text: string;
@@ -231,41 +222,8 @@ const NewAdaptation: React.FC = () => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Box sx={{ padding: 4 }}>
                     <Typography variant="h4" fontWeight="bold" gutterBottom>
-                        Vytvoriť novú adaptáciu
+                        Adaptácia zamestnanca
                     </Typography>
-
-                    <Button variant="contained" color="primary" onClick={() => openEmployeeModal()} sx={{  marginTop:2 }}>
-                        Pridať zamestnanca
-                    </Button>
-
-                    <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
-                        <DialogTitle>
-                            Pridať zamestnanca
-                            <Stack direction="row" spacing={2} sx={{ float: "right"}}>
-                                <Button color="primary" >
-                                    Zoznam zamestnancov
-                                </Button>
-                            </Stack>
-                            <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
-                                <DataGrid
-                                    columns={columnsUser}
-                                    rows={employeeOptions}
-                                    initialState={{
-                                    pagination: {
-                                        paginationModel: {
-                                            pageSize: 6,
-                                        },
-                                    },
-                                    
-                                    }}
-                                    pageSizeOptions={[5, 10, 25]}
-                                    pagination
-                                    getRowId={(row) => row.employeeId}     
-
-                                    />
-                                    </Box>
-                        </DialogTitle>
-                    </Dialog>
 
                     <Box sx={{ marginTop: 2, paddingTop: 1, paddingBottom: 2 , width: "100%", fontStyle: "italic"}}>
                         <Typography sx={{ marginTop: 1 }}>
@@ -489,7 +447,6 @@ const NewAdaptation: React.FC = () => {
                                         text: doc.description,
                                         filePath: uploadedFilePath 
                                     };
-
                                     const updated = [...fieldsDocs];
                                     if (editDocIndex !== null) {
                                         updated[editDocIndex] = newDoc;
@@ -506,7 +463,7 @@ const NewAdaptation: React.FC = () => {
                 <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 4, paddingRight: 3, paddingBottom: 3 }}>           
                     <Stack direction="row" gap={3} margin={3} >
                         <Button type="submit" variant="contained" color="info" >
-                            Vytvoriť
+                            Uložiť
                         </Button>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageAdaptations')}>
                             Zrušiť
@@ -518,4 +475,4 @@ const NewAdaptation: React.FC = () => {
     );
 }
 
-export default NewAdaptation;
+export default UpdateAdaptation;

@@ -17,7 +17,6 @@ const ManageAdaptations: React.FC = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
-    const [openGoalDetailsDialog, setOpenGoalDetailsDialog] = useState(false); // Modal state
     const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null); // For showing employee card dialog
     
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
@@ -30,7 +29,6 @@ const ManageAdaptations: React.FC = () => {
             .then((res) => {
                 console.log("prijate:", res.data);
                 setAdaptations(res.data)
-                
             })
             .catch((err) => {
                 console.error(err);
@@ -39,8 +37,8 @@ const ManageAdaptations: React.FC = () => {
             });
     }, []);
 
-    const handleDetailClick = (id: string) => {
-        nav("/updateAdaptation", { state: { id } });
+    const handleDetailClick = (adaptationId: string) => {
+        nav("/updateAdaptation", { state: { adaptationId } });
     };
 
     const formatDate = (date: string) => {
