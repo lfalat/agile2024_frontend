@@ -135,6 +135,29 @@ const UpdateAdaptation: React.FC = () => {
             });
     };
 
+    const saveTaskUpdate = async (updatedTasks: typeof fieldsTask) => {
+        const data = {
+            employeeId: selectedEmployee?.employeeId || "",
+            createdEmployeeId: creator?.employeeId || "",
+            tasks: updatedTasks.map(task => ({
+                description: task.text,
+                finishDate: formatDate(task.date, 'yyyy-MM-dd'),
+                isDone: task.checked
+            })),
+            documents: fieldsDocs.map(field => ({
+                description: field.text,
+                filePath: field.filePath
+            }))
+        };
+    
+        try {
+            await api.put(`/Adaptation/Update/${id}`, data);
+        } catch (err) {
+            console.error("Auto-save error:", err);
+            openSnackbar("Chyba pri ukladaní zmien", "error");
+        }
+    };
+    
     useEffect(() => {
         console.log("form errors", errors);
     }, [errors]);
@@ -182,13 +205,6 @@ const UpdateAdaptation: React.FC = () => {
         setActiveTab(newValue);
     };
 
-
-    type DocumentItem = {
-        text: string;
-        filePath: string;
-        file?: File;
-      };
-
     const handleDownload = (doc: { filePath: string; text?: string }) => {
         const link = document.createElement('a');
         link.href = doc.filePath;
@@ -205,7 +221,7 @@ const UpdateAdaptation: React.FC = () => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Box sx={{ padding: 4 }}>
                     <Typography variant="h4" fontWeight="bold" gutterBottom>
-                        Adaptácia zamestnanca
+                        Moja adaptácia
                     </Typography>
 
                     <Box sx={{ marginTop: 2, paddingTop: 1, paddingBottom: 2 , width: "100%", fontStyle: "italic"}}>
@@ -246,9 +262,10 @@ const UpdateAdaptation: React.FC = () => {
                                             <Checkbox
                                                 checked={task.checked}
                                                 onChange={(e) => {
-                                                const updated = [...fieldsTask];
-                                                updated[index].checked = e.target.checked;
-                                                setFieldsTask(updated);
+                                                    const updated = [...fieldsTask];
+                                                    updated[index].checked = e.target.checked;
+                                                    setFieldsTask(updated);
+                                                    saveTaskUpdate(updated);
                                                 }}
                                             />
                                         </TableCell>
@@ -312,13 +329,6 @@ const UpdateAdaptation: React.FC = () => {
                         </>
                     )}
                 </Box>
-                <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 4, paddingRight: 3, paddingBottom: 3 }}>           
-                    <Stack direction="row" gap={3} margin={3} >
-                        <Button type="submit" variant="contained" color="info" >
-                            Uložiť
-                        </Button>
-                    </Stack>
-                </Box>  
             </form>
         </Layout>
     );

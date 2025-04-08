@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Box, Button, Typography, Tabs, Tab, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, IconButton, InputLabel, styled, TableRow, TableCell, Table, TableBody, TableHead, Tooltip } from "@mui/material";
+import { Box, Button, Typography, Tabs, Tab, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, IconButton, InputLabel, styled, TableRow, TableCell, Table, TableBody, TableHead, Tooltip, FormControl, FormHelperText } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import { format, parseISO } from "date-fns";
-import dayjs from "dayjs";
 import api from "../../../app/api";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +14,7 @@ import TaskModal from './TaskModal';
 import DocumentModal from './DocumentModal';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { format as formatDate } from 'date-fns';
+
 
 type Task = {
     id: string;
@@ -32,7 +31,10 @@ type Document = {
 
 
 const schema = z.object({
-    employeeId: z.string(),
+    employeeId: z.preprocess(
+        (val) => val ?? "", 
+        z.string().min(1, "Musíte vybrať zamestnanca.")
+      ),
     createdEmployeeId: z.string(), 
 });
 
@@ -40,10 +42,9 @@ type FormData = z.infer<typeof schema>;
 
 
 const NewAdaptation: React.FC = () => {
-    //const [employee, setEmployee] = useState<{ id: string; name: string } | null>(null);
     const [creator, setCreator] = useState<EmployeeCard | null>(null); 
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCard | null>(null); 
-    const [error, setError] = useState<string>();
+    const [error, setError] = useState<string | null>(null);
     const nav = useNavigate();  
     const [fieldsTask, setFieldsTask] = useState<{ text: string, date: Date, checked: boolean }[]>([]);
     const [fieldsDocs, setFieldsDocs] = useState<{ text: string, filePath: string }[]>([]);
@@ -87,7 +88,6 @@ const NewAdaptation: React.FC = () => {
 
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-
         const tasksData = fieldsTask.map(field => ({
             description: field.text,
             finishDate: formatDate(field.date, 'yyyy-MM-dd'),
@@ -183,8 +183,7 @@ const NewAdaptation: React.FC = () => {
 
     const handleSelectEmployee = (employee: EmployeeCard) => {
         setSelectedEmployee(employee);
-        setValue('employeeId', employee.employeeId ?? "");
-
+        setValue('employeeId', employee.employeeId ?? "" , { shouldValidate: true });
         setOpenModal(false);
     };
 
@@ -238,6 +237,12 @@ const NewAdaptation: React.FC = () => {
                         Pridať zamestnanca
                     </Button>
 
+                    <Box sx={{ width: "100%"}}>    
+                        <FormControl error={!!errors.employeeId} sx={{ mt: 1 }}>
+                            <FormHelperText  sx={{ fontWeight: 'bold' }}>{errors.employeeId?.message}</FormHelperText>
+                        </FormControl>
+                    </Box>
+
                     <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
                         <DialogTitle>
                             Pridať zamestnanca
@@ -267,7 +272,8 @@ const NewAdaptation: React.FC = () => {
                         </DialogTitle>
                     </Dialog>
 
-                    <Box sx={{ marginTop: 2, paddingTop: 1, paddingBottom: 2 , width: "100%", fontStyle: "italic"}}>
+                    <Box sx={{ marginTop: 2, paddingTop: 1, paddingBottom: 2 , width: "100%", fontStyle: "italic"}}>    
+
                         <Typography sx={{ marginTop: 1 }}>
                             Meno zamestnanca: {selectedEmployee ? `${selectedEmployee.name} ${selectedEmployee.surname}` : "-"}
                         </Typography>
