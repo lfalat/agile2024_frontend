@@ -310,24 +310,25 @@ const ManageSuccessions: React.FC = () => {
 
     const columnsUser: GridColDef<EmployeeCard>[] = [
         { field: "employeeId", headerName: "ID zamestnanca", width: 300 },
-        { field: "fullName", headerName: "Meno zamestnanca", width: 150},
+        { field: "fullName", headerName: "Meno zamestnanca", width: 150 },
         { field: "department", headerName: "Oddelenie", width: 150 },
         {
-                    field: "actions",
-                    headerName: "Akcie",
-                    width: 200,
-                    renderCell: (params: any ) => (
-                        <Button
-                            variant="contained"
-                            //sx={{ backgroundColor: "turquoise", color: "black", fontSize: "12px", textWrap: "wrap" }}
-                            color="info"
-                            disabled={selectedEmployee == params.row.employeeId}
-                            onClick={() => handleSelectEmployee(params.row.employeeId)} >
-                            Vybrať
-                        </Button>
-                        
-                    ),}          
+            field: "actions",
+            headerName: "Akcie",
+            width: 200,
+            renderCell: (params: any) => (
+                <Button
+                    variant="contained"
+                    color="info"
+                    disabled={selectedEmployee?.employeeId === params.row.employeeId}
+                    onClick={() => handleSelectEmployee(params.row.employeeId)}
+                >
+                    Vybrať
+                </Button>
+            ),
+        },
     ];
+    
 
     const renderCell = (col: string, plan: SuccessionPlan) => {
         switch (col) {

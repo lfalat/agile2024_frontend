@@ -148,7 +148,7 @@ const ManageGoals: React.FC = () => {
         {
             field: "assignedEmployees", 
             headerName: "Priradený zamestnanec", 
-            width: 200,
+            width: 350,
             renderCell: (params) => {
                 const assignedEmployees = params.row.assignedEmployees || [];
                 const employeeNames = assignedEmployees.map(emp => `${emp.name} ${emp.surname}`);
@@ -187,7 +187,8 @@ const ManageGoals: React.FC = () => {
                 <Stack direction="row" spacing={2}>
                     <Button
                         variant="contained"
-                        sx={{ backgroundColor: 'orange', color: 'black', fontSize: '12px', textWrap: "wrap" }}
+                        color= "primary"
+                        size="small"
                         onClick={() => handleEdit(params.row.id, params.field)}
                     >   
                         Editovať

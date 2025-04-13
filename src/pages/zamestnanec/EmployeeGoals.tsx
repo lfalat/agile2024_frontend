@@ -21,7 +21,6 @@ const schema = z.object({
     status: z.string().min(1, "Stav cieľa je povinný!"),
     finishedDate: z.string().nullable().optional(),
     fullfilmentRate: z.number().min(0, "Miera splnenia musí byť medzi 0 a 100").max(100, "Miera splnenia musí byť medzi 0 a 100").nullable().optional(), // Optional completion rate
-     description: z.string().min(0, "Popis cieľa je povinný!"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,7 +39,7 @@ const EmployeeGoals: React.FC = () => {
     const [filter, setFilter] = useState<string>("all");
     const [filteredGoals, setFilteredGoals] = useState<Goal[]>([]);
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
-    const [userName, setUserName] = useState<string>("Jozef Mrkvička");
+    const [selectedStatus, setSelectedStatus] = useState<{ id: string; label: string } | null>(null);
     
     const statusMap: Record<string, string> = {
         "not-started": "Nezačatý",
@@ -65,10 +64,11 @@ const EmployeeGoals: React.FC = () => {
     });
 
     useEffect(() => {
-        if (selectedGoal) {
-            const defaultStatus = goalStatuses.find(status => status.label === selectedGoal.statusDescription);
+        if (!selectedGoal || goalStatuses.length === 0) return;
+        const defaultStatus = goalStatuses.find(status => status.label === selectedGoal.statusDescription);
             if (defaultStatus) {
                 setValue("status", defaultStatus.id); 
+                setSelectedStatus(defaultStatus); 
                 if (defaultStatus.label === "Dokončený") {
                     setShowCompletionFields(true);
                 } else {
@@ -78,9 +78,10 @@ const EmployeeGoals: React.FC = () => {
             
             setValue("finishedDate", selectedGoal.finishedDate || "");
             setValue("fullfilmentRate", selectedGoal.fullfilmentRate);
-            setFinishedDate(dayjs(selectedGoal.finishedDate));
-        }
+            setFinishedDate(dayjs(selectedGoal.finishedDate));    
+        
     }, [selectedGoal, goalStatuses, setValue]);
+
 
     useEffect(() => {
         api.get("/Goal/MyGoals")
@@ -117,15 +118,33 @@ const EmployeeGoals: React.FC = () => {
 
     const handleRowClick = (params: any) => {
         const goal = goalRows.find(goal => goal.id === params.row.id);
-        setSelectedGoal(goal || null);
+        if (!goal) return;
+    
+        setSelectedGoal(goal);
+        
+        const statusFromList = goalStatuses.find(status => status.label === goal.statusDescription);
+        if (statusFromList) {
+            setValue("status", statusFromList.id);
+            setShowCompletionFields(statusFromList.label === "Dokončený");
+        } else {
+            setValue("status", "");
+            setShowCompletionFields(false);
+        }
+    
+        setValue("finishedDate", goal.finishedDate || "");
+        setValue("fullfilmentRate", goal.fullfilmentRate);
+        setFinishedDate(dayjs(goal.finishedDate));
+    
         setOpenGoalDetailsDialog(true);
     };
+    
 
     const handleCloseGoalDetailsDialog = () => {
         setOpenGoalDetailsDialog(false);
     };
 
     const handleStatusChange = (value: { id: string, label: string } | null) => {
+        setSelectedStatus(value);
         const newStatus = value ? value.id : "";
         const newStatusLabel = value ? value.label : "";
         setValue("status", newStatus);
@@ -289,24 +308,89 @@ const EmployeeGoals: React.FC = () => {
                 </Box>
 
                 {/* Goal Details Modal */}
-                <GoalEditDialog
-                        open={openGoalDetailsDialog}
-                        onClose ={handleCloseGoalDetailsDialog}
-                        onSubmit={onSubmit}
-                        selectedGoal = {selectedGoal}
-                        goalStatuses = {goalStatuses}
-                        showCompletionFields = {showCompletionFields}
-                        finishedDate = {finishedDate}
-                        handleDateChangeFinished = {handleDateChangeFinished}
-                        handleStatusChange = {handleStatusChange}
-                        handleSubmit = {handleSubmit}
-                        register = {register}
-                        setValue = {setValue}
-                        getValues = {getValues}
-                        errors = {errors}
-                        reset={reset}
-                        isSuperior={false}
-                    />
+                    <Dialog open={openGoalDetailsDialog} onClose={handleCloseGoalDetailsDialog} sx={{  maxWidth: "md", width: "80%"}}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <DialogTitle>Detail cieľa</DialogTitle>
+                        <DialogContent sx={{ display: "flex", justifyContent: "space-between" }}>
+                            <Box sx={{ width: "50%" }}>
+                                <Typography variant="h6">{selectedGoal?.name}</Typography>
+                                <Box
+                                    sx={{
+                                        border: "1px solid #ccc",
+                                        padding: 2,
+                                        height: "200px",
+                                        overflowY: "auto",
+                                        marginBottom: 2,
+                                        backgroundColor: "#f9f9f9",
+                                    }}
+                                >
+                                    <Typography variant="body2">
+                                        {selectedGoal?.description}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            <Box sx={{  marginTop: 2, width: "45%" }}>
+                                <Autocomplete
+                                    fullWidth
+                                    options={goalStatuses}
+                                    onChange={(e, value) => handleStatusChange(value)}
+                                    renderOption={(props, option) => (
+                                        <li {...props} key={option.id}>
+                                            {option.label}
+                                            <CircleIcon sx={{ color: option.color, marginLeft: 1 }} />
+                                        </li>
+                                    )}
+                                    getOptionLabel={(option) => option.label}
+                                    renderInput={(params) => <TextField {...params} label="Status cieľa *" />}
+                                    value={goalStatuses.find(status => status.id === getValues("status"))}
+                                />
+
+                                <Box sx={{ 
+                                    marginTop: 2,
+                                    visibility: showCompletionFields ? 'visible' : 'hidden',
+                                    opacity: showCompletionFields ? 1 : 0,
+                                    transition: "visibility 0s, opacity 0.3s linear" 
+                                }}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DatePicker
+                                            label="Dátum dokončenia *"
+                                            value={finishedDate}
+                                            onChange={handleDateChangeFinished}
+                                            sx={{ marginBottom: 2 }}
+                                        />
+                                    </LocalizationProvider>
+
+                                    <TextField
+                                        label="Miera splnenia"
+                                        {...register("fullfilmentRate", {
+                                            setValueAs: (value) => (value === "" ? null : Number(value)),
+                                        })}
+                                        //required
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                                            const value = e.target.value;
+                                            const id = value ? parseInt(value, 10) || null : null;
+                                            setValue("fullfilmentRate",  id ); 
+    
+                                        }}type="number"
+                                        inputProps={{ min: 0, max: 100 }}
+                                        helperText={errors.fullfilmentRate ? errors.fullfilmentRate.message : "Zadajte číslo medzi 0 a 100."}
+                                        sx={{ marginTop: 2 }}
+                                    />
+                                </Box>
+                            </Box>
+                        </DialogContent>
+
+                        <DialogActions>
+                            <Button type="submit" variant="contained" color="primary">
+                                Uložiť
+                            </Button>
+                            <Button onClick={handleCloseGoalDetailsDialog} color="primary">
+                                Zatvoriť
+                            </Button>
+                        </DialogActions>
+                    </form>
+                </Dialog>
                 
             </Box>
         </Layout>

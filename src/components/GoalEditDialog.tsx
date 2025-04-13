@@ -28,7 +28,7 @@ const schema = z.object({
     .max(100, "Miera splnenia musí byť medzi 0 a 100")
     .nullable()
     .optional(),
-  description: z.string().min(0, "Popis cieľa je povinný!"),
+  description: z.string().min(1, "Popis cieľa je povinný!"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -76,6 +76,7 @@ interface GoalDetailsModalProps {
   }) => {
 
     const [showCompletionFieldsLocal, setShowCompletionFieldsLocal] = useState(false);
+    const [localStatus, setLocalStatus] = useState<{ id: string; label: string } | null>(null);
 
   
       
@@ -106,32 +107,40 @@ interface GoalDetailsModalProps {
         
       }
     }, [open, selectedGoal, reset]);
-    
 
-    const handleStatusChangeLocal = (value: { id: string, label: string } | null) => {
+    useEffect(() => {
+      if (selectedGoal) {
+        const statusObj = goalStatuses.find(status => status.id === selectedGoal.statusId) || null;
+        setLocalStatus(statusObj);
+      }
+    }, [selectedGoal, goalStatuses]);
+    
+    
+    const handleStatusChangeLocal = (value: { id: string; label: string } | null) => {
+      setLocalStatus(value); // aktualizuj lokálny stav
       const newStatus = value ? value.id : "";
       const newStatusLabel = value ? value.label : "";
       setValue("status", newStatus);
-  
+    
       if (newStatusLabel === "Dokončený") {
-          setShowCompletionFieldsLocal(true);
+        setShowCompletionFieldsLocal(true);
       } else {
-          setShowCompletionFieldsLocal(false);
-          setValue("fullfilmentRate", undefined);
-          setValue("finishedDate", undefined);
+        setShowCompletionFieldsLocal(false);
+        setValue("fullfilmentRate", undefined);
+        setValue("finishedDate", undefined);
       }
-  };
+    };
+  
   
   return (
     <Dialog open={open} onClose={onClose} sx={{ maxWidth: "md", width: "80%" }}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogTitle>Detail cieľa</DialogTitle>
+        <DialogTitle><b>Detail cieľa</b></DialogTitle>
         <DialogContent sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box sx={{ width: "50%" }}>
             <Typography variant="h6">{selectedGoal?.name}</Typography>
             {isSuperior ? (
               <TextField
-                label="Popis cieľa"
                 multiline
                 minRows={6}
                 fullWidth
@@ -161,19 +170,21 @@ interface GoalDetailsModalProps {
 
           <Box sx={{ marginTop: 2, width: "45%" }}>
           <Autocomplete
-            fullWidth
-            options={goalStatuses}
-            onChange={(e, value) => handleStatusChangeLocal(value)} 
-            renderOption={(props, option) => (
-              <li {...props} key={option.id}>
-                {option.label}
-                <CircleIcon sx={{ color: option.color, marginLeft: 1 }} />
-              </li>
-            )}
-            getOptionLabel={(option) => option.label}
-            renderInput={(params) => <TextField {...params} label="Status cieľa *" />}
-            value={goalStatuses.find((status) => status.id === selectedGoal?.statusId) || null}  
-          />
+                fullWidth
+                options={goalStatuses}
+                value={localStatus}
+                onChange={(e, value) => handleStatusChangeLocal(value)}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.label}
+                  
+                  </li>
+                )}
+                getOptionLabel={(option) => option.label}
+                renderInput={(params) => <TextField {...params} label="Stav cieľa *" />}
+
+
+          />                   
             <Box
               sx={{
                 marginTop: 2,
@@ -216,11 +227,11 @@ interface GoalDetailsModalProps {
         </DialogContent>
 
         <DialogActions>
-          <Button type="submit" variant="contained" color="primary">
+          <Button type="submit" variant="contained" color="info">
             Uložiť
           </Button>
           <Button onClick={onClose} color="primary">
-            Zatvoriť
+            Zrušiť
           </Button>
         </DialogActions>
       </form>
