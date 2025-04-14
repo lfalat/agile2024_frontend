@@ -25,6 +25,7 @@ import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "../../../hooks/ProfileProvider";
 import { useAuth } from "../../../hooks/AuthProvider";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const ManageCourses: React.FC = () => {
   const [courseEmployees, setCourseEmployees] = useState<any[]>([]);
@@ -35,14 +36,20 @@ const ManageCourses: React.FC = () => {
   const isVeducko = role === "Vedúci zamestnanec"; 
   const [openSearchModal, setOpenSearchModal] = useState<boolean>(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
+  const [selectedEmployeeCourse, setSelectedEmployeeCourse] = useState<any | null>(null);
+  const [openCourseDetailModal, setOpenCourseDetailModal] = useState<boolean>(false);
+  
   const [employees, setEmployees] = useState<any[]>([]);
+  const {openSnackbar} = useSnackbar();
 
   useEffect(() => {
     api.get('/employeeCard/GetCurrentSuperiorDepartmentTeam')
       .then((response) => {
         setEmployees(response.data);
         console.log(response.data);
+        if (profile.userProfile?.id) {
+          handleEmployeeSelect(profile.userProfile.id);
+        }
       })
       .catch((error) => {
         console.error('Error fetching employees:', error);
@@ -83,6 +90,36 @@ const ManageCourses: React.FC = () => {
     Splnený: "success",
     Nesplnený: "error",
     Prebiehajúci: "warning",
+  };
+  const handleCloseCourse = async (courseEmployeeId: string) => {
+      console.log(courseEmployeeId);
+      api.post(`/courses/CloseCourseEmployee/${courseEmployeeId}`).then(() => {
+        openSnackbar("Kurz bol úspešne uzavretý.","success");
+        setOpenCourseDetailModal(false);
+        // Refresh courses if needed
+        if (selectedUserId) setCourses(selectedUserId);
+      }).catch((error) => {
+        console.error("Chyba pri uzatváraní kurzu:", error);
+        openSnackbar("Nepodarilo sa uzavrieť kurz.","error");
+    });
+  };
+  const handleDownloadFile = async (courseEmployeeId: string) => {
+    try {
+      const response = await api.get(`/courses/DownloadFile/${courseEmployeeId}`, {
+        responseType: 'blob',
+      });
+  
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+  
+      link.download = "kurz.pdf";
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Chyba pri sťahovaní súboru:", err);
+    }
   };
 
   const stateCount = courseEmployees.reduce(
@@ -177,7 +214,16 @@ const ManageCourses: React.FC = () => {
                         : null;
 
                       return (
-                        <TableRow key={item.id}>
+                        <TableRow
+                          key={item.id}
+                          onDoubleClick={() => {
+                            if (item.employeeId === profile.userProfile?.id) {
+                              setSelectedEmployeeCourse(item);
+                              setOpenCourseDetailModal(true);
+                            }
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
                           <TableCell>{item.courseName || "Neznámy kurz"}</TableCell>
                           <TableCell>
                             {item.createdBy || "-"}<br />
@@ -274,6 +320,54 @@ const ManageCourses: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={openCourseDetailModal} onClose={() => setOpenCourseDetailModal(false)} maxWidth="md" fullWidth>
+  <DialogTitle>Detail kurzu</DialogTitle>
+  <DialogContent>
+    {selectedEmployeeCourse && (
+      <Box display="flex" flexDirection="column" gap={2}>
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <Typography variant="body1"><strong>Typ:</strong> {selectedEmployeeCourse.courseType}</Typography>
+            <Typography variant="body1"><strong>Dátum expirácie:</strong> {selectedEmployeeCourse.expirationDate}</Typography>
+            <Typography variant="body1"><strong>ID:</strong> {selectedEmployeeCourse.id}</Typography>
+            <Typography variant="body1"><strong>Autor kurzu:</strong> {selectedEmployeeCourse.createdBy}</Typography>
+            <Typography variant="body1"><strong>Verzia:</strong> {selectedEmployeeCourse.version}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="h6">{selectedEmployeeCourse.courseName}</Typography>
+          </Grid>
+        </Grid>
+        <Paper elevation={1} sx={{ p: 2, background: "#fff5f5" }}>
+          <Typography>{selectedEmployeeCourse.detailDescription}</Typography>
+        </Paper>
+      </Box>
+    )}
+  </DialogContent>
+  <DialogActions sx={{ justifyContent: "space-between" }}>
+    <Button onClick={() => setOpenCourseDetailModal(false)} color="inherit">
+      Zavrieť
+    </Button>
+
+    <Box display="flex" gap={2}>
+      <Button
+        variant="contained"
+        color="error"
+        onClick={() => handleCloseCourse(selectedEmployeeCourse.id)}
+      >
+        Uzavrieť kurz
+      </Button>
+      <Button
+        variant="contained"
+        color="warning"
+        onClick={() => handleDownloadFile(selectedEmployeeCourse.id)}
+      >
+        Spustiť
+      </Button>
+    </Box>
+  </DialogActions>
+</Dialog>
+
     </Layout>
   );
 };
