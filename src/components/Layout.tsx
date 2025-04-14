@@ -211,6 +211,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             path: "/manageSuccessions",
             component: null,
         },
+        {
+            role: Roles.Veduci,
+            label: "Moje kurzy",
+            path: "/manageCourses",
+            component: null,
+        },
+        {
+            role: Roles.Zamestnanec,
+            label: "Moje kurzy",
+            path: "/manageCourses",
+            component: null,
+        },
     ];
 
     return (
