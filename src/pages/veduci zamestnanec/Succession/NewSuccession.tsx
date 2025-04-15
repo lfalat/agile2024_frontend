@@ -11,7 +11,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import { EmployeeCard } from "../../../types/EmployeeCard";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGridPro, GridColDef, GridValueGetter } from "@mui/x-data-grid-pro";
 import { DataGrid} from "@mui/x-data-grid";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
 import { useAuth } from "../../../hooks/AuthProvider";
@@ -43,7 +43,6 @@ type FormData = z.infer<typeof schema>;
 const NewSuccession: React.FC = () => {
     const nav = useNavigate();
     const { openSnackbar } = useSnackbar();
-    const { userProfile } = useAuth();
     const [error, setError] = useState<string>();
     const [openModal, setOpenModal] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
@@ -73,8 +72,8 @@ const NewSuccession: React.FC = () => {
            
         });
 
-        useEffect(() => {
-            api.get(`/Succession/GetLeaveTypes/`)
+    useEffect(() => {
+        api.get(`/Succession/GetLeaveTypes/`)
             .then((res) => {
                 const options = res.data.map((leaveType:LeaveType) => ({
                     id: leaveType.id,
@@ -111,9 +110,17 @@ const NewSuccession: React.FC = () => {
             .catch((err) => console.error(err));
             }, []);
     
+    useEffect(() => {
+        console.log("Aktualizovaný successor:", selectedSuccessor);
+            }, [selectedSuccessor]);
+            const setExternist = () => {
+                setSelectedSuccessor(null); 
+                setSelectedSuccessor('externist');
+                setValue('successorId', null);
+    };        
+
     const onSubmit: SubmitHandler<FormData> = async (data) => {
 
-        
         const skillsData = fields.map(field => ({
             description: field.text,
             isReady: field.checked
@@ -153,28 +160,17 @@ const NewSuccession: React.FC = () => {
         }
         setOpenModal(false);
     };
-    useEffect(() => {
-        console.log("Aktualizovaný successor:", selectedSuccessor);
-    }, [selectedSuccessor]);
-    const setExternist = () => {
-        setSelectedSuccessor(null); 
-        setSelectedSuccessor('externist');
-        setValue('successorId', null);
-    };
     
-    // pridava pole pre zručnosti a checkbox
     const handleAddField = () => {
         setFields([...fields, { text: "", checked: false }]);
     };
 
-    // zmena textu pri zručnostiach
     const handleTextChange = (index: number, value: string) => {
         const newFields = [...fields];
         newFields[index].text = value;
         setFields(newFields);
     };
 
-    // zmena v checkboxe
     const handleCheckboxChange = (index: number, checked: boolean) => {
         const newFields = [...fields];
         newFields[index].checked = checked;
@@ -187,7 +183,7 @@ const NewSuccession: React.FC = () => {
     
             setSelectedEmployeeCard(userProfile);
             //setSelectedEmployee(employee);
-            setOpenCardDialog(true); // Show employee card dialog
+            setOpenCardDialog(true);
         };
 
     const completedTasks = fields.filter(field => field.checked).length;
@@ -198,9 +194,10 @@ const NewSuccession: React.FC = () => {
     const selectedSuccessorObj = successorOptions.find(emp => emp.employeeId === selectedSuccessor);
     const rows = modalType === 'successor' ? successorOptions : leavingEmployeeOptions;
 
+
     const columnsUser: GridColDef<EmployeeCard>[] = [
-            { field: "employeeId", headerName: "ID zamestnanca", width: 150 },
-            { field: "surname", headerName: "Meno zamestnanca", width: 150, renderCell: (params: any) => (<span>{params.row.name} {params.row.surname}</span>)},
+            { field: "employeeId", headerName: "ID zamestnanca", width: 300},
+            { field: "fullName", headerName: "Meno zamestnanca", width: 150},
             { field: "department", headerName: "Oddelenie", width: 150 },
             {
                         field: "actions",
@@ -209,7 +206,7 @@ const NewSuccession: React.FC = () => {
                         renderCell: (params: any ) => (
                             <Button
                                 variant="contained"
-                                sx={{ backgroundColor: "turquoise", color: "black", fontSize: "12px", textWrap: "wrap" }}
+                                color="info"
                                 disabled={selectedEmployee == params.row.employeeId || selectedSuccessor == params.row.employeeId}
                                 onClick={() => handleSelectEmployee(params.row.employeeId)} >
                                 Vybrať
@@ -248,36 +245,33 @@ const NewSuccession: React.FC = () => {
                     <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
                         <DialogTitle>
                             {modalType === 'leaving' ? 'Pridať odstupujúceho zamestnanca' : 'Pridať nastupujúceho zamestnanca'}
-                            <Stack direction="row" spacing={2} sx={{ float: "right"}}>
-                                <Button color="primary" >
+                            <Box sx={{ mt: 2, mb: 2 }}>
+                                <Button color="primary" variant="outlined">
                                     Zoznam zamestnancov
                                 </Button>
-                            </Stack>
+                            </Box>
+                        </DialogTitle>
+                        <DialogContent>
                             <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
                                 <DataGridPro
                                     columns={columnsUser}
                                     rows={rows}
                                     initialState={{
-                                    pagination: {
-                                        paginationModel: {
-                                            pageSize: 6,
+                                        pagination: {
+                                            paginationModel: {
+                                                pageSize: 6,
+                                            },
                                         },
-                                    },
-                                    pinnedColumns: {
-                                        right: ["actions"],
-                                    },
+                                        pinnedColumns: {
+                                            right: ["actions"],
+                                        },
                                     }}
                                     pageSizeOptions={[5, 10, 25]}
                                     pagination
-                                    getRowId={(row) => row.employeeId}     
-                                    onCellClick={(params) => {
-                                                        /*if (params.field === "name" || params.field === "surname") {
-                                                            handleEmployeeCardClick(params.row.employeeId);
-                                                        }*/
-                                    }}
-                                    />
-                                    </Box>
-                        </DialogTitle>
+                                    getRowId={(row) => row.employeeId}
+                                />
+                            </Box>
+                        </DialogContent>
                     </Dialog>
 
                     <Typography variant="body1"  gutterBottom sx={{ marginBottom: 3, marginTop: 2}} onClick={() => {
@@ -320,7 +314,6 @@ const NewSuccession: React.FC = () => {
                                 console.log("sl:", leaveTypeVyber);
 
                                 if (selectedLabel === "Redundancia tímu") {
-                                    // Clear the successor if it's redundancia
                                     setSelectedSuccessor(null);
                                     setValue("successorId", null);
                                     setValue("readyStatus", "08dd6326-5eb2-43e8-811e-3387aa0ea870")
@@ -508,5 +501,3 @@ const NewSuccession: React.FC = () => {
 };
 
 export default NewSuccession;
-
-
