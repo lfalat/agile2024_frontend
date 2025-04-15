@@ -162,7 +162,7 @@ const ManageCourses: React.FC = () => {
                 variant="contained"
                 color="warning"
                 onClick={() => {
-                  // TODO pridať otvorenie okna
+                  navigate("/createCourse");
                 }}
               >
                 Pridať školenie

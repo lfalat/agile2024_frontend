@@ -64,11 +64,11 @@ const ManageFeedback: React.FC = () => {
                 fetchFeedbackById();
             }
         }
-    }, [feedbackId, feedbackList]); 
+    }, []); 
 
     useEffect(() => {
         GetDeliveredFeedback();
-    }, []);
+    }, [refresh]);
 
     const GetDeliveredFeedback = async () => {
         await api

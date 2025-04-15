@@ -45,6 +45,8 @@ import NewSuccession from "../pages/veduci zamestnanec/Succession/NewSuccession"
 import NotificationsPage from "../pages/common/NotificationsPage";
 import EditSuccession from "../pages/veduci zamestnanec/Succession/EditSuccession";
 import ManageCourses from "../pages/veduci zamestnanec/Courses/ManageCourses";
+import CreateCourse from "../pages/veduci zamestnanec/Courses/CreateCourse";
+import DetailCourse from "../pages/veduci zamestnanec/Courses/DetailCourse";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -95,6 +97,7 @@ const App: React.FC = () => {
                                     <Route path="/manageFeedback" element={<ManageFeedback />} />
                                     <Route path="/newFeedback" element={<NewFeedback />} />
                                     <Route path="/manageCourses" element={<ManageCourses/>} />
+                                    <Route path="/detailCourse" element={<DetailCourse/>} />
                                 </Route>
 
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
@@ -107,6 +110,7 @@ const App: React.FC = () => {
                                     <Route path="/manageSuccessions" element={<ManageSuccessions/>} />
                                     <Route path="/newSuccession" element={<NewSuccession/>} />
                                     <Route path="/editSuccession" element={<EditSuccession/>} />
+                                    <Route path="/createCourse" element={<CreateCourse/>} />
                                 </Route>
 
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
