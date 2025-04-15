@@ -46,6 +46,8 @@ import NotificationsPage from "../pages/common/NotificationsPage";
 import EditSuccession from "../pages/veduci zamestnanec/Succession/EditSuccession";
 import ManageAdaptations from "../pages/veduci zamestnanec/Adaptation/ManageAdaptations";
 import ManageCourses from "../pages/veduci zamestnanec/Courses/ManageCourses";
+import CreateCourse from "../pages/veduci zamestnanec/Courses/CreateCourse";
+import DetailCourse from "../pages/veduci zamestnanec/Courses/DetailCourse";
 import NewAdaptation from "../pages/veduci zamestnanec/Adaptation/NewAdaptation";
 import UpdateAdaptation from "../pages/veduci zamestnanec/Adaptation/UpdateAdaptation";
 import MyAdaptation from "../pages/zamestnanec/MyAdaptation";
@@ -99,6 +101,7 @@ const App: React.FC = () => {
                                     <Route path="/manageFeedback" element={<ManageFeedback />} />
                                     <Route path="/newFeedback" element={<NewFeedback />} />
                                     <Route path="/manageCourses" element={<ManageCourses/>} />
+                                    <Route path="/detailCourse" element={<DetailCourse/>} />
                                 </Route>
 
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci]}/>}>
@@ -111,6 +114,7 @@ const App: React.FC = () => {
                                     <Route path="/manageSuccessions" element={<ManageSuccessions/>} />
                                     <Route path="/newSuccession" element={<NewSuccession/>} />
                                     <Route path="/editSuccession" element={<EditSuccession/>} />
+                                    <Route path="/createCourse" element={<CreateCourse/>} />
                                     <Route path="/manageAdaptations" element={<ManageAdaptations/>} />
                                     <Route path="/newAdaptation" element={<NewAdaptation/>} />
                                     <Route path="/updateAdaptation" element={<UpdateAdaptation/>} />
