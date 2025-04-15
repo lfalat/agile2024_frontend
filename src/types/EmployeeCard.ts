@@ -1,4 +1,3 @@
-
 export type EmployeeCard = {
     employeeId: string;
     id: string;
@@ -8,6 +7,7 @@ export type EmployeeCard = {
     startWorkDate: string | null;
     name: string;
     middleName: string;
+    fullName: string;
     titleBefore: string;
     titleAfter: string;
     department: string;

@@ -44,9 +44,13 @@ import ManageSuccessions from "../pages/veduci zamestnanec/Succession/ManageSucc
 import NewSuccession from "../pages/veduci zamestnanec/Succession/NewSuccession";
 import NotificationsPage from "../pages/common/NotificationsPage";
 import EditSuccession from "../pages/veduci zamestnanec/Succession/EditSuccession";
+import ManageAdaptations from "../pages/veduci zamestnanec/Adaptation/ManageAdaptations";
 import ManageCourses from "../pages/veduci zamestnanec/Courses/ManageCourses";
 import CreateCourse from "../pages/veduci zamestnanec/Courses/CreateCourse";
 import DetailCourse from "../pages/veduci zamestnanec/Courses/DetailCourse";
+import NewAdaptation from "../pages/veduci zamestnanec/Adaptation/NewAdaptation";
+import UpdateAdaptation from "../pages/veduci zamestnanec/Adaptation/UpdateAdaptation";
+import MyAdaptation from "../pages/zamestnanec/MyAdaptation";
 
 const App: React.FC = () => {
     const auth = useAuth();
@@ -111,12 +115,16 @@ const App: React.FC = () => {
                                     <Route path="/newSuccession" element={<NewSuccession/>} />
                                     <Route path="/editSuccession" element={<EditSuccession/>} />
                                     <Route path="/createCourse" element={<CreateCourse/>} />
+                                    <Route path="/manageAdaptations" element={<ManageAdaptations/>} />
+                                    <Route path="/newAdaptation" element={<NewAdaptation/>} />
+                                    <Route path="/updateAdaptation" element={<UpdateAdaptation/>} />
                                 </Route>
 
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Zamestnanec]}/>}>
                                     <Route path="/employeeGoals" element={<EmployeeGoals />} />    
                                     <Route path="/myReviews" element={<ManageReviewsZam/>}/>     
                                     <Route path="/updateReviewZam" element={<UpdateReviewZam/>} />
+                                    <Route path="/adaptation" element={<MyAdaptation/>} />
                                 </Route>
                             
                             </Route>
