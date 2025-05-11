@@ -32,7 +32,8 @@ import { EmployeeCard } from "../../../types/EmployeeCard";
 import useLoadingModal from "../../../hooks/LoadingDataModal";
 import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar';
 import Level from "../../../types/Level";
-
+import {CircularProgress} from "@mui/material";
+import { Height } from "@mui/icons-material";
 interface EmployeeCardDialogProps {
     userId: string | null | undefined; 
     user: UserProfile | null;
@@ -59,7 +60,7 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
     const [contractTypeOptions, setConstractTypeOptions] = useState<{ id: string; label: string }[]>([]);
     const [selectedConstractType, setSelectedConstractType] = useState<{ id: string; label: string } | null>(null);
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [birth, setBirth] = useState<Dayjs | null>();
     const [startWorkDate, setStartWorkDate] = useState<Dayjs | null>(null);
     const [level, setLevel] = useState<String | null>();
@@ -133,9 +134,7 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
 
     // Fetch options for select fields
     useEffect(() => {
-        if (open) {
-            setLoading(true);
-        }
+        setLoading(true);
         const fetchData = async () => {
             if (!open) return;
             setEmployee(null);
@@ -326,15 +325,17 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
 
     return (
         <>
-        <Snackbar
-            anchorOrigin={{
-                vertical: 'top', 
-                horizontal: 'center', 
-              }}
-            open={loading}
-            message="Loading..."
-            autoHideDuration={null}
-        />
+        <Dialog open={open && loading} onClose={handleDialogClose} maxWidth="xl" fullWidth>
+    <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height={200}
+        width="100%"
+    >
+        <CircularProgress size={60} />
+    </Box>
+</Dialog>
         <Dialog open={open && !loading} onClose={handleDialogClose} maxWidth="xl" fullWidth>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <DialogTitle>Zamestnanecká karta</DialogTitle>

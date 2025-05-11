@@ -23,6 +23,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { Department } from "../../../types/Department";
 import UserProfile from "../../../types/UserProfile";
 import { useSnackbar } from "../../../hooks/SnackBarContext";
+import useLoading from "../../../hooks/LoadingData";
 
 const schema = z.object({
     name: z.string().min(1, "Názov oddelenia je povinný!"),
@@ -63,6 +64,8 @@ const EditDivision: React.FC = () => {
         resolver: zodResolver(schema),
     });
 
+    const [loaded,setLoaded] = useState(false);
+
     useEffect(() => {
         api.get(`/Department/${departmentId}`)
             .then((res) => {
@@ -89,6 +92,7 @@ const EditDivision: React.FC = () => {
                 setValue("parentDepartmentName", departmentData.parentDepartmentName || "");
                 setValue("childDepartments", childDepartments);
                 setCreatedDate(dayjs(departmentData.created));
+                setLoaded(true);
             })
             .catch((err) => {
                 console.error("Error loading department:", err);
@@ -184,12 +188,17 @@ const EditDivision: React.FC = () => {
             });
     };
 
+    const loadingIndicator = useLoading(!loaded);
+
     return (
         <Layout>
-            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <Box sx={{ padding: 3, flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Upraviť oddelenie
                 </Typography>
+
+                {loadingIndicator ? loadingIndicator : (
+
                 <Stack
                     direction="column"
                     gap={3}
@@ -313,8 +322,10 @@ const EditDivision: React.FC = () => {
                             }}
                         />
                     </LocalizationProvider>
-                    <Stack direction="row" gap={3}>
-                        <Button type="submit" variant="contained" color="primary">
+                </Stack>
+            )}
+            <Stack direction="row" sx={{ margin: "10px 0 0 0" }} gap={3}>
+                        <Button type="submit" variant="contained" color="primary" disabled={!loaded}>
                             Uložiť oddelenie
                         </Button>
                         <Button
@@ -326,7 +337,6 @@ const EditDivision: React.FC = () => {
                             Zrušiť
                         </Button>
                     </Stack>
-                </Stack>
             </Box>
         </Layout>
     );

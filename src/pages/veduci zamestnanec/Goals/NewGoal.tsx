@@ -6,17 +6,18 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import api from "../../../app/api";
-import { Message } from "@mui/icons-material";
+import { Height, Message } from "@mui/icons-material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import { GoalCategoryResponse } from "../../../types/responses/GoalCategoryResponse";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
 import UserProfile from "../../../types/UserProfile";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
+import { dataGridStyles } from "../../../styles/gridStyle";
 
 const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
@@ -60,7 +61,7 @@ const NewGoal: React.FC = () => {
         }
     });
 
-    const columnsUser: GridColDef<EmployeeCard>[] = [
+    const columnsUser: GridColDef[] = [
         //{ field: "email", headerName: "Používateľské meno", width: 200 },
         { field: "name", headerName: "Meno", width: 150 },
         { field: "surname", headerName: "Priezvisko", width: 150 },
@@ -187,7 +188,7 @@ const NewGoal: React.FC = () => {
 
     return (
         <Layout>
-            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <Box sx={{ padding: 3 }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Vytvoriť nový cieľ
                 </Typography>
@@ -208,37 +209,34 @@ const NewGoal: React.FC = () => {
                 )}
 
                 {showTable && (
-                    <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
-                         <DataGridPro
-                        columns={columnsUser}
-                        rows={employeeData}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 10,
-                                },
-                            },
-                            pinnedColumns: {
-                                right: ["actions"],
-                            },
-                        }}
-                        pageSizeOptions={[5, 10, 25]}
-                        pagination
-                        getRowId={(row) => row.employeeId}     
-                        onCellClick={(params) => {
-                            if (params.field === "name" || params.field === "surname") {
-                                handleEmployeeCardClick(params.row.employeeId);
-                            }
-                        }}
+                    
+                    <DataGrid
+                      sx={{maxHeight:400}}
+                      rows={employeeData}
+                      columns={columnsUser}
+                      getRowId={(row) => row.employeeId}
+                      pageSizeOptions={[5, 10, 25]}
+                      pagination
+                      initialState={{
+                        pagination: {
+                          paginationModel: {
+                            pageSize: 10,
+                          },
+                        },
+                      }}
+                      onCellClick={(params) => {
+                        if (params.field === "name" || params.field === "surname") {
+                          handleEmployeeCardClick(params.row.employeeId);
+                        }
+                      }}
                     />
-                    </Box>
                 )}
                 {/* Employee Card Dialog */}
                 <EmployeeCardDialog
                     open={openCardDialog}
                     handleClose={() => setOpenCardDialog(false)}  userId={selectedEmployee?.id}  
                     user={selectedEmployee}                />
-                <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Stack direction="column" gap={3} component="form" onSubmit={handleSubmit(onSubmit)}>
                     
                     <TextField label="Názov cieľa" required fullWidth {...register("name")} error={!!errors.name} helperText={errors.name?.message  ?? ""} />
                     <TextareaAutosize aria-label="Popis cieľa" required minRows = "10" {...register("description")} 
@@ -273,7 +271,7 @@ const NewGoal: React.FC = () => {
                         <Button type="submit" variant="contained" color="primary">
                             Vytvoriť nový cieľ
                         </Button>
-                        <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageLocations')}>
+                        <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageGoals')}>
                             Zrušiť
                         </Button>
                     </Stack>

@@ -104,8 +104,6 @@ const UpdateReviewZam: React.FC = () => {
 
   
     const loadingIndicator = useLoading(reviewData === null);
-    if (loadingIndicator) return loadingIndicator;
-
     
     const handleEmployeeClick = (employee: any) => {
         setSelectedEmployee(employee);
@@ -131,7 +129,8 @@ const UpdateReviewZam: React.FC = () => {
 
     return (
         <Layout>
-            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+             { loadingIndicator ? loadingIndicator : (
+            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>              
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
                     {reviewData?.reviewName || "Loading..."}
                 </Typography>
@@ -180,9 +179,8 @@ const UpdateReviewZam: React.FC = () => {
                 >
                     Zrušiť
                 </Button>
-      
             </Box>
-            
+        )}
 
             {/* Modal */}
             <ReviewModalZam

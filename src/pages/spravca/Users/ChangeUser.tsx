@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Autocomplete, Box, Stack, TextField, Typography, Button, Alert } from "@mui/material";
+import { Box, Stack, TextField, Typography, Button, Alert } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import { z } from "zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../../app/api";
 import RoleResponse from "../../../types/responses/RoleResponse";
+import useLoading from "../../../hooks/LoadingData";
 
-// Define validation schema
 const schema = z
     .object({
         email: z.string().email("Neplatný formát emailu!").min(1, "Email je povinný!"),
@@ -35,21 +36,26 @@ const schema = z
             });
         }
     });
-
 type FormData = z.infer<typeof schema>;
 
 const ChangeUser: React.FC = () => {
-    const { email: email } = useParams();
+    const { state } = useLocation();
+    const email = state.id;
     const nav = useNavigate();
     const [roleOptions, setRoleOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
+    const [userData, setUserData] = useState<string | null>(null);
 
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
     });
 
+    const [loaded,setLoaded] = useState(false);
+
     useEffect(() => {
         // Fetch roles for the role dropdown
+        console.log(state);
+        console.log(email);
         api.get("/Role/Roles")
             .then((res) => {
                 const options = res.data.map((role: RoleResponse) => ({
@@ -77,13 +83,15 @@ const ChangeUser: React.FC = () => {
                     setValue("surname", userData.surname);
                     setValue("titleBefore", userData.titleBefore);
                     setValue("titleAfter", userData.titleAfter);
+                    setUserData(userData);
+                    setLoaded(true);
                 })
                 .catch((err) => {
                     console.error("Failed to fetch user data:", err);
                     setError("Nepodarilo sa načítať údaje používateľa.");
                 });
         }
-    }, [email, setValue]);
+    }, []);
 
     const password = watch("password");
 
@@ -111,12 +119,16 @@ const ChangeUser: React.FC = () => {
             });
     };
 
+
+    const loadingIndicator = useLoading(!loaded);
+
     return (
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Editácia používateľa
                 </Typography>
+                { loadingIndicator ?  loadingIndicator : (
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     {error && (
                         <Alert severity="error" variant="filled">
@@ -154,15 +166,17 @@ const ChangeUser: React.FC = () => {
                         {...register("titleBefore")} value={watch("titleBefore")}/>
                     <TextField label="Tituly za menom" fullWidth slotProps={{ inputLabel: { shrink: true } }}
                         {...register("titleAfter")} value={watch("titleAfter")}/>
-                    <Stack direction="row" gap={3}>
-                        <Button type="submit" variant="contained" color="primary">
+                    
+                </Stack>
+                )}
+                <Stack direction="row" gap={3} sx={{margin:"10px 0 0 0"}}>
+                        <Button type="submit" variant="contained" color="primary" disabled={!loaded}>
                             Uložiť
                         </Button>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav(-1)}>
                             Zrušiť
                         </Button>
                     </Stack>
-                </Stack>
             </Box>
         </Layout>
     );

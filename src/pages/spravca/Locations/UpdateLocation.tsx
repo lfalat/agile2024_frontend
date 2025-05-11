@@ -42,6 +42,7 @@ const UpdateLocation: React.FC = () => {
     //const [location, setLocation] = useState<Location | null>(null);
     //const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const validOrganizations = Array.isArray(organizationOptions) ? organizationOptions : [];
+    const [loaded, setLoaded] = useState(false);
 
     const { register: create,
         handleSubmit, 
@@ -84,9 +85,8 @@ const UpdateLocation: React.FC = () => {
                 //console.log(organizationss);
                 console.log("Selected IDs:", watch("organizationsID"));
                 console.log("Filtered Options:", organizationOptions.filter((option) =>
-                    (watch("organizationsID") || []).includes(option.id)
-));
-                
+                    (watch("organizationsID") || []).includes(option.id)));
+                setLoaded(true);
             })
             .catch((err) => {
               setError("Nastala chyba pri načítaní údajov o lokalite.");
@@ -128,8 +128,7 @@ const UpdateLocation: React.FC = () => {
         });
     };
 
-    const loadingIndicator = useLoading(locationData === null);
-    if (loadingIndicator) return loadingIndicator;
+    const loadingIndicator = useLoading(!loaded);
     
     return (
         <Layout>
@@ -137,7 +136,7 @@ const UpdateLocation: React.FC = () => {
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Aktualizovať lokalitu
                 </Typography>
-                
+                { loadingIndicator ? loadingIndicator : (
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     <TextField label="Názov lokality" required fullWidth {...create("name")} error={!!errors.name} helperText={errors.name?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
                     <TextField label="Kód lokality" required fullWidth {...create("code")} error={!!errors.code} helperText={errors.code?.message}  slotProps={{ inputLabel: { shrink: true } }}/>
@@ -163,16 +162,16 @@ const UpdateLocation: React.FC = () => {
                         isOptionEqualToValue={(option, value) => option.id === value.id} 
                         renderInput={(params) => <TextField {...params} label="Príslušnosť lokality k organizáciam" error={!!errors.organizations} helperText={errors.organizations?.message ?? ""} />}
                     />
-                    
-                    <Stack direction="row" gap={3}>
-                        <Button type="submit" variant="contained" color="primary">
+                </Stack>
+                )}
+                <Stack direction="row" gap={3} sx={{margin: "10px 0 0 0"}}>
+                        <Button type="submit" variant="contained" color="primary" disabled={!loaded}>
                             Uložiť
                         </Button>
                         <Button type="button" variant="contained" color="secondary" onClick={() => nav("/manageLocations")}>
                             Zrušiť
                         </Button>
                     </Stack>
-                </Stack>
             </Box>
         </Layout>
     );

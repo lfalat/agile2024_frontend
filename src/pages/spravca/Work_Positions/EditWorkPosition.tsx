@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TextField, Typography, MenuItem, Select, FormControl, InputLabel, Chip, Snackbar, Stack, Alert } from "@mui/material";
 import api from "../../../app/api";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Autocomplete from '@mui/material/Autocomplete';
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Layout from "../../../components/Layout";
 import JobPosition from "../../../types/JobPosition";
+import useLoading from "../../../hooks/LoadingData";
 
 type Organization = { id: string; name: string };
 type Level = string;
@@ -23,14 +24,15 @@ const schema = z
 type FormData = z.infer<typeof schema>;
 
 const EditWorkPosition: React.FC = () => {
-    const { id: id } = useParams();
-    const [jobPosition, setJobPosition] = useState<JobPosition[]>();
+    const { state } = useLocation();
+    const [jobPosition, setJobPosition] = useState<JobPosition[] | null>(null);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
     const [levels, setLevels] = useState<Level[]>([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [error, setError] = useState<string>();
     const nav = useNavigate();
+    const [loaded,setLoaded] = useState(false);
 
     useEffect(() => {
         // Fetch organizations for the dropdown list
@@ -38,13 +40,15 @@ const EditWorkPosition: React.FC = () => {
             .then((res) => setOrganizations(res.data))
             .catch((err) => console.error("Failed to load organizations", err));
     }, []);
+    
     useEffect(() => {
         // Fetch job position data
-        console.log("Id: " + id);
-        if (id) {
-            api.get(`/JobPosition/Get?id=${id}`)
+        console.log("Id: " + state);
+        if (state.id) {
+            api.get(`/JobPosition/Get?id=${state.id}`)
                 .then((res) => {
                     const jobPosition = res.data;
+                    setJobPosition(res.data);
                     console.log("Načítané dáta");
                     console.log(jobPosition);
                     // Prefill form fields with user data
@@ -54,6 +58,7 @@ const EditWorkPosition: React.FC = () => {
                     setValue("organizationsID", jobPosition.organizations.map((x:any) => x.id));
                     //setJobPosition(jobPosition);
                     //setLevels(jobPosition.levels);
+                    setLoaded(true);
                 })
                 .catch((err) => {
                     console.error("Failed to fetch user data:", err);
@@ -72,7 +77,7 @@ const EditWorkPosition: React.FC = () => {
 
         resolver: zodResolver(schema),
         defaultValues: {
-            id: id, 
+            id: state.id, 
             name: "",
             code: "",
             levels: [],
@@ -95,12 +100,15 @@ const EditWorkPosition: React.FC = () => {
         nav(-1); // Navigate back to manage page on cancel
     };
 
+    const loadingIndicator = useLoading(!loaded);
+
     return (
         <Layout>
-            <Box sx={{ padding: 3, maxWidth: 600, margin: "0 auto" }}>
+            <Box sx={{ padding: 3, margin: "0 auto" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Editácia Pracovnej pozície
                 </Typography>
+                    {loadingIndicator ? loadingIndicator : (
                     <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     <TextField
                         label="Názov pozície"
@@ -191,15 +199,17 @@ const EditWorkPosition: React.FC = () => {
                             />
                         )}
                     />
+                </Stack>
+                )}
 
-                    <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                        <Button type="submit" variant="contained" color="primary">
+                <Stack direction={"row"} sx={{marginTop: 5 }} gap={3}>
+                        <Button type="submit" variant="contained" color="primary" disabled={!loaded}>
                             Uložiť
                         </Button>
                         <Button variant="outlined" color="secondary" onClick={handleCancel}>
                             Zrušiť
                         </Button>
-                    </Box>
+                    </Stack>
 
                     {/* Success Snackbar */}
                     <Snackbar
@@ -208,7 +218,6 @@ const EditWorkPosition: React.FC = () => {
                         onClose={() => setOpenSnackbar(false)}
                         message="Pracovná pozícia bola úspešne vytvorená"
                     />
-                </Stack>
             </Box>
         </Layout>
     );

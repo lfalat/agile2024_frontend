@@ -38,11 +38,13 @@ const ManageCourses: React.FC = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedEmployeeCourse, setSelectedEmployeeCourse] = useState<any | null>(null);
   const [openCourseDetailModal, setOpenCourseDetailModal] = useState<boolean>(false);
-  
+  const [selectedStateFilter, setSelectedStateFilter] = useState<string | null>(null);
+
   const [employees, setEmployees] = useState<any[]>([]);
   const {openSnackbar} = useSnackbar();
 
   useEffect(() => {
+    setLoading(true);
     api.get('/employeeCard/GetCurrentSuperiorDepartmentTeam')
       .then((response) => {
         setEmployees(response.data);
@@ -77,13 +79,12 @@ const ManageCourses: React.FC = () => {
     api.get(`/courses/Get/${userId}`)
       .then((res) => {
         setCourseEmployees(res.data);
-        setLoading(false);
         console.log(res.data);
       })
       .catch((err) => {
         console.log(err);
-        setLoading(false);
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   const stateColors: any = {
@@ -152,10 +153,18 @@ const ManageCourses: React.FC = () => {
         </Typography>
 
         <Stack direction="row" spacing={2} mb={2}>
-          <Button color="inherit" variant="text">Splnené</Button>
-          <Button color="inherit" variant="text">Prebiehajúce</Button>
-          <Button color="inherit" variant="text">Nezačaté</Button>
-
+          {["Splnený", "Prebiehajúci", "Nezačatý"].map((state) => (
+            <Button
+              key={state}
+              variant={selectedStateFilter === state ? "contained" : "text"}
+              color="inherit"
+              onClick={() =>
+                setSelectedStateFilter(selectedStateFilter === state ? null : state)
+              }
+            >
+              {state}
+            </Button>
+          ))}
           {isVeducko && (
             <>
               <Button
@@ -207,7 +216,9 @@ const ManageCourses: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {courseEmployees.map((item) => {
+                    {courseEmployees
+                    .filter(item => !selectedStateFilter || item.courseState === selectedStateFilter)
+                    .map((item) => {
                       const expires = item.expirationDate;
                       const remainingDays = expires
                         ? Math.ceil((new Date(expires).getTime() - Date.now()) / (1000 * 60 * 60 * 24))

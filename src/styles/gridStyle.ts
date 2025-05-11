@@ -18,6 +18,6 @@ export const dataGridStyles = {
     "& .header": {
         fontWeight: 'bold',
         fontSize: 16, 
-        backgroundColor: 'rgba(220,220,220,0.8)',
+        backgroundColor: "#FFD6B8",
     },
   };

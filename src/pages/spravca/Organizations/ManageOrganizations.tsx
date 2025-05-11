@@ -6,16 +6,17 @@ import Organization from "../../../types/Organization";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from '@mui/icons-material/Delete';
-import { DataGridPro, GridValueGetter  } from "@mui/x-data-grid-pro";
 import ArchiveIcon from '@mui/icons-material/Archive';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import moment from "moment";
 import LoadingButton from '@mui/lab/LoadingButton';
 import { dataGridStyles } from "../../../styles/gridStyle"; 
 import { useSnackbar } from '../../../hooks/SnackBarContext'; 
+import useLoading from "../../../hooks/LoadingData";
 
 const ManageOrganizations: React.FC = () => {
     const [organizationRows, setOrganizationRows] = useState<Organization[]>([]);
+    const [organizations, setOrganizations] = useState<Organization[] | null>(null);
     const nav = useNavigate();
     const [refresh, setRefresh] = useState(false);
     const [openConfirm, setOpenConfirm] = useState(false);
@@ -23,18 +24,21 @@ const ManageOrganizations: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const { openSnackbar } = useSnackbar();
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         api.get("/Organization/Organizations")
             .then((res) => {
                 const rows: Organization[] = res.data;
                 setOrganizationRows(rows);
+                setOrganizations(rows);
             })
             .catch((err) => {
                 setOrganizationRows([]);
                 console.log(err.id);
                 console.error(err);
-            });
+            }).finally(() =>
+                setLoaded(true));
     }, [refresh]);
 
     const handleRowDoubleClick = (params: any) => {
@@ -160,7 +164,7 @@ const ManageOrganizations: React.FC = () => {
 
     return (
         <Layout>
-            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <Box sx={{ padding: 3,  flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Správa organizácií
                 </Typography>
@@ -174,9 +178,11 @@ const ManageOrganizations: React.FC = () => {
                 >
                     Pridať novu organizáciu
                 </Button>
+
                 <Box sx={{ width: "100%" }}>
                 <DataGrid
                     columns={columns}
+                    loading={!loaded}
                     rows={organizationRows}
                     isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
                     getRowClassName={(params) => 

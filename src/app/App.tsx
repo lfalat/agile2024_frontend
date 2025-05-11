@@ -78,7 +78,7 @@ const App: React.FC = () => {
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Spravca]} />}>
                                     <Route path="/manageUsers" element={<ManageUsers />} />
                                     <Route path="/registerUser" element={<RegisterUser />} />
-                                    <Route path="/changeUser/:email" element={<ChangeUser />} />
+                                    <Route path="/changeUser" element={<ChangeUser />} />
 
                                     <Route path="/manageOrganizations" element={<ManageOrganizations />} />
                                     <Route path="/newOrganization" element={<NewOrganization />} />
@@ -94,7 +94,7 @@ const App: React.FC = () => {
 
                                     <Route path="/manageWorkPositions" element={<ManageWorkPositions />} />
                                     <Route path="/newWorkPosition" element={<NewWorkPosition />} />
-                                    <Route path="/editWorkPosition/:id" element={<EditWorkPosition />} />
+                                    <Route path="/editWorkPosition" element={<EditWorkPosition />} />
                                 </Route>
 
                                 <Route element={<ProtectedRoute allowedRoles={[Roles.Veduci, Roles.Zamestnanec]} />}>

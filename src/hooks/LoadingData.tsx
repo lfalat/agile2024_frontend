@@ -5,11 +5,9 @@ import Layout from "../components/Layout";
 function useLoading(isLoading: boolean) {
     if (isLoading) {
         return (
-            <Layout>
-                <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-                    <CircularProgress />
-                </Box>
-            </Layout>
+            <Box  sx={{ display: "flex", maxHeight: 400, justifyContent: "center", alignItems: "center"}}>
+                <CircularProgress size={60}/>
+            </Box>
         );
     }
     return null;

@@ -11,7 +11,7 @@ import DeleteDialog from "../../../components/DeleteDialog";
 import PersonalizedPlan from "../../../types/PersonalizedPlan";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import { z } from "zod";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import GoalEditDialog from "../../../components/GoalEditDialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -20,7 +20,7 @@ import { useSnackbar } from "../../../hooks/SnackBarContext";
 import AddSuccessionGoalDialog from "../../../components/AddSuccessionGoalDialog";
 import { useAuth } from "../../../hooks/AuthProvider";
 import Roles from "../../../types/Roles";
-
+import useLoading from "../../../hooks/LoadingData";
 const schema = z.object({
     status: z.string().min(1, "Stav cieľa je povinný!"),
     finishedDate: z.string().nullable().optional(),
@@ -83,7 +83,7 @@ const ManageSuccessions: React.FC = () => {
     const [finishedDate, setFinishedDate] = React.useState<Dayjs | null>(dayjs('2024-11-09'));
     const [openGoalDetailsDialog, setOpenGoalDetailsDialog] = useState(false);
     const [openSuccessionGoalModal, setOpenSuccessionGoalModal] = useState(false);
-
+    const [loaded, setLoaded] = useState(false);
 
     const {
             register,
@@ -110,7 +110,7 @@ const ManageSuccessions: React.FC = () => {
             .catch((err) => {
                 
                 console.error(err);
-            });
+            }).finally(() => setLoaded(true));
   
             
             api.get(`/EmployeeCard/GetEmployeesInTeam/`)
@@ -397,6 +397,7 @@ const ManageSuccessions: React.FC = () => {
         const color = colorMap[leaveType] || "#000";
         const columns = columnConfig[leaveType];
 
+
         return (
             <Box sx={{width: leaveType === "Redundancia tímu" ? "50%" : "100%", marginBottom: 4 }}>
                 <Typography variant="h6" sx={{ color }}>
@@ -616,6 +617,8 @@ const ManageSuccessions: React.FC = () => {
         }
     };
 
+    const loadingIndicator = useLoading(!loaded);
+
     return (
         
         <Layout >
@@ -623,7 +626,8 @@ const ManageSuccessions: React.FC = () => {
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Zoznam nastupníckych zamestnancov 
                 </Typography>
-
+                { loadingIndicator ? loadingIndicator : (
+                <Box>
                 <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
                     <DialogTitle>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -641,7 +645,7 @@ const ManageSuccessions: React.FC = () => {
                     </DialogTitle>
 
                     <Box sx={{ height: 400, width: "100%", px: 3, pb: 3 }}>
-                        <DataGridPro
+                        <DataGrid
                         columns={columnsUser}
                         rows={employeesInTeam}
                         initialState={{
@@ -649,10 +653,7 @@ const ManageSuccessions: React.FC = () => {
                             paginationModel: {
                                 pageSize: 6,
                             },
-                            },
-                            pinnedColumns: {
-                            right: ["actions"],
-                            },
+                            }
                         }}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
@@ -661,8 +662,6 @@ const ManageSuccessions: React.FC = () => {
                     </Box>
                     </Dialog>
 
-
-                {/* Tabs */}
                 <CustomTabs value={activeTab} onChange={handleTabChange} sx={{ marginBottom: 3 }}>
                     <CustomTab label="Hlavný zoznam" />
                     <CustomTab label="Personalizovaný plán" />
@@ -769,6 +768,8 @@ const ManageSuccessions: React.FC = () => {
                         {errorMessage || "Položka bola úspešne vymazaná."}
                     </Alert>
                 </Snackbar>
+                </Box>
+                )}
             </Box>
         </Layout>
         

@@ -31,6 +31,8 @@ const UpdateOrganization: React.FC = () => {
     const [organizationData, setOrganizationData] = useState<FormData | null>(null);
     //const [selectedLocation, setSelectedLocation] = useState<{ id: string; label: string } | null>(null);
     const { openSnackbar } = useSnackbar();
+    
+    const [loaded,setLoaded] = useState(false);
 
     const formattedCreateDate = organizationData
         ? new Date(organizationData.created).toLocaleString("sk-SK", {
@@ -58,6 +60,7 @@ const UpdateOrganization: React.FC = () => {
                 .then((res) => {
                     const organizationData = res.data;
                     setOrganizationData(organizationData);
+                    setLoaded(true);
                     setValue("name", organizationData.name);
                     setValue("code", organizationData.code);
                     //setValue("location", organizationData.location.id);
@@ -87,8 +90,7 @@ const UpdateOrganization: React.FC = () => {
             });
     };
 
-    const loadingIndicator = useLoading(organizationData === null);
-    if (loadingIndicator) return loadingIndicator;
+    const loadingIndicator = useLoading(!loaded);
 
     return (
         <Layout>
@@ -96,6 +98,7 @@ const UpdateOrganization: React.FC = () => {
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Upraviť organizáciu
                 </Typography>
+                { loadingIndicator ? loadingIndicator : (
                 <Stack direction="column" gap={3} sx={{ width: "100%" }} component="form" onSubmit={handleSubmit(onSubmit)}>
                     {error && (
                         <Alert severity="error" variant="filled">
@@ -112,13 +115,17 @@ const UpdateOrganization: React.FC = () => {
                             readOnly: true,
                         }}
                     />
-                    <Stack direction="row" gap={3}>
+                </Stack>
+                )}
+                
+                <Stack direction="row" sx={{margin: "10px 0 0 0" }} gap={3}>
                         <LoadingButton
                             type="submit"
                             variant="contained"
                             color="primary"
                             loading={loading}
                             loadingPosition="start"
+                            disabled={!loaded}
                         >
                             Upraviť organizáciu
                         </LoadingButton>
@@ -126,7 +133,6 @@ const UpdateOrganization: React.FC = () => {
                             Zrušiť
                         </Button>
                     </Stack>
-                </Stack>
             </Box>
         </Layout>
     );

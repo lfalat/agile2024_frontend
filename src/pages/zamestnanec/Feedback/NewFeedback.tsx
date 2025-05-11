@@ -19,7 +19,7 @@ import {
     ListItem,
     ListItemText,
 } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArchiveIcon from "@mui/icons-material/Archive";
@@ -47,7 +47,7 @@ const NewFeedback: React.FC = () => {
     const nav = useNavigate();
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
 
-    const columnsUser: GridColDef<EmployeeCard>[] = [
+    const columnsUser: GridColDef[] = [
         { field: "name", headerName: "Meno", width: 150 },
         { field: "surname", headerName: "Priezvisko", width: 150 },
         {
@@ -82,7 +82,7 @@ const NewFeedback: React.FC = () => {
             ),
         },
     ];
-    const columnsSelectedUser: GridColDef<EmployeeCard>[] = [
+    const columnsSelectedUser: GridColDef[] = [
         { field: "name", headerName: "Meno", width: 150 },
         { field: "surname", headerName: "Priezvisko", width: 150 },
         {
@@ -200,7 +200,7 @@ const NewFeedback: React.FC = () => {
                     <Typography variant="h5" fontWeight="bold" gutterBottom>
                         Priradený zamestnanci
                     </Typography>
-                    <DataGridPro
+                    <DataGrid
                         rows={selectedEmployees}
                         columns={columnsSelectedUser}
                         getRowId={(row) => row.employeeId}
@@ -262,7 +262,7 @@ const NewFeedback: React.FC = () => {
                 <DialogTitle>Priradení zamestnanci</DialogTitle>
                 <DialogContent>
                     <Box sx={{ height: 300 }}>
-                        <DataGridPro
+                        <DataGrid
                             columns={columnsUser}
                             rows={employeeData}
                             initialState={{
@@ -270,10 +270,7 @@ const NewFeedback: React.FC = () => {
                                     paginationModel: {
                                         pageSize: 10,
                                     },
-                                },
-                                pinnedColumns: {
-                                    right: ["actions"],
-                                },
+                                }
                             }}
                             pageSizeOptions={[5, 10, 25]}
                             pagination

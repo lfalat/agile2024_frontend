@@ -20,7 +20,7 @@ const ManageAdaptations: React.FC = () => {
     const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null); // For showing employee card dialog
     
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
-
+    const [loaded,setLoaded] = useState(false);
 
     const nav = useNavigate();
 
@@ -34,7 +34,8 @@ const ManageAdaptations: React.FC = () => {
                 console.error(err);
                 setAdaptations([])
                 
-            });
+            })
+            .finally(() => setLoaded(true));
     }, []);
 
     const handleDetailClick = (adaptationId: string) => {
@@ -51,24 +52,28 @@ const ManageAdaptations: React.FC = () => {
     };
 
     const columns: GridColDef<Adaptations>[] = [
-        { field: "nameEmployee", headerName: "Meno Zamestnanca", flex: 1  },
-        { field: "nameSupervisor", headerName: "Zodpovedný zamestnanec", flex: 1  },
+        { field: "nameEmployee", headerName: "Meno Zamestnanca", headerClassName: "header", flex: 1  },
+        { field: "nameSupervisor", headerName: "Zodpovedný zamestnanec", headerClassName: "header", flex: 1  },
         {
             field: "readyDate",
             headerName: "Termín pripravenosti",
+            headerClassName: "header",
             flex: 1, 
             valueGetter: (_, row) => formatDate(row.readyDate)
         },
-        { field: "taskState", headerName: "Stav úloh", flex: 0.8  },
+        { field: "taskState", headerName: "Stav úloh",
+            headerClassName: "header", flex: 0.8  },
         {
             field: "endDate",
             headerName: "Dátum dokončenia",
+            headerClassName: "header",
             flex: 1 ,
             valueGetter: (_, row) => formatDate(row.endDate)
         },
         {
             field: "actions",
             headerName: "Akcia",
+            headerClassName: "header",
             flex: 1 ,
             renderCell: (params) => (
                 <Button
@@ -98,6 +103,7 @@ const ManageAdaptations: React.FC = () => {
                 </Button>
                 <Box sx={{ width: "100%" }}>
                     <DataGrid
+                        loading={!loaded}
                         rows={adaptations}
                         columns={columns}
                         getRowId={(row) => row.id}

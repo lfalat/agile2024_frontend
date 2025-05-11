@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack, Tooltip } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import { IconButton } from "@mui/material";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 import Goal from "../../../types/Goal";
 import { EmployeeCard } from "../../../types/EmployeeCard";
+import { dataGridStyles } from "../../../styles/gridStyle";
 
 const ManageGoals: React.FC = () => {
     const [goalRows, setGoalRows] = useState<Goal[]>([]);
@@ -22,7 +23,7 @@ const ManageGoals: React.FC = () => {
     const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]); // Vybraní zamestnanci
 
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
-
+    const [loaded,setLoaded] = useState(false);
 
     const nav = useNavigate();
 
@@ -36,7 +37,7 @@ const ManageGoals: React.FC = () => {
             .catch((err) => {
                 setGoalRows([]);
                 console.error(err);
-            });
+            }).finally(() => setLoaded(true));
     }, []);
 
 
@@ -148,6 +149,7 @@ const ManageGoals: React.FC = () => {
         {
             field: "assignedEmployees", 
             headerName: "Priradený zamestnanec", 
+            headerClassName: "header",
             width: 350,
             renderCell: (params) => {
                 const assignedEmployees = params.row.assignedEmployees || [];
@@ -176,13 +178,15 @@ const ManageGoals: React.FC = () => {
                 );
             }
         },
-        { field: "name", headerName: "Názov cieľa", width: 150 },
-        { field: "categoryDescription", headerName: "Kategória cieľa", width: 150 },
-        { field: "statusDescription", headerName: "Stav cieľa", width: 150 },
+        { field: "name", headerName: "Názov cieľa", headerClassName: "header", width: 150 },
+        { field: "categoryDescription", headerName: "Kategória cieľa",headerClassName: "header", width: 150 },
+        { field: "statusDescription", headerName: "Stav cieľa",headerClassName: "header", width: 150 },
         {
             field: "actions",
             headerName: "Akcie",
-            width: 200,
+            headerClassName: "header",
+            minWidth: 200,
+            flex: 1,
             renderCell: (params) => (
                 <Stack direction="row" spacing={2}>
                     <Button
@@ -206,8 +210,6 @@ const ManageGoals: React.FC = () => {
         }
     ];
 
-    
-
     return (
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
@@ -222,13 +224,15 @@ const ManageGoals: React.FC = () => {
                 >
                     Vytvoriť nový cieľ
                 </Button>
-                <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                <Box>
+                    <DataGrid
+                        loading={!loaded}
                         columns={columns}
                         rows={generateRows(goalRows)}
                         onRowClick={handleRowClick}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
+                        sx={dataGridStyles}
                     />
                 </Box>
 
@@ -262,7 +266,7 @@ const ManageGoals: React.FC = () => {
                     <DialogTitle>Priradení zamestnanci</DialogTitle>
                     <DialogContent>
                         <Box sx={{ height: 300 }}>
-                            <DataGridPro
+                            <DataGrid
                                 columns={columnsUser}
                                 rows={selectedEmployees.map((emp) => ({
                                     id: emp.id,

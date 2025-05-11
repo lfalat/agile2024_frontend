@@ -11,12 +11,13 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import CircleIcon from "@mui/icons-material/Circle";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
 import UserProfile from "../../../types/UserProfile";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
+import useLoading from "../../../hooks/LoadingData";
 
 const schema = z.object({
     name: z.string().min(1, "Názov cieľa je povinný!"),
@@ -52,7 +53,7 @@ const EditGoal: React.FC = () => {
     const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null); 
     const { openSnackbar } = useSnackbar();
 
-
+    const [loaded,setLoaded] = useState(false);
 
     const {
         register,
@@ -156,7 +157,7 @@ const EditGoal: React.FC = () => {
                     setAssignedEmployees(res.data);
                     console.log("Assigned employees:", res.data);
                 })
-                .catch((err) => console.error("Error fetching assigned employees:", err));
+                .catch((err) => console.error("Error fetching assigned employees:", err)).finally(() => setLoaded(true));
         }
     }, [id]); 
 
@@ -294,71 +295,69 @@ const EditGoal: React.FC = () => {
         }
     };
 
+    const loadingIndicator = useLoading(!loaded);
+
     return (
         <Layout>
             <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                 
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Editácia cieľa 
                 </Typography>
-
-                <Button variant="contained" color="primary"
-                    sx={{ marginBottom: 2 }} onClick={() => setShowTable((prev) => !prev)}>
-                    Pridať zamestnanca
-                </Button>
-                {showTable && (
-                    <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
-                         <DataGridPro
-                        columns={columnsUser}
-                        rows={employeeData}
-                        
-                        /*rows={employeeData.filter(
-                            (employee) => !assignedEmployees.some((assigned) => assigned.id === employee.employeeId)
-                        )}*/
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 10,
+                { loadingIndicator ? loadingIndicator : (
+                <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
+                    <Button variant="contained" color="primary"
+                        sx={{ marginBottom: 2 }} onClick={() => setShowTable((prev) => !prev)}>
+                        Pridať zamestnanca
+                    </Button>
+                    {showTable && (
+                        <Box sx={{width: "100%", marginBottom: 3 }}>
+                            <DataGrid
+                            columns={columnsUser}
+                            rows={employeeData}
+                            
+                            /*rows={employeeData.filter(
+                                (employee) => !assignedEmployees.some((assigned) => assigned.id === employee.employeeId)
+                            )}*/
+                            initialState={{
+                                pagination: {
+                                    paginationModel: {
+                                        pageSize: 10,
+                                    },
                                 },
-                            },
-                            pinnedColumns: {
-                                right: ["actions"],
-                            },
-                        }}
-                        pageSizeOptions={[5, 10, 25]}
-                        pagination
-                        getRowId={(row) => row.employeeId}
-                        onCellClick={(params) => {
-                            if (params.field === "name" || params.field === "surname") {
-                                handleEmployeeCardClick(params.row.employeeId);
-                            }
-                        }}
-                    />
+                            }}
+                            pageSizeOptions={[5, 10, 25]}
+                            pagination
+                            getRowId={(row) => row.employeeId}
+                            onCellClick={(params) => {
+                                if (params.field === "name" || params.field === "surname") {
+                                    handleEmployeeCardClick(params.row.employeeId);
+                                }
+                            }}
+                        />
+                        </Box>
+                    )}
+                    <Typography variant="h6"  gutterBottom>
+                        Priradení zamestnanci 
+                    </Typography>
+
+                    <Box sx={{ height: 400, width: "100%", marginBottom: 4 }}>
+                        <DataGrid
+                            columns={columnsAssigned}
+                            rows={assignedEmployees}
+                            initialState={{
+                                pagination: {
+                                    paginationModel: {
+                                        pageSize: 5,
+                                    },
+                                },
+                            }}
+                            pageSizeOptions={[5, 10, 25]}
+                            pagination
+                            getRowId={(row) => row.id}
+                            onRowClick={(params) => handleEmployeeCardClick(params.row.id)}
+                        />
                     </Box>
-                )}
-                <Typography variant="h6"  gutterBottom>
-                    Priradení zamestnanci 
-                </Typography>
-
-                <Box sx={{ height: 400, width: "100%", marginBottom: 4 }}>
-                    <DataGridPro
-                        columns={columnsAssigned}
-                        rows={assignedEmployees}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 5,
-                                },
-                            },
-                            pinnedColumns: {
-                                right: ["actions"],
-                            },
-                        }}
-                        pageSizeOptions={[5, 10, 25]}
-                        pagination
-                        getRowId={(row) => row.id}
-                        onRowClick={(params) => handleEmployeeCardClick(params.row.id)}
-                    />
-                </Box>
                 <EmployeeCardDialog
                     open={openCardDialog}
                     handleClose={() => setOpenCardDialog(false)}  userId={selectedEmployee?.id}  
@@ -437,6 +436,8 @@ const EditGoal: React.FC = () => {
                         </Button>
                     </Stack>
                 </Stack>
+                </Box>
+                )}
             </Box>
         </Layout>
     );

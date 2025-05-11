@@ -15,7 +15,7 @@ import {
     IconButton,
     TextField,
 } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import api from "../../../app/api";
 import Layout from "../../../components/Layout";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -23,6 +23,7 @@ import Feedback from "../../../types/Feedback/Feedback";
 import FeedbackRecipient from "../../../types/Feedback/FeedbackRecipient";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { dataGridStyles } from "../../../styles/gridStyle";
+import useLoading from "../../../hooks/LoadingData";
 
 const ManageFeedback: React.FC = () => {
     const location = useLocation();
@@ -35,6 +36,7 @@ const ManageFeedback: React.FC = () => {
     const nav = useNavigate();
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
     const [isSender, setIsSender] = useState<boolean>(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         GetRequiredFeedback();
@@ -71,6 +73,7 @@ const ManageFeedback: React.FC = () => {
     }, [refresh]);
 
     const GetDeliveredFeedback = async () => {
+        setLoading(true);
         await api
             .get(`/Feedback/GetDeliveredFeedbacks?userId=${userProfile?.id}`)
             .then((response) => {
@@ -83,9 +86,11 @@ const ManageFeedback: React.FC = () => {
             });
         setIsSender(true);
         console.log(isSender);
+        setLoading(false);
     };
 
     const GetRequiredFeedback = async () => {
+        setLoading(true);
         await api
             .get(`/Feedback/GetRequiredFeedbacks?userId=${userProfile?.id}`)
             .then((response) => {
@@ -98,6 +103,7 @@ const ManageFeedback: React.FC = () => {
             });
         setIsSender(false);
         console.log(isSender);
+        setLoading(false);
     };
 
     const handleOpenDialog = async (feedback: FeedbackRecipient) => {
@@ -170,11 +176,15 @@ const ManageFeedback: React.FC = () => {
     };
 
     const columns: GridColDef<FeedbackRecipient>[] = [
-        { field: "title", headerName: "Názov", width: 300 },
-        { field: "status", headerName: "Stav", width: 150 },
-        { field: "name", headerName: "Odosielateľ", width: 200 },
+        { field: "title", headerName: "Názov", 
+            headerClassName: 'header', width: 300 },
+        { field: "status", headerName: "Stav",
+            headerClassName: 'header', width: 150 },
+        { field: "name", headerName: "Odosielateľ",
+            headerClassName: 'header', width: 200 },
         {
             field: "createDate",
+            headerClassName: 'header',
             headerName: "Čas vytvorenia",
             width: 150,
             resizable: false,
@@ -183,7 +193,9 @@ const ManageFeedback: React.FC = () => {
         {
             field: "sentDate",
             headerName: "Čas odoslania odpovede",
+            headerClassName: 'header',
             width: 200,
+            flex: 1,
             resizable: false,
             valueGetter: (value, row) => getDate(row.sentDate),
         },
@@ -224,6 +236,9 @@ const ManageFeedback: React.FC = () => {
             };
         });
     };
+
+    const loadingIndicator = useLoading(loading);
+
     return (
         <Layout>
             <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -232,12 +247,12 @@ const ManageFeedback: React.FC = () => {
             <Button
                 variant="contained"
                 color="primary"
-                sx={{ marginBottom: 2 }}
+                sx={{ marginBottom: 2, }}
                 onClick={() => nav("/newFeedback")}
             >
                 Vytvoriť požiadavku spätnej väzby
             </Button>
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={2} marginBottom={3} marginTop={5}>
                 <Button
                     color="primary"
                     sx={{ marginBottom: 2 }}
@@ -256,7 +271,9 @@ const ManageFeedback: React.FC = () => {
                 </Button>
             </Stack>
             <Box>
-                <DataGridPro
+                
+                <DataGrid
+                    loading ={loading}
                     rows={feedbackList}
                     columns={columns}
                     getRowClassName={(params) => (params.row.isRead ? "" : "notReaded-row")}
@@ -272,6 +289,7 @@ const ManageFeedback: React.FC = () => {
                     }}
                     pageSizeOptions={[5, 10, 25]}
                 />
+                
                 {/* Feedback Details Dialog */}
                 <Dialog
                     open={openDialog}
