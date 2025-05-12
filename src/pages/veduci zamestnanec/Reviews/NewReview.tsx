@@ -11,13 +11,13 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import { EmployeeCard } from "../../../types/EmployeeCard";
-import { DataGridPro} from "@mui/x-data-grid-pro";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
 import UserProfile from "../../../types/UserProfile";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 import { Department } from "../../../types/Department";
 import { useAuth } from "../../../hooks/AuthProvider";
+import { dataGridStyles } from "../../../styles/gridStyle";
 
 const schema = z.object({
     employeeDeadline: z.string(),
@@ -182,15 +182,17 @@ const NewReview: React.FC = () => {
 
     
     const columnsEmployee: GridColDef<EmployeeCard>[] = [
-            { field: "employeeId", headerName: "Id", width: 150 },
-            { field: "name", headerName: "Meno zamestnanca", width: 150 },
-            { field: "surname", headerName: "Priezvisko", width: 150 },
-            { field: "department", headerName: "Oddelenie", width: 200 },  
+            { field: "employeeId", headerName: "Id", headerClassName: "header", width: 150 },
+            { field: "name", headerName: "Meno zamestnanca", headerClassName: "header", width: 150 },
+            { field: "surname", headerName: "Priezvisko", headerClassName: "header", width: 150 },
+            { field: "department", headerName: "Oddelenie", headerClassName: "header", width: 200 },  
             
             {
                 field: "actions",
                 headerName: "Akcie",
+                headerClassName: "header",
                 width: 200,
+                flex: 1,
                 renderCell: (params: any ) => (
                     <Stack direction="row" spacing={2}>
                         <Button
@@ -219,13 +221,14 @@ const NewReview: React.FC = () => {
         ];
 
         const columnsDepartment: GridColDef<Department>[] = [
-            { field: "code", headerName: "Kód oddelenia", width: 150 },
-            { field: "name", headerName: "Názov", width: 150 },
-            { field: "employeeCount", headerName: "Počet zamestnancov", width: 150 }, 
+            { field: "code", headerName: "Kód oddelenia",headerClassName: "header", width: 150 },
+            { field: "name", headerName: "Názov",headerClassName: "header", width: 150 },
+            { field: "employeeCount", headerName: "Počet zamestnancov",headerClassName: "header", flex:1, width: 150 }, 
             
             {
                 field: "actions",
                 headerName: "Akcie",
+                headerClassName: "header",
                 width: 200,
                 renderCell: (params: any ) => (
                     <Stack direction="row" spacing={2}>
@@ -291,6 +294,7 @@ const NewReview: React.FC = () => {
                     <Box sx={{ height: 400, width: "100%" }}>
                             {selectedTab === "employees" ? (
                                 <DataGrid
+                                sx={dataGridStyles}
                                     columns={columnsEmployee}
                                     rows={employeeData}
                                     pageSizeOptions={[5, 10, 25]}
@@ -304,6 +308,7 @@ const NewReview: React.FC = () => {
                                 />
                             ) : (
                                 <DataGrid
+                                sx={dataGridStyles}
                                     columns={columnsDepartment}
                                     rows={departmentsData}
                                     pageSizeOptions={[5, 10, 25]}
@@ -354,7 +359,7 @@ const NewReview: React.FC = () => {
                             <Button type="submit" variant="contained" color="primary">
                                 Vytvoriť
                             </Button>
-                            <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageLocations')}>
+                            <Button type="button" variant="contained" color="secondary" onClick={() => nav('/manageReviews')}>
                                 Zrušiť
                             </Button>
                         </Stack>

@@ -15,7 +15,7 @@ import { useSnackbar } from '../../../hooks/SnackBarContext';
 import { useAuth } from "../../../hooks/AuthProvider";
 import UserProfile from "../../../types/UserProfile";
 
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 //import { DataGrid} from "@mui/x-data-grid";
 import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 import { useLocation } from "react-router-dom";
@@ -311,7 +311,7 @@ const EditSuccession: React.FC = () => {
                                 </Button>
                             </Stack>
                             <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
-                                <DataGridPro
+                                <DataGrid
                                     columns={columnsUser}
                                     rows={rows}
                                     initialState={{
@@ -319,9 +319,6 @@ const EditSuccession: React.FC = () => {
                                         paginationModel: {
                                             pageSize: 6,
                                         },
-                                    },
-                                    pinnedColumns: {
-                                        right: ["actions"],
                                     },
                                     }}
                                     pageSizeOptions={[5, 10, 25]}
@@ -334,6 +331,11 @@ const EditSuccession: React.FC = () => {
                                     }}
                                     />
                                     </Box>
+                                    <DialogActions>
+                                        <Button variant="outlined" color="secondary" onClick={ () => setOpenModal(false)}>
+                                                            Zrušiť
+                                        </Button>
+                                    </DialogActions>
                         </DialogTitle>
                     </Dialog>
                 

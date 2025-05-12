@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Box, Button, Typography, Tabs, Tab, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, IconButton, InputLabel, styled, TableRow, TableCell, Table, TableBody, TableHead, Tooltip } from "@mui/material";
+import { Box, Button, Typography, Tabs, Tab, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, IconButton, InputLabel, styled, TableRow, TableCell, Table, TableBody, TableHead, Tooltip, CircularProgress } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { format, parseISO } from "date-fns";
@@ -16,6 +16,7 @@ import TaskModal from './TaskModal';
 import DocumentModal from './DocumentModal';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { format as formatDate } from 'date-fns';
+import useLoading from "../../../hooks/LoadingData";
 
 type Task = {
     id: string;
@@ -62,6 +63,8 @@ const UpdateAdaptation: React.FC = () => {
     const { state } = useLocation();
     const { adaptationId } = state || {};
 
+    const [loaded,setLoaded] = useState(false);
+
     const {
         register,
         handleSubmit,
@@ -102,7 +105,8 @@ const UpdateAdaptation: React.FC = () => {
         }).catch((err) => {
             console.error("Failed to load adaptation:", err);
             setError("Nepodarilo sa načítať údaje.");
-        });
+        })
+        .finally(() => setLoaded(true));
     }, [adaptationId]);
 
 
@@ -157,13 +161,13 @@ const UpdateAdaptation: React.FC = () => {
 
 
     const readyDate = useMemo(() => {
-        if (!fieldsTask.length) return "-";
+        if (!fieldsTask.length) return <CircularProgress size={10}></CircularProgress>;
         const maxDate = Math.max(...fieldsTask.map(t => t.date.getTime()));
         return format(new Date(maxDate), "d.M.yyyy");
     }, [fieldsTask]);
     
     const completedDate = useMemo(() => {
-        if (!fieldsTask.length) return "-";
+        if (!fieldsTask.length) return <CircularProgress size={10}></CircularProgress>;
         const allChecked = fieldsTask.every(t => t.checked);
         return allChecked ? format(new Date(), "d.M.yyyy") : "-";
     }, [fieldsTask]);
@@ -217,6 +221,8 @@ const UpdateAdaptation: React.FC = () => {
         document.body.removeChild(link);
       };
     
+      const loadingIndicator = useLoading(!loaded);
+
     return (
         <Layout>
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -227,12 +233,12 @@ const UpdateAdaptation: React.FC = () => {
 
                     <Box sx={{ marginTop: 2, paddingTop: 1, paddingBottom: 2 , width: "100%", fontStyle: "italic"}}>
                         <Typography sx={{ marginTop: 1 }}>
-                            Meno zamestnanca: {selectedEmployee ? `${selectedEmployee.name} ${selectedEmployee.surname}` : "-"}
+                            Meno zamestnanca: {selectedEmployee ? `${selectedEmployee.name} ${selectedEmployee.surname}`: <CircularProgress size={10}></CircularProgress>}
                         </Typography>
                         <Typography sx={{ marginTop: 1 }}>
-                            Zodpovedný zamestnanec: {creator ? `${creator.name} ${creator.surname}`: "-"}
+                            Zodpovedný zamestnanec: {creator ? `${creator.name} ${creator.surname}`: <CircularProgress size={10}></CircularProgress>}
                         </Typography>
-                        <Typography sx={{ marginTop: 1 }}>Termín pripravenosti: {readyDate}</Typography>
+                        <Typography sx={{ marginTop: 1 }}>Termín pripravenosti: {readyDate ? readyDate : <CircularProgress size={10}></CircularProgress>}</Typography>
                         <Typography sx={{ marginTop: 1 }}>Dátum dokončenia: {completedDate}</Typography>
                     </Box>
 
@@ -246,7 +252,7 @@ const UpdateAdaptation: React.FC = () => {
                     {activeTab === 0 && (
                         <>
                             {/*  Zoznam pridanych uloh */}
-                            <Table  size="small" sx={{ borderCollapse: "separate", borderSpacing: "0 4px" }}>
+                            <Table size="small" sx={{ borderCollapse: "separate", borderSpacing: "0 4px" }}>
                                 <TableHead>
                                     <TableRow sx={{ fontStyle: "italic"}}>
                                     <TableCell></TableCell>
@@ -256,6 +262,7 @@ const UpdateAdaptation: React.FC = () => {
                                     <TableCell align="right">Akcie</TableCell>
                                     </TableRow>
                                 </TableHead>
+                                {loadingIndicator ? loadingIndicator : (
                                 <TableBody>
                                     {fieldsTask.length > 0 ? (
                                     fieldsTask.map((task, index) => (
@@ -310,6 +317,7 @@ const UpdateAdaptation: React.FC = () => {
                                     </TableRow>
                                     )}
                                 </TableBody>
+                                )}
                             </Table>
 
                             <Button variant="outlined" sx={{ mt: 2 }} onClick={() => {
@@ -360,6 +368,8 @@ const UpdateAdaptation: React.FC = () => {
                                     <TableCell align="right" >Akcie</TableCell>
                                     </TableRow>
                                 </TableHead>
+                                
+                                {loadingIndicator ? loadingIndicator : (
                                 <TableBody>
                                     {fieldsDocs.length > 0 ? (
                                     fieldsDocs.map((doc, index) => (
@@ -418,6 +428,7 @@ const UpdateAdaptation: React.FC = () => {
                                     </TableRow>
                                     )}
                                 </TableBody>
+                                )}
                             </Table>
 
                             <Button variant="outlined" sx={{ mt: 2 }} onClick={() => {

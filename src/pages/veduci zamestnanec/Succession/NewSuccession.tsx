@@ -11,8 +11,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import { EmployeeCard } from "../../../types/EmployeeCard";
-import { DataGridPro, GridColDef, GridValueGetter } from "@mui/x-data-grid-pro";
-import { DataGrid} from "@mui/x-data-grid";
+import { DataGrid, GridColDef} from "@mui/x-data-grid";
 import { useSnackbar } from '../../../hooks/SnackBarContext';
 import { useAuth } from "../../../hooks/AuthProvider";
 import UserProfile from "../../../types/UserProfile";
@@ -253,7 +252,7 @@ const NewSuccession: React.FC = () => {
                         </DialogTitle>
                         <DialogContent>
                             <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
-                                <DataGridPro
+                                <DataGrid
                                     columns={columnsUser}
                                     rows={rows}
                                     initialState={{
@@ -262,9 +261,6 @@ const NewSuccession: React.FC = () => {
                                                 pageSize: 6,
                                             },
                                         },
-                                        pinnedColumns: {
-                                            right: ["actions"],
-                                        },
                                     }}
                                     pageSizeOptions={[5, 10, 25]}
                                     pagination
@@ -272,6 +268,11 @@ const NewSuccession: React.FC = () => {
                                 />
                             </Box>
                         </DialogContent>
+                        <DialogActions>
+                            <Button variant="outlined" color="secondary" onClick={() => setOpenModal(false)}>
+                                Zrušiť
+                            </Button>
+                        </DialogActions>
                     </Dialog>
 
                     <Typography variant="body1"  gutterBottom sx={{ marginBottom: 3, marginTop: 2}} onClick={() => {

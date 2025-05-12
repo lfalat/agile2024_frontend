@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Button, Typography, Snackbar, Stack, Tooltip } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,7 @@ const ManageReviews: React.FC = () => {
     const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null);
     const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]);
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
-
+    const [loaded,setLoaded] = useState(false);
 
     const nav = useNavigate();
 
@@ -35,7 +35,7 @@ const ManageReviews: React.FC = () => {
             .catch((err) => {
                 setReviewRows([]);
                 console.error(err);
-            });
+            }).finally(() => setLoaded(true));
     }, []);
 
     const handleRowDoubleClick = (params: any) => {
@@ -111,11 +111,12 @@ const ManageReviews: React.FC = () => {
     
 
     const columns: GridColDef<Review>[] = [
-        { field: "reviewName", headerName: "Názov posudku", width: 250 },
-        { field: "status", headerName: "Stav", width: 150 },
+        { field: "reviewName", headerName: "Názov posudku", headerClassName: "header", width: 250 },
+        { field: "status", headerName: "Stav", headerClassName: "header",width: 150 },
         {   
             field: "assignedEmployees", 
             headerName: "Priradený zamestnanec", 
+            headerClassName: "header",
             width: 200,
             renderCell: (params) => {
                 const assignedEmployees = params.row.assignedEmployees || [];
@@ -147,6 +148,7 @@ const ManageReviews: React.FC = () => {
         { 
             field: "createdAt", 
             headerName: "Dátum a čas vytvorenia posudku", 
+            headerClassName: "header",
             width: 250, 
             valueGetter: (value, row) => {
                 if (!row.createdAt) return "-";
@@ -167,7 +169,9 @@ const ManageReviews: React.FC = () => {
         { 
             field: "completedAt", 
             headerName: "Dátum a čas dokončenia posudku", 
-            width: 250, 
+            headerClassName: "header",
+            minWidth: 250, 
+            flex: 1,
             valueGetter: (value, row) => {
                 if (!row.completedAt) return "-";
                 return new Date(row.completedAt)
@@ -202,8 +206,9 @@ const ManageReviews: React.FC = () => {
                 >
                     Vytvoriť nový posudok
                 </Button>
-                <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                <Box >
+                    <DataGrid
+                        loading={!loaded}
                         columns={columns}
                         rows={reviewRows}
                         onRowClick={handleRowClick}

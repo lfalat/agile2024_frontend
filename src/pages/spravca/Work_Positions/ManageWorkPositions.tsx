@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Button, Typography, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Stack, Tooltip, IconButton } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid,GridColDef } from "@mui/x-data-grid";
 import JobPosition from "../../../types/JobPosition"; // Use JobPosition type
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -9,16 +9,15 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ArchiveIcon from '@mui/icons-material/Archive';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import { dataGridStyles } from "../../../styles/gridStyle"; 
+import useLoading from "../../../hooks/LoadingData";
 
 const ManageJobPositions: React.FC = () => {
-    const [jobRows, setJobRows] = useState<JobPosition[]>([]);
+    const [jobRows, setJobRows] = useState<JobPosition[] | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedJob, setSelectedJob] = useState<JobPosition | null>(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [text, setText] = useState<string>("");
     const nav = useNavigate();
-    
-
     
     useEffect(() => {
         api.get("/JobPosition/GetAll") // Adjust endpoint to fetch job positions
@@ -47,7 +46,10 @@ const ManageJobPositions: React.FC = () => {
             console.log(selectedJob);
             api.delete(`/JobPosition/Delete?id=${(selectedJob.id)}`)
                 .then(() => {
-                    setJobRows((prevRows) => prevRows.filter((job) => job.id !== selectedJob.id));
+                    setJobRows((prevRows) => {
+                        if (!prevRows) return prevRows; // do nothing if rows are not loaded yet
+                        return prevRows.filter((job) => job.id !== selectedJob.id);
+                    });
                     setText("Položka vymazaná");
                     setOpenSnackbar(true); // Show success message
                 })
@@ -80,12 +82,23 @@ const ManageJobPositions: React.FC = () => {
         }
     };
 
-    const columns: GridColDef<JobPosition>[] = [
-        { field: "name", headerName: "Názov", width: 200, resizable: false },
-        { field: "code", headerName: "Kód", width: 150, resizable: false },
+    const columns: GridColDef[] = [
+        { 
+            field: "name", 
+            headerClassName: 'header', 
+            headerName: "Názov", 
+            width: 200, 
+            resizable: false },
+        { 
+            field: "code",
+            headerClassName: 'header', 
+            headerName: "Kód", 
+            width: 150, 
+            resizable: false },
         {
             field: "organizationsID",
             headerName: "Organizácia",
+            headerClassName: 'header',
             width: 250,
             resizable: true,
             renderCell: (params) => {
@@ -98,6 +111,7 @@ const ManageJobPositions: React.FC = () => {
         {
             field: "levels",
             headerName: "Level",
+            headerClassName: 'header',
             width: 250,
             resizable: true,
             renderCell: (params) => {
@@ -107,7 +121,12 @@ const ManageJobPositions: React.FC = () => {
                     : "..."; 
             }
         },
-        { field: "created", headerName: "Dátum pridania", width: 150, resizable: false, 
+        {   field: "created", 
+            headerName: "Dátum pridania", 
+            headerClassName: 'header',
+            width: 150, 
+            flex: 1,
+            resizable: false, 
             valueGetter: (value, row) => {
                 if (!row.created) return "Neplatný dátum";
                 
@@ -125,6 +144,7 @@ const ManageJobPositions: React.FC = () => {
         {
             field: "actions",
             headerName: "Akcia",
+            headerClassName: 'header',
             width: 150,
             resizable: false,
             renderCell: (params) => (
@@ -163,14 +183,16 @@ const ManageJobPositions: React.FC = () => {
     ];
 
     const handleEdit = (params: any) => {
-        if (params.field !== "actions") {
-            nav(`/editWorkPosition/${params.row.id}`);
+        if (params.field !== "actions") 
+        {
+            nav('/editWorkPosition', { state: { id: params.row.id } });
         }
     };
 
+
     return (
         <Layout>
-            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <Box sx={{ padding: 3, flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Správa pracovných pozícií
                 </Typography>
@@ -183,11 +205,12 @@ const ManageJobPositions: React.FC = () => {
                     Nová pracovná pozícia
                 </Button>
                 <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                    <DataGrid
+                        loading= {jobRows === null}
                         columns={columns}
-                        rows={jobRows}
+                        rows={jobRows ?? []} 
                         onCellClick={(params) => handleEdit(params)}
-                        getRowClassName={(params) => 
+                        getRowClassName={(params) =>
                             params.row.archived ? 'archived-row' : ''
                         }
                         sx={dataGridStyles}
@@ -197,15 +220,11 @@ const ManageJobPositions: React.FC = () => {
                                     pageSize: 10,
                                 },
                             },
-                            pinnedColumns: {
-                                right: ["actions"],
-                            },
                         }}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                     />
                 </Box>
-
                 {/* Delete Confirmation Dialog */}
                 <Dialog open={openDialog} onClose={handleCloseDialog}>
                     <DialogTitle>Potvrdenie vymazania</DialogTitle>

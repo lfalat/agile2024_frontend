@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Box, Button, Typography, Tabs, Tab, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, IconButton, InputLabel, styled, TableRow, TableCell, Table, TableBody, TableHead, Tooltip, FormControl, FormHelperText } from "@mui/material";
+import { Box, Button, Typography, Tabs, Tab, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, IconButton, InputLabel, styled, TableRow, TableCell, Table, TableBody, TableHead, Tooltip, FormControl, FormHelperText, CircularProgress } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { format, parseISO } from "date-fns";
 import api from "../../../app/api";
@@ -60,6 +60,7 @@ const NewAdaptation: React.FC = () => {
     const [activeTab, setActiveTab] = useState(0);
     const [editTaskIndex, setEditTaskIndex] = useState<number | null>(null);
     const [editDocIndex, setEditDocIndex] = useState<number | null>(null);
+    const [loadedUsers,setLoadedUsers] = useState(false);
 
     const {
         register,
@@ -76,7 +77,7 @@ const NewAdaptation: React.FC = () => {
         api.get(`/EmployeeCard/GetEmployeesInTeam/`)
         .then((res) => {
             setEmployeeOptions(res.data); 
-        })
+        }).finally(() => setLoadedUsers(true))
         
         api.get(`/EmployeeCard/GetEmployeeCardLoggedIn/`)
         .then((res) => {
@@ -188,11 +189,14 @@ const NewAdaptation: React.FC = () => {
     };
 
     const columnsUser: GridColDef<EmployeeCard>[] = [
-        { field: "employeeId", headerName: "ID zamestnanca", width: 150 },
-        { field: "surname", headerName: "Meno zamestnanca", width: 150, renderCell: (params: any) => (<span>{params.row.name} {params.row.surname}</span>)},
+        { field: "employeeId", headerName: "ID zamestnanca",
+            headerClassName: "header", width: 150 },
+        { field: "surname", headerName: "Meno zamestnanca",
+            headerClassName: "header", width: 150, renderCell: (params: any) => (<span>{params.row.name} {params.row.surname}</span>)},
         {
             field: "actions",
             headerName: "Akcie",
+            headerClassName: "header",
             width: 200,
             renderCell: (params: any ) => (
                 <Button
@@ -246,13 +250,9 @@ const NewAdaptation: React.FC = () => {
                     <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
                         <DialogTitle>
                             Pridať zamestnanca
-                            <Stack direction="row" spacing={2} sx={{ float: "right"}}>
-                                <Button color="primary" >
-                                    Zoznam zamestnancov
-                                </Button>
-                            </Stack>
                             <Box sx={{ height: 400, width: "100%", marginBottom: 3 }}>
                                 <DataGrid
+                                    loading={!loadedUsers}
                                     columns={columnsUser}
                                     rows={employeeOptions}
                                     initialState={{
@@ -270,6 +270,11 @@ const NewAdaptation: React.FC = () => {
                                     />
                                     </Box>
                         </DialogTitle>
+                        <DialogActions>
+                            <Button variant="outlined" color="secondary" onClick={() => setOpenModal(false)}>
+                                Zrušiť
+                            </Button>
+                        </DialogActions>
                     </Dialog>
 
                     <Box sx={{ marginTop: 2, paddingTop: 1, paddingBottom: 2 , width: "100%", fontStyle: "italic"}}>    
@@ -278,7 +283,7 @@ const NewAdaptation: React.FC = () => {
                             Meno zamestnanca: {selectedEmployee ? `${selectedEmployee.name} ${selectedEmployee.surname}` : "-"}
                         </Typography>
                         <Typography sx={{ marginTop: 1 }}>
-                            Zodpovedný zamestnanec: {creator ? `${creator.name} ${creator.surname}`: "-"}
+                            Zodpovedný zamestnanec: {creator ? `${creator.name} ${creator.surname}`: <CircularProgress size={10}></CircularProgress>}
                         </Typography>
                         <Typography sx={{ marginTop: 1 }}>Termín pripravenosti: {readyDate}</Typography>
                         <Typography sx={{ marginTop: 1 }}>Dátum dokončenia: {completedDate}</Typography>

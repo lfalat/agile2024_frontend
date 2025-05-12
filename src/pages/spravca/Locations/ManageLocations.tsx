@@ -2,7 +2,7 @@ import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContent
 import Layout from "../../../components/Layout";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import api from "../../../app/api";
 import { Location }  from "../../../types/Location";
 import { Archive, Delete } from "@mui/icons-material";
@@ -10,7 +10,7 @@ import DeleteDialog from "../../../components/DeleteDialog";
 import { dataGridStyles } from "../../../styles/gridStyle"; 
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import moment from "moment";
-
+import useLoading from "../../../hooks/LoadingData";
 
 
 const ManageLocations: React.FC = () => {
@@ -21,7 +21,7 @@ const ManageLocations: React.FC = () => {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
     const [refresh, setRefresh] = useState(false);
-
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         api.get("/Location/Locations")
@@ -33,7 +33,8 @@ const ManageLocations: React.FC = () => {
             .catch((err) => {
                 setLocationRows([]);
                 console.error(err);
-            });
+            }).finally(() =>
+                setLoaded(true));
     }, [refresh]);
 
     const handleRowDoubleClick = (params: any) => {
@@ -102,22 +103,25 @@ const ManageLocations: React.FC = () => {
         }
     }
   
-    const columns: GridColDef<(typeof locationRows)[number]>[] = [
+    const columns: GridColDef[] = [
         {
             field: "name",
             headerName: "Názov Lokality",
+            headerClassName: 'header',
             width: 200,
             resizable: false,
         },
         {
             field: "code",
             headerName: "Kód lokality",
+            headerClassName: 'header',
             width: 150,
             resizable: false,
         },
         {
             field: "organizations",
             headerName: "Príslušnosť lokality k organizácií",
+            headerClassName: 'header',
             width: 400,
             resizable: false,
             renderCell: (params) => {
@@ -130,31 +134,37 @@ const ManageLocations: React.FC = () => {
         {
             field: "adress",
             headerName: "Adresa",
+            headerClassName: 'header',
             width: 200,
             resizable: false,
         },
         {
             field: "city",
             headerName: "Mesto",
+            headerClassName: 'header',
             width: 150,
             resizable: false,
         },
         {
             field: "zipCode",
             headerName: "PSC",
+            headerClassName: 'header',
             width: 80,
             resizable: false,
         },
         {
             field: "lastEdited",
             headerName: "Posledná úprava",
+            headerClassName: 'header',
             width: 250,
+            flex: 1,
             resizable: false,
             valueGetter: (value, row) => row.created ? moment(row.created).format('DD.MM.YYYY HH:mm') : "Neplatný dátum",
         },
         {
             field: "actions",
             headerName: "Akcie",
+            headerClassName: 'header',
             width: 200,
             resizable: false,
             renderCell: (params) => (
@@ -207,7 +217,8 @@ const ManageLocations: React.FC = () => {
                 </Button>
 
                 <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                    <DataGrid
+                        loading={!loaded}
                         columns={columns}
                         rows={locationRows}
                         isRowSelectable={(params) => params.id === "name"}
@@ -221,14 +232,12 @@ const ManageLocations: React.FC = () => {
                                     pageSize: 10,
                                 },
                             },
-                            pinnedColumns: {
-                                right: ["actions"],
-                            },
                         }}
                         pageSizeOptions={[5, 10, 25]}
                         pagination
                         onRowDoubleClick={handleRowDoubleClick}
                     />
+                
                     <DeleteDialog
                         open={isDialogOpen}
                         onClose={() => setDialogOpen(false)}

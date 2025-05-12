@@ -2,7 +2,7 @@ import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContent
 import Layout from "../../../components/Layout";
 import { useNavigate} from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import api from "../../../app/api";
 import { Department } from "../../../types/Department";
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -10,10 +10,11 @@ import ArchiveIcon from '@mui/icons-material/Archive';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import DeleteDialog from "../../../components/DeleteDialog";
 import { dataGridStyles } from "../../../styles/gridStyle"; 
-
+import useLoading from "../../../hooks/LoadingData";
 
 const ManageDivisions: React.FC = () => {
     const [departmentRows, setDepartmentRows] = useState<Department[]>([]);
+    const [loaded,setLoaded] = useState<boolean>(false);
     const nav = useNavigate();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isSnackbarOpen, setSnackbarOpen] = useState(false);
@@ -31,7 +32,8 @@ const ManageDivisions: React.FC = () => {
             .catch((err) => {
                 setDepartmentRows([]);
                 console.error(err);
-            });
+            }).finally(() =>
+                setLoaded(true));
     }, [refresh]);
 
     const archiveOrganization = async (id: string, archive : boolean) => {
@@ -105,25 +107,30 @@ const ManageDivisions: React.FC = () => {
         {
             field: "name",
             headerName: "Názov oddelenia",
+            headerClassName: 'header',
             width: 200,
             resizable: false,
         },
         {
             field: "code",
             headerName: "Kód oddelenia",
+            headerClassName: 'header',
             width: 250,
             resizable: false,
         },
         {
             field: "organizationName",
             headerName: "Príslušná organizácia",
+            headerClassName: 'header',
             width: 250,
             resizable: false,
         },
         {
             field: "created",
             headerName: "Dátum vytvorenia oddelenia",
+            headerClassName: 'header',
             width: 250,
+            flex: 1,
             resizable: false,
             renderCell: (params) => (
                 <Typography variant="body2">
@@ -134,6 +141,7 @@ const ManageDivisions: React.FC = () => {
         {
             field: "actions",
             headerName: "Akcie",
+            headerClassName: 'header',
             width: 200,
             resizable: false,
             renderCell: (params) => (
@@ -173,13 +181,9 @@ const ManageDivisions: React.FC = () => {
         }
     ];
 
-    
-
-    
-
     return (
         <Layout>
-            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <Box sx={{ padding: 3, flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Správa oddelení
                 </Typography>
@@ -190,7 +194,8 @@ const ManageDivisions: React.FC = () => {
                 </Button>
 
                 <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                    <DataGrid
+                        loading={!loaded}
                         columns={columns}
                         rows={departmentRows}
                         isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
@@ -203,10 +208,7 @@ const ManageDivisions: React.FC = () => {
                                 paginationModel: {
                                     pageSize: 10,
                                 },
-                            },
-                            pinnedColumns: {
-                                right: ["actions"],
-                            },
+                            }
                         }}
                         pageSizeOptions={[5, 10, 25]}
                         pagination

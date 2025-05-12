@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Box, Typography } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -16,10 +16,12 @@ const ManageReviewsZam: React.FC = () => {
     const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]);
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
-   
+    const [loading,setLoading] = useState(true);
+
     const nav = useNavigate();
 
     useEffect(() => {
+        setLoading(true);
         api.get("/Review/MyReviews")
             .then((res) => {
                 console.log("API Response:", res.data);
@@ -29,7 +31,8 @@ const ManageReviewsZam: React.FC = () => {
             .catch((err) => {
                 setReviewRows([]);
                 console.error(err);
-            });
+            }).finally(() =>
+                setLoading(false));
     }, []);
 
 
@@ -81,11 +84,15 @@ const ManageReviewsZam: React.FC = () => {
     
 
     const columns: GridColDef<Review>[] = [
-        { field: "reviewName", headerName: "Názov posudku", width: 250 },
-        { field: "status", headerName: "Stav", width: 150 },
+        { field: "reviewName", headerName: "Názov posudku",
+            headerClassName: 'header', width: 250 },
+        { field: "status", headerName: "Stav",
+            headerClassName: 'header', width: 150 },
         {   
             field: "assignedEmployees", 
             headerName: "Priradený zamestnanec", 
+            headerClassName: 'header',
+            flex: 1,
             width: 200,
             renderCell: (params) => {
                 const assignedEmployee : any= params.row.assignedEmployees || {}; 
@@ -106,18 +113,18 @@ const ManageReviewsZam: React.FC = () => {
         { 
             field: "createdAt", 
             headerName: "Dátum a čas vytvorenia posudku", 
+            headerClassName: 'header',
             width: 250, 
             //valueGetter: (params: { row: Review }) => getDate(params.row.createdAt) 
         },
         { 
             field: "completedAt", 
             headerName: "Dátum a čas dokončenia posudku", 
+            headerClassName: 'header',
             width: 250, 
             //valueGetter: (params: { row: Review }) => getDate(params.row.completedAt) 
         },
     ];
-
-    
 
     return (
         <Layout>
@@ -127,7 +134,8 @@ const ManageReviewsZam: React.FC = () => {
                 </Typography>
                 
                 <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                    <DataGrid
+                        loading={loading}
                         columns={columns}
                         rows={reviewRows}
                         onRowClick={handleRowClick}

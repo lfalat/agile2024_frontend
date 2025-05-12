@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Autocomplete, TextField } from "@mui/material";
-import { DataGridPro, GridColDef  } from "@mui/x-data-grid-pro";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import api from "../../app/api";
 import Goal from "../../types/Goal";
 import CircleIcon from "@mui/icons-material/Circle";
@@ -15,7 +15,7 @@ import { useSnackbar } from "../../hooks/SnackBarContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/AuthProvider";
 import GoalEditDialog from "../../components/GoalEditDialog";
-
+import { dataGridStyles } from "../../styles/gridStyle";
 
 const schema = z.object({
     status: z.string().min(1, "Stav cieľa je povinný!"),
@@ -40,7 +40,10 @@ const EmployeeGoals: React.FC = () => {
     const [filteredGoals, setFilteredGoals] = useState<Goal[]>([]);
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
     const [selectedStatus, setSelectedStatus] = useState<{ id: string; label: string } | null>(null);
-    
+    const [loadedStatuses, setLoadedStatuses] = useState(false);
+    const [loadedGoals, setLoadedGoals] = useState(false);
+    const [filtered, setFiltered] = useState(false);
+
     const statusMap: Record<string, string> = {
         "not-started": "Nezačatý",
         "in-progress": "Prebiehajúci",
@@ -84,6 +87,8 @@ const EmployeeGoals: React.FC = () => {
 
 
     useEffect(() => {
+        setLoadedStatuses(false);
+        setLoadedGoals(false);
         api.get("/Goal/MyGoals")
             .then((res) => {
                 console.log("Fetched goals:", res.data);
@@ -95,7 +100,7 @@ const EmployeeGoals: React.FC = () => {
                 setGoalRows([]);
                 setFilteredGoals([]);
                 console.error(err);
-            });
+            }).then(() => setLoadedGoals(true));
         api.get("/GoalStatus/Statuses")
             .then((res) => {
                 console.log("Fetched goal statuses:", res.data);
@@ -113,7 +118,7 @@ const EmployeeGoals: React.FC = () => {
                 });
                 setGoalStatuses(statuses);   
             })
-            .catch((err) => console.error("Error fetching goal statuses:", err)); 
+            .catch((err) => console.error("Error fetching goal statuses:", err)).then(() => setLoadedStatuses(true)); 
     }, []);
 
     const handleRowClick = (params: any) => {
@@ -175,7 +180,7 @@ const EmployeeGoals: React.FC = () => {
 
     const filterGoals = (status: string) => {
         setFilter(status);
-    
+        setFiltered(false);
         if (status === "all") {
             setFilteredGoals(goalRows);
         } else {
@@ -183,6 +188,7 @@ const EmployeeGoals: React.FC = () => {
             setFilteredGoals(goalRows.filter((goal) => goal.statusDescription === mappedStatus));
             console.log("filtered:", filteredGoals);
         }
+        setFiltered(true);
     };
 
     const getDate = (date: any) => {
@@ -197,9 +203,12 @@ const EmployeeGoals: React.FC = () => {
     };
 
     const columns: GridColDef<Goal>[] = [
-        { field: "name", headerName: "Názov cieľa", width: 300 },
-        { field: "statusDescription", headerName: "Stav cieľa", width: 200 },
-        { field: "finishedDate", headerName: "Dátum dokončenia", width: 200, 
+        { field: "name", headerName: "Názov cieľa",
+            headerClassName: 'header', width: 300 },
+        { field: "statusDescription", headerName: "Stav cieľa",
+            headerClassName: 'header', width: 200 },
+        { field: "finishedDate", headerName: "Dátum dokončenia",
+            headerClassName: 'header', width: 200, 
             valueFormatter: (params: any) => {
             if (params != null) {
                 const value = params != null ? params : 0;
@@ -210,7 +219,9 @@ const EmployeeGoals: React.FC = () => {
         {
             field: "fullfilmentRate",
             headerName: "Miera splnenia",
+            headerClassName: 'header',
             width: 150,
+            flex:1,
             valueFormatter: (params: any) => {
                 if (params != null) {
                     const value = params != null ? params : 0;
@@ -297,12 +308,14 @@ const EmployeeGoals: React.FC = () => {
                 <Typography variant="subtitle1" color="text.secondary">
                 {(userProfile?.firstName && userProfile?.lastName ? `${userProfile.firstName}  ${userProfile.lastName}` : "Názov používateľa")}
                 </Typography>
-                <Box sx={{ width: "100%" }}>
-                    <DataGridPro
+                <Box>
+                    <DataGrid
+                        loading={!loadedGoals}
                         columns={columns}
                         rows={filteredGoals}
                         onRowClick={handleRowClick}
                         pageSizeOptions={[5, 10, 25]}
+                        sx={dataGridStyles}
                         pagination
                     />
                 </Box>

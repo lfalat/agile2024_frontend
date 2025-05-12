@@ -12,7 +12,6 @@ import {
     Snackbar,
     Stack,
 } from "@mui/material";
-import { DataGridPro } from "@mui/x-data-grid-pro";
 import UserProfile from "../../../types/UserProfile";
 import api from "../../../app/api";
 import { useNavigate } from "react-router-dom";
@@ -22,9 +21,10 @@ import EmployeeCardDialog from "./EmployeCardDialog";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { dataGridStyles } from "../../../styles/gridStyle";
 import { useSnackbar } from "../../../hooks/SnackBarContext";
+import useLoading from "../../../hooks/LoadingData";
 
 const ManageUsers: React.FC = () => {
-    const [userRows, setUserRows] = useState<UserProfile[]>([]);
+    const [userRows, setUserRows] = useState<UserProfile[] | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
     //const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -34,36 +34,39 @@ const ManageUsers: React.FC = () => {
     const { openSnackbar } = useSnackbar();
 
     useEffect(() => {
-        const fetchData = () => {
-            Promise.all([api.get<UserProfile[]>("/User/Users"), api.get("/EmployeeCard/GetAll/")])
-                .then(([userRes, employeeCardRes]) => {
-                    const users = userRes.data;
-                    const employeeCards = employeeCardRes.data;
-                    console.log(employeeCards);
-                    console.log(users);
-
-                    const updatedRows = users.map((user) => {
-                        const matchingCard = employeeCards.find((card: any) => {
-                            return String(card.user.id).trim() === String(user.id).trim();
+        api.get<UserProfile[]>("/User/Users")
+            .then((userRes) => {
+                const users = userRes.data;
+    
+                api.get("/EmployeeCard/GetAll/")
+                    .then((employeeCardRes) => {
+                        const employeeCards = employeeCardRes.data;
+                        console.log(employeeCards);
+                        console.log(users);
+    
+                        const updatedRows = users.map((user) => {
+                            const matchingCard = employeeCards.find((card: any) => {
+                                return String(card.user.id).trim() === String(user.id).trim();
+                            });
+                            return {
+                                ...user,
+                                deactivated: matchingCard ? matchingCard.archived : false,
+                            };
                         });
-                        console.log(matchingCard);
-                        return {
-                            ...user,
-                            deactivated: matchingCard ? matchingCard.archived : false,
-                        };
+    
+                        setUserRows(updatedRows);
+                        console.log(updatedRows);
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching employee cards:", error);
+                        setUserRows([]);
                     });
-
-                    setUserRows(updatedRows);
-                    console.log(updatedRows); // Log updated rows
-                })
-                .catch((error) => {
-                    console.error("Error fetching data:", error);
-                    setUserRows([]); // Reset rows on error
-                });
-        };
-
-        fetchData();
-    }, [refresh]);
+            })
+            .catch((error) => {
+                console.error("Error fetching users:", error);
+                setUserRows([]);
+            });
+    }, []);
 
     const handleCardOpen = (user: UserProfile) => {
         console.log("Selected User: ", user);
@@ -89,18 +92,16 @@ const ManageUsers: React.FC = () => {
             openSnackbar("Aktivujem kartu.", "success");
         }
         api.post(`/EmployeeCard/Deactivate/${user.id}`)
-            .then((res) => {
-                setRefresh((prev) => !prev);
-                console.log(res);
+            .then(() => {
+                setUserRows((prev) => {
+                    if (!prev) return prev;
+                    return prev.map((row) =>
+                        row.id === user.id ? { ...row, deactivated: !user.deactivated } : row
+                    );
+                });
 
-                setUserRows((prevRows) =>
-                    prevRows.map((row) => (row.id === user.id ? { ...row, deactivated: true } : row))
-                );
-                if (!user.deactivated) {
-                    openSnackbar("Karta deaktivovaná.", "success");
-                } else {
-                    openSnackbar("Karta aktivovaná.", "success");
-                }
+                const result = user.deactivated ? "Karta aktivovaná" : "Karta deaktivovaná";
+                openSnackbar(result, "success");
             })
             .catch((err) => {
                 console.log(err);
@@ -110,24 +111,30 @@ const ManageUsers: React.FC = () => {
     const handleDelete = () => {
         if (selectedUser) {
             api.delete(`/User/Delete?email=${encodeURIComponent(selectedUser.email)}`)
-                .then(() => {
-                    setUserRows((prevRows) => prevRows.filter((user) => user.email !== selectedUser.email));
-                    openSnackbar("Profil uspešne zmazaný", "success"); // Show success message
-                })
+            .then(() => {
+                setUserRows((prev) => prev?.filter((user) => user.email !== selectedUser.email) ?? []);
+                openSnackbar("Profil úspešne zmazaný", "success");
+            })
                 .catch((err) => console.error("Používateľ sa nevymazal:", err))
                 .finally(() => handleCloseDialog()); // Close dialog
         }
     };
 
     const columns: GridColDef<UserProfile>[] = [
-        { field: "email", headerName: "Používateľské meno", width: 200 },
-        { field: "firstName", headerName: "Meno", width: 150 },
-        { field: "lastName", headerName: "Priezvisko", width: 150 },
-        { field: "role", headerName: "Rola používateľa", width: 150 },
-        { field: "", headerName: "", flex: 1 },
+        { field: "email", headerName: "Používateľské meno", 
+            headerClassName: 'header', width: 200 },
+        { field: "firstName", headerName: "Meno",
+            headerClassName: 'header', width: 150 },
+        { field: "lastName", headerName: "Priezvisko",
+            headerClassName: 'header', width: 150 },
+        { field: "role", headerName: "Rola používateľa",
+            headerClassName: 'header', width: 150 },
+        { field: "", headerName: "",
+            headerClassName: 'header', flex: 1 },
         {
             field: "actions",
             headerName: "Akcie",
+            headerClassName: 'header',
             width: 300,
             renderCell: (params) => (
                 <Stack direction="row" spacing={2}>
@@ -165,13 +172,13 @@ const ManageUsers: React.FC = () => {
 
     const handleEdit = (params: any) => {
         if (params.field !== "actions") {
-            nav(`/changeUser/${params.row.email}`);
+            nav('/changeUser' , { state: {id: params.row.email} });
         }
     };
 
     return (
         <Layout>
-            <Box sx={{ padding: 3, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <Box sx={{ padding: 3, flexDirection: "column", alignItems: "flex-start" }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
                     Správa používateľov
                 </Typography>
@@ -185,8 +192,9 @@ const ManageUsers: React.FC = () => {
                 </Button>
                 <Box sx={{ width: "100%" }}>
                     <DataGrid
+                        loading={userRows === null}
                         columns={columns}
-                        rows={userRows}
+                        rows={userRows ?? []}
                         onRowDoubleClick={(params) => handleEdit(params)}
                         isRowSelectable={(params) => params.id === "name"} // Allow only the first column to be selectable
                         getRowClassName={(params) => (params.row.deactivated ? "archived-row" : "")}
@@ -203,7 +211,6 @@ const ManageUsers: React.FC = () => {
                         getRowId={(row) => row.id}
                     />
                 </Box>
-
                 {/* Delete Confirmation Dialog */}
                 <Dialog open={openDialog} onClose={handleCloseDialog}>
                     <DialogTitle>Potvrdiť vymazanie</DialogTitle>
