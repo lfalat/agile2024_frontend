@@ -19,10 +19,12 @@ import dayjs from "dayjs";
 import AddEmployeeModal from "./AddEmployees";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import api from "../../../app/api";
-import { CourseResponse, FilePath } from "../../../types/responses/CourseRespones";
+import { CourseResponse, FileRequest } from "../../../types/responses/CourseRespones";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
+import { useNavigate } from "react-router-dom";
 
 const CreateCourse: React.FC = () => {
     const { userProfile } = useAuth();
@@ -33,8 +35,10 @@ const CreateCourse: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [courseName, setCourseName] = useState('');
   const [expirationDate, setExpirationDate] = useState<dayjs.Dayjs | null>(null);
-    const [courseVersion, setCourseVersion] = useState<number>(1);
-    const [courseNote, setCourseNote] = useState('');
+  const [courseVersion, setCourseVersion] = useState<number>(1);
+  const [courseNote, setCourseNote] = useState('');
+  const {openSnackbar} = useSnackbar();
+  const navigate = useNavigate();
     useEffect(() => {
     api.get(`/employeeCard/GetCurrentSuperiorDepartmentTeam`)    
         .then((res) => {
@@ -55,65 +59,61 @@ const CreateCourse: React.FC = () => {
     const selectedEmps = employeeOptions.filter(emp => selected.includes(emp.employeeId));
     setSelectedEmployees(selectedEmps);  // Presunieme vybraných zamestnancov do state
   };
+
   const handleDocUpload = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
-
-    const res = await api.post("/Course/UploadFile", formData, {
+    console.log("handleDocUpload formData:", formData);
+    const res = await api.post("/Courses/UploadFile", formData, {
         headers: {
             'Content-Type': 'multipart/form-data'
         }
     }).catch((error) => {
         console.error('Error uploading file:', error);
+        openSnackbar("Chyba pri nahrávaní súboru","error");
         return null;
     });
-
-    if (!res || !res.data) {
-        throw new Error('Failed to upload file');
-    }
-
-    return res.data.filePath; 
+    return res?.data.filePath; 
 };
   const handleSubmit = async () => {
-    const filePath: FilePath[] = [];
+    const filePath: FileRequest[] = [];
     console.log("Files:", files);
-    await files.forEach((file) => async () => {
-        try {
-        const uploadedFilePath = await handleDocUpload(file);
-        console.log("uploadedFilePath", uploadedFilePath);
-        filePath.push({
-            Description: file.name,
-            FilePath: uploadedFilePath, // Adjust this as per your API requirements
-        });
-        } catch (error) {
-            console.error('Failed to save course:', error);
-        }
-    });
-    console.log(filePath);
+    for (const file of files) {
+      try {
+          const uploadedFilePath = await handleDocUpload(file);
+          console.log("uploadedFilePath", uploadedFilePath);
+          filePath.push({
+              Description: file.name,
+              FilePath: uploadedFilePath,
+          });
+      } catch (error) {
+          console.error('Failed to save course:', error);
+      }
+    }
+    console.log("FilePath:", filePath);
     const employeeIds = selectedEmployees.map(emp => emp.employeeId);
     const newCourse: CourseResponse = {
         DetailDescription: courseNote,
-        CreatedUserId: userProfile?.id || '', // Replace with the actual user ID
-        Employees: employeeIds, // Assuming employeeId is the correct field
-        Type: courseType, // Add the missing Type property
-        Files: filePath, // Adjust as per your API
+        CreatedUserId: userProfile?.id || '', 
+        Employees: employeeIds, 
+        Type: courseType, 
+        Files: filePath, 
         Version: courseVersion,
         Name: courseName,
-        ExpirationDate: expirationDate || dayjs(), // Ensure ExpirationDate is never null
+        ExpirationDate: expirationDate?.toString() || '', 
     };
-    console.log(newCourse);
+    console.log("NewCourse:", newCourse);
     try {
       const response: { data: any } = await api.post('/Courses/CreateCourse', newCourse);
       console.log('Course saved successfully', response.data);
+      openSnackbar("Kurz bol úspešne vytvorený.","success");
+      navigate(-1);
       // Optionally reset form or navigate away
-    } catch (error) {
+    } catch (error:any) {
       console.error('Failed to save course:', error);
+      openSnackbar(error?.response?.data?.message,"error")
     }
   };
-
-    function nav(arg0: string): void {
-        throw new Error("Function not implemented.");
-    }
 
   return (
     <Layout>
@@ -190,6 +190,7 @@ const CreateCourse: React.FC = () => {
                 </Link>
               </Typography>
             ))}
+            {files.length !== 0 && (
              <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         label="Termín dokončenia"
@@ -198,6 +199,7 @@ const CreateCourse: React.FC = () => {
                                     />
                                             
             </LocalizationProvider>
+            )}
           </Grid>
 
           {/* Right Column - Note */}
@@ -219,7 +221,7 @@ const CreateCourse: React.FC = () => {
           <Button variant="contained" color="primary" onClick={() => handleSubmit()}>
             Uložiť
           </Button>
-          <Button variant="contained" color="inherit" onClick={() => nav('/manageCourses')}>
+          <Button variant="contained" color="inherit" onClick={() => navigate(-1)}>
             Zrušiť
           </Button>
         </Box>
