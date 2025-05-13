@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
+import { useSnackbar } from "../../hooks/SnackBarContext";
 
 const schema = z.object({
     firstName: z.string().min(1, "Meno je povinné!"),
@@ -23,6 +24,7 @@ const ProfilePage: React.FC = () => {
     const nav = useNavigate();
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
     const { employeeCard } = useProfile();
+    const {openSnackbar} = useSnackbar();
     const {
         control,
         handleSubmit,
@@ -54,12 +56,12 @@ const ProfilePage: React.FC = () => {
             if (response.status === 200) {
                 const updatedUser = await api.get("User/Me");
                 setUserProfile(updatedUser.data);
-                setSuccessMessage("Zmeny boli úspešne uložené!");
+                openSnackbar("Zmeny boli úspešne uložené!", "success");
             } else {
-                alert("Chyba pri ukladaní zmien!");
+                openSnackbar("Chyba pri ukladaní zmien!", "error");
             }
         } catch (error) {
-            alert("Nastala chyba pri ukladaní zmien!");
+            openSnackbar("Nastala chyba pri ukladaní zmien!", "error");
         }
     };
 

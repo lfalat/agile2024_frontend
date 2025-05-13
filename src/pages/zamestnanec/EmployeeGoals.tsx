@@ -235,7 +235,8 @@ const EmployeeGoals: React.FC = () => {
                 setOpenGoalDetailsDialog(false);
                 nav('/home');
             } catch (err: any) {
-                setError(err.response?.data?.title || "Došlo k chybe pri ukladaní zmien.");
+                //setError(err.response?.data?.title || "Došlo k chybe pri ukladaní zmien.");
+                openSnackbar("Došlo k chybe pri ukladaní zmien.", "error");
                 console.error(err);
             }
         

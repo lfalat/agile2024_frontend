@@ -134,7 +134,7 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
     // Fetch options for select fields
     useEffect(() => {
         if (open) {
-            setLoading(true);
+            setLoading(true);         
         }
         const fetchData = async () => {
             if (!open) return;
@@ -144,7 +144,7 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
             try {
                 // Fetching all the data simultaneously using Promise.all
                 const [locationsRes, departmentsRes, jobPositionsRes, levelsRes, contractTypesRes] = await Promise.all([
-
+                    
                     api.get("/Location/GetAllUnarchived"),
                     api.get("/Department/GetAllUnarchived"),
                     api.get("/JobPosition/GetAllUnarchived"),
@@ -246,6 +246,7 @@ const EmployeeCardDialog: React.FC<EmployeeCardDialogProps> = ({userId, user, op
                     setStartWorkDate(null);  // Handle null case
                 }
                 setWorkTime(res.data.workPercentage);
+
                 const selectedLoc = res.data.location;
                 const foundLocation = locationOptions.find(option => option.id === selectedLoc);
                 setSelectedLocation(foundLocation || null);

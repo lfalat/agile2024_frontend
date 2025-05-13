@@ -160,11 +160,12 @@ const NewGoal: React.FC = () => {
             .then((res) => {
                 console.log("Goal sending:",dataToSend);
                 console.log("Goal created:", res.data);
-                openSnackbar("Organizácia bola úspešne vytvorená", "success");
+                openSnackbar("Cieľ bol úspešne vytvorený.", "success");
                 nav('/manageGoals');
             })
             .catch((err) => {
                 setError(err.response.data.title);
+                openSnackbar("Nastala chyba pri vytváraní cieľa.", "error");
                 console.error(err);
             });
     };

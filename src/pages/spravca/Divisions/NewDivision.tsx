@@ -137,12 +137,12 @@ const NewDivision: React.FC = () => {
         })
             .then(() => {
                 console.log("Data successfully sent:", data);
-                openSnackbar("Organizácia bola úspešne vytvorená", "success");
+                openSnackbar("Oddelenie bola úspešne vytvorené", "success");
                 nav("/manageDivisions");
             })
             .catch((err) => {
-                setError(err.response?.data);
-                openSnackbar("Nastala chyba pri vytváraní organizácie", "error");
+                //setError(err.response?.data);
+                openSnackbar("Nastala chyba pri vytváraní oddelenia", "error");
                 console.error(err);
             });
     };

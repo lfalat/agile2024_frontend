@@ -8,6 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Layout from "../../../components/Layout";
 import JobPosition from "../../../types/JobPosition";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 type Organization = { id: string; name: string };
 type Level = string;
@@ -28,9 +29,9 @@ const EditWorkPosition: React.FC = () => {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
     const [levels, setLevels] = useState<Level[]>([]);
-    const [openSnackbar, setOpenSnackbar] = useState(false);
     const [error, setError] = useState<string>();
     const nav = useNavigate();
+    const { openSnackbar } = useSnackbar();
 
     useEffect(() => {
         // Fetch organizations for the dropdown list
@@ -83,9 +84,11 @@ const EditWorkPosition: React.FC = () => {
         console.log(data);
         api.post("/JobPosition/Edit", data)
             .then((res) => {
+                openSnackbar("Pozícia úspešne upravená", "success");
                 nav(-1);
             })
             .catch((err) => {
+                openSnackbar("Nastala chyba pri aktualizácii.", "error");
                 setError(err.response?.data);
                 console.error(err);
             });
@@ -200,14 +203,6 @@ const EditWorkPosition: React.FC = () => {
                             Zrušiť
                         </Button>
                     </Box>
-
-                    {/* Success Snackbar */}
-                    <Snackbar
-                        open={openSnackbar}
-                        autoHideDuration={3000}
-                        onClose={() => setOpenSnackbar(false)}
-                        message="Pracovná pozícia bola úspešne vytvorená"
-                    />
                 </Stack>
             </Box>
         </Layout>

@@ -23,6 +23,7 @@ import Feedback from "../../../types/Feedback/Feedback";
 import FeedbackRecipient from "../../../types/Feedback/FeedbackRecipient";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { dataGridStyles } from "../../../styles/gridStyle";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const ManageFeedback: React.FC = () => {
     const location = useLocation();
@@ -35,6 +36,7 @@ const ManageFeedback: React.FC = () => {
     const nav = useNavigate();
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
     const [isSender, setIsSender] = useState<boolean>(false);
+    const {openSnackbar} = useSnackbar();
 
     useEffect(() => {
         GetRequiredFeedback();
@@ -148,7 +150,8 @@ const ManageFeedback: React.FC = () => {
                 console.error("Error fetching feedback:", error);
             });
         handleCloseDialog();
-        setNotification("Požiadavka bola zamietnutá.");
+        //setNotification("Požiadavka bola zamietnutá.");
+        openSnackbar("Požiadavka bola zamietnutá!", "error");
     };
 
     const handleCloseNotification = () => {
@@ -166,7 +169,8 @@ const ManageFeedback: React.FC = () => {
                 console.error("Error fetching feedback:", error);
             });
         handleCloseDialog();
-        setNotification("Spätná väzba bola odoslaná.");
+        //setNotification("Spätná väzba bola odoslaná.");
+        openSnackbar("Spätná väzba bola odoslaná!", "success");
     };
 
     const columns: GridColDef<FeedbackRecipient>[] = [

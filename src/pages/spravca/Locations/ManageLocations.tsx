@@ -10,6 +10,7 @@ import DeleteDialog from "../../../components/DeleteDialog";
 import { dataGridStyles } from "../../../styles/gridStyle"; 
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import moment from "moment";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 
 
@@ -21,6 +22,7 @@ const ManageLocations: React.FC = () => {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
     const [refresh, setRefresh] = useState(false);
+    const { openSnackbar } = useSnackbar();
 
 
     useEffect(() => {
@@ -87,11 +89,11 @@ const ManageLocations: React.FC = () => {
                 setLocationRows((prevRows) =>
                     prevRows.filter((location) => location.id !== selectedLocationId)
                 );
-                setSnackbarOpen(true);
+                openSnackbar("Lokalita bola úspešne zmazaná.", "success");
             } catch (err: any) {
                 if (err.response && err.response.status === 400) {
-                    setErrorMessage(err.response.data.message);
-                    setSnackbarOpen(true);
+                    //setErrorMessage(err.response.data.message);
+                    openSnackbar("Nastala chyba pri mazaní lokality.", "error");
                 } else {
                     console.error("Error deleting location:", err);
                 }
