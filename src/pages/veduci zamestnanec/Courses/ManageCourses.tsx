@@ -409,14 +409,14 @@ const ManageCourses: React.FC = () => {
             <>  
               <Button
                 variant="contained"
-                color="error"
+                color="info"
                 onClick={() => handleCloseCourse(selectedEmployeeCourse.id)}
               >
                 Uzavrieť kurz
               </Button>
               <Button
                 variant="contained"
-                color="warning"
+                color="primary"
                 onClick={() => handleDownloadFile(selectedEmployeeCourse.id, profile.userProfile?.id || '')}
               >
                 Spustiť
