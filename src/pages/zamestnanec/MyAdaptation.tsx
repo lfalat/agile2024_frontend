@@ -37,7 +37,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 
-const UpdateAdaptation: React.FC = () => {
+const MyAdaptation: React.FC = () => {
     //const [employee, setEmployee] = useState<{ id: string; name: string } | null>(null);
     const [id, setId] = useState<string | null>(null); 
 
@@ -335,4 +335,4 @@ const UpdateAdaptation: React.FC = () => {
     );
 }
 
-export default UpdateAdaptation;
+export default MyAdaptation;
