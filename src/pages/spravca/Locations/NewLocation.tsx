@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../app/api";
 import OrganizationResponse from "../../../types/responses/OrganizationResponse";
 import { Message } from "@mui/icons-material";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const schema = z.object({
     name: z.string().min(1, "Názov lokality je povinný!"),
@@ -27,6 +28,7 @@ const NewLocation: React.FC = () => {
     const nav = useNavigate();
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
+    const { openSnackbar } = useSnackbar();
     const {
         register: create,
         handleSubmit,
@@ -61,12 +63,13 @@ const NewLocation: React.FC = () => {
         organizations: data.organizations || [],
        })
             .then((res) => {
-                //alert("Lokalita bola úspešne vytvorená!");
+                openSnackbar("Lokalita bola úspešne vytvorená", "success");
                 console.log("res:", res)
                 nav('/manageLocations');
             })
             .catch((err) => {
-                setError(err.response.data.title);
+                openSnackbar("Nastala chyba pri vytváraní lokality", "error");
+                //setError(err.response.data.title);
                 console.error(err);
             });
     };

@@ -9,6 +9,7 @@ import OrganizationResponse from "../../../types/responses/OrganizationResponse"
 import api from "../../../app/api";
 import useLoading from "../../../hooks/LoadingData";
 import Organization from "../../../types/Organization";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const schema = z.object({
     name: z.string().min(1, "Názov lokality je povinný!"),
@@ -39,8 +40,7 @@ const UpdateLocation: React.FC = () => {
     const [organizationOptions, setOrganizationOptions] = useState<{ id: string; label: string }[]>([]);
     const [ordanization, setOrganization] = useState<Organization | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    //const [location, setLocation] = useState<Location | null>(null);
-    //const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const { openSnackbar } = useSnackbar();
     const validOrganizations = Array.isArray(organizationOptions) ? organizationOptions : [];
     const [loaded, setLoaded] = useState(false);
 
@@ -119,11 +119,12 @@ const UpdateLocation: React.FC = () => {
         })
         .then(() => {
             console.log("Data successfully sent:", data);
-            setSuccessMessage("Zmeny sa uložili");
+            openSnackbar("Lokalita boli úspešne upravená", "success");
             nav("/manageLocations");
         })
         .catch((err) => {
-            setError("Nastala chyba pri aktualizácii lokality.");
+            openSnackbar("Nastala chyba pri úprave lokality.", "error");
+            //setError("Nastala chyba pri aktualizácii ltyokali.");
             console.error(err);
         });
     };
@@ -178,3 +179,4 @@ const UpdateLocation: React.FC = () => {
 };
 
 export default UpdateLocation;
+

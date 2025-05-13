@@ -36,7 +36,7 @@ const schema = z.object({
     parentDepartmentId: z.string().optional(),
     childDepartmentsId: z.array(z.string()).optional(),
     childDepartments: z.array(z.string()).optional(),
-    created: z.string().optional(),
+    created: z.string(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -93,6 +93,10 @@ const EditDivision: React.FC = () => {
                 setValue("childDepartments", childDepartments);
                 setCreatedDate(dayjs(departmentData.created));
                 setLoaded(true);
+                if (dayjs(departmentData.created)) {
+                    const adjustedDate = dayjs(departmentData.created).startOf("day").format("YYYY-MM-DDTHH:mm:ss");
+                    setValue("created", adjustedDate);
+                }
             })
             .catch((err) => {
                 console.error("Error loading department:", err);
@@ -173,17 +177,18 @@ const EditDivision: React.FC = () => {
     const onSubmit: SubmitHandler<FormData> = (data) => {
         api.put(`/Department/Edit/${departmentId}`, {
             ...data,
+            created: data.created,
             childDepartments: data.childDepartments || [],
         })
             .then(() => {
                 console.log("Data successfully sent:", data);
-                openSnackbar("Organizácia bola úspešne vytvorená", "success");
+                openSnackbar("Oddelenie boli úspešne upravené", "success");
                 nav("/manageDivisions");
             })
             .catch((err) => {
                 console.log("Data successfully sent:", data);
                 setError(err.response?.data);
-                openSnackbar("Nastala chyba pri vytváraní organizácie", "error");
+                openSnackbar("Nastala chyba pri úprave oddelenia", "error");
                 console.error(err);
             });
     };

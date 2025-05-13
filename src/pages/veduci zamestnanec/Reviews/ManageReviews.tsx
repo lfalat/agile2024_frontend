@@ -10,19 +10,20 @@ import EmployeeCardDialog from "../../spravca/Users/EmployeCardDialog";
 import { Review } from "../../../types/Review";
 import { EmployeeCard } from "../../../types/EmployeeCard";
 import { dataGridStyles } from "../../../styles/gridStyle";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 
 const ManageReviews: React.FC = () => {
     const [reviewRows, setReviewRows] = useState<Review[]>([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-    const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openCardDialog, setOpenCardDialog] = useState(false);
     const [openReviewDetailsDialog, setOpenReviewDetailsDialog] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<UserProfile | null>(null);
     const [selectedEmployees, setSelectedEmployees] = useState<SimplifiedEmployeeCard[]>([]);
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
     const [loaded,setLoaded] = useState(false);
+    const { openSnackbar } = useSnackbar();
 
     const nav = useNavigate();
 

@@ -415,7 +415,7 @@ const NewSuccession: React.FC = () => {
                     <Box sx={{ display: "flex", flexDirection: "row", gap: 4, marginTop: 4 }}>
                     {/* Left Column: TextFields */}
                     <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2"><b>Požadované zručnosti: :</b></Typography>
+                    <Typography variant="body2" sx={{ marginBottom: 2 }}><b>Požadované zručnosti: :</b></Typography>
                         {fields.map((field, index) => (
                             <TextField
                                 key={index}
@@ -430,7 +430,7 @@ const NewSuccession: React.FC = () => {
 
                     {/* Right Column: Checkboxes */}
                     <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                    <Typography variant="body2"><b>Súčasné zručnosti: :</b></Typography>
+                    <Typography variant="body2" sx={{ marginBottom: 3.5 }}><b>Súčasné zručnosti: :</b></Typography>
                         {fields.map((field, index) => (
                             <FormControlLabel
                                 key={index}
@@ -441,7 +441,7 @@ const NewSuccession: React.FC = () => {
                                     />
                                 }
                                 label={field.checked ? "Spĺňa" : "Nespĺňa"}
-                                sx={{ marginBottom: 2 }}
+                                sx={{ marginBottom: 3.75 }}
                             />
                         ))}
                     </Box>

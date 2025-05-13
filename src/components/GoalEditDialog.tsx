@@ -53,6 +53,7 @@ interface GoalDetailsModalProps {
     handleStatusChange: (value: { id: string, label: string } | null) => void;
     reset: UseFormReturn<any>["reset"];
     isSuperior: boolean;
+    setError: UseFormReturn<FormData>["setError"];
 
   }
   
@@ -72,7 +73,8 @@ interface GoalDetailsModalProps {
     getValues,
     errors,
     reset,
-    isSuperior
+    isSuperior,
+    setError,
   }) => {
 
     const [showCompletionFieldsLocal, setShowCompletionFieldsLocal] = useState(false);
@@ -131,10 +133,27 @@ interface GoalDetailsModalProps {
       }
     };
   
+    const onSubmitLocal = (data: FormData) => {
+      console.log("aubmit");
+      const statusLabel = goalStatuses.find((s) => s.id === data.status)?.label;
+
+      if (statusLabel === "Dokončený" && (data.fullfilmentRate === null || data.fullfilmentRate === undefined)) {
+        console.log(statusLabel);
+        setError("fullfilmentRate", {
+           type: "manual",
+          message: "Miera splnenia je povinná pri dokončenom cieli!",
+        });
+        return;
+      }
+      console.log(statusLabel);
+      console.log(errors.fullfilmentRate?.message);  
+      onSubmit(data); // zavolaj pôvodný handler
+    };
+    
   
   return (
     <Dialog open={open} onClose={onClose} sx={{ maxWidth: "md", width: "80%" }}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmitLocal)}>
         <DialogTitle><b>Detail cieľa</b></DialogTitle>
         <DialogContent sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box sx={{ width: "50%" }}>
@@ -204,7 +223,9 @@ interface GoalDetailsModalProps {
               </LocalizationProvider>
 
               <TextField
-                label={getValues("fullfilmentRate") ? "" : "Miera splnenia"}
+                //label={getValues("fullfilmentRate") ? "" : "Miera splnenia"}
+                label="Miera splnenia *"
+                
                 {...register("fullfilmentRate", {
                   setValueAs: (value: string) => (value === "" ? null : Number(value)),
                 })}
@@ -216,11 +237,14 @@ interface GoalDetailsModalProps {
                 type="number"
                 inputProps={{ min: 0, max: 100 }}
                 helperText={
-                  errors.fullfilmentRate
-                    ? errors.fullfilmentRate.message
+                  // Podmienka na kontrolu, či je fullfilmentRate null
+                  getValues("fullfilmentRate") === null || getValues("fullfilmentRate") === undefined
+                    ? "Miera splnenia je povinná pri dokončenom cieli!"
                     : "Zadajte číslo medzi 0 a 100."
                 }
+                error={ getValues("fullfilmentRate") === null || getValues("fullfilmentRate") === undefined}
                 sx={{ marginTop: 2 }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Box>
           </Box>

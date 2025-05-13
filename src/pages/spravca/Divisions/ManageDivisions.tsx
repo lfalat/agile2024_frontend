@@ -11,6 +11,7 @@ import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import DeleteDialog from "../../../components/DeleteDialog";
 import { dataGridStyles } from "../../../styles/gridStyle"; 
 import useLoading from "../../../hooks/LoadingData";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const ManageDivisions: React.FC = () => {
     const [departmentRows, setDepartmentRows] = useState<Department[]>([]);
@@ -21,6 +22,7 @@ const ManageDivisions: React.FC = () => {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
     const [refresh, setRefresh] = useState(false);
+    const { openSnackbar } = useSnackbar();
 
     useEffect(() => {
         api.get("/Department/Departments")
@@ -74,11 +76,11 @@ const ManageDivisions: React.FC = () => {
                 setDepartmentRows((prevRows) =>
                     prevRows.filter((department) => department.id !== selectedDepartmentId)
                 );
-                setSnackbarOpen(true);
+                openSnackbar("Oddelnie bola úspešne zmazané.", "success");
             } catch (err: any) {
                 if (err.response && err.response.status === 400) {
-                    setErrorMessage(err.response.data.message);
-                    setSnackbarOpen(true);
+                    //setErrorMessage(err.response.data.message);
+                    openSnackbar("Nastala chyba pri mazaní oddelenia.", "error");
                 } else {
                     console.error("Error deleting department:", err);
                 }

@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import api from "../../../app/api";
 import RoleResponse from "../../../types/responses/RoleResponse";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 // Define validation schema
 const schema = z
@@ -42,6 +43,7 @@ const RegisterUser: React.FC = () => {
     const nav = useNavigate();
     const [roleOptions, setRoleOptions] = useState<{ id: string; label: string }[]>([]);
     const [error, setError] = useState<string>();
+    const { openSnackbar } = useSnackbar();
 
     useEffect(() => {
         api.get("/Role/Roles")
@@ -95,10 +97,12 @@ const RegisterUser: React.FC = () => {
     const onSubmit: SubmitHandler<FormData> = (data) => {
         api.post("/User/Register", data)
             .then((res) => {
+                openSnackbar("Používateľ bol úspešne vytvorený", "success");
                 nav(-1);
             })
             .catch((err) => {
-                setError(err.response?.data);
+                //setError(err.response?.data);
+                openSnackbar("Nastala chyba pri vytváraní používateľa", "error");
                 console.error(err);
             });
     };

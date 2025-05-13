@@ -32,6 +32,7 @@ import { EmployeeCard } from "../../../types/EmployeeCard";
 import api from "../../../app/api";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { useProfile } from "../../../hooks/ProfileProvider";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const NewFeedback: React.FC = () => {
     const [selectedEmployees, setSelectedEmployees] = useState<EmployeeCard[]>([]);
@@ -46,6 +47,7 @@ const NewFeedback: React.FC = () => {
     const [employeeData, setEmployeeData] = useState<EmployeeCard[]>([]);
     const nav = useNavigate();
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
+    const {openSnackbar} = useSnackbar();
 
     const columnsUser: GridColDef[] = [
         { field: "name", headerName: "Meno", width: 150 },
@@ -172,7 +174,8 @@ const NewFeedback: React.FC = () => {
             console.log("Zamestnanci");
             console.log(selectedEmployees);
             // Logic to send feedback request
-            setNotification(true);
+            //setNotification(true);
+            openSnackbar("Požiadavka spätnej väzby bola vytvorená!", "success");
             // Reset form
             setEmployeeIds([]);
             setSelectedEmployees([]);
@@ -180,9 +183,9 @@ const NewFeedback: React.FC = () => {
         }
     };
 
-    const handleCloseNotification = () => {
+    /*const handleCloseNotification = () => {
         setNotification(false);
-    };
+    };*/
 
     return (
         <Layout>
@@ -292,12 +295,6 @@ const NewFeedback: React.FC = () => {
                 handleClose={() => setOpenCardDialog(false)}
                 userId={selectedEmployee?.id}
                 user={selectedEmployee}
-            />
-            <Snackbar
-                open={notification}
-                onClose={handleCloseNotification}
-                message="Požiadavka spätnej väzby bola vytvorená."
-                autoHideDuration={6000}
             />
         </Layout>
     );

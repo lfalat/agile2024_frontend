@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Review } from "../../../types/Review";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { dataGridStyles } from "../../../styles/gridStyle";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 const ManageReviewsZam: React.FC = () => {
     const [reviewRows, setReviewRows] = useState<Review[]>([]);
@@ -17,6 +18,7 @@ const ManageReviewsZam: React.FC = () => {
     const [openEmployeesModal, setOpenEmployeesModal] = useState(false); 
     const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
     const [loading,setLoading] = useState(true);
+    const {openSnackbar} = useSnackbar();
 
     const nav = useNavigate();
 

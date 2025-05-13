@@ -3,6 +3,7 @@ import { Dialog, DialogActions, DialogContent, DialogTitle, Typography, Box, Tex
 import { Goal } from "./UpdateReviewZam";
 import api from "../../../app/api";
 import { useAuth } from "../../../hooks/AuthProvider";
+import { useSnackbar } from "../../../hooks/SnackBarContext";
 
 type ReviewModalProps = {
   open: boolean;
@@ -20,6 +21,7 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
 
   const { userProfile, setUserProfile, setRefresh, refresh } = useAuth();
   const [showQuestions, setShowQuestions] = useState(false);
+  const {openSnackbar} = useSnackbar();
 
   const handleToggleQuestions = () => {
     setShowQuestions(!showQuestions);
@@ -61,6 +63,7 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
       });
   
       console.log("Description sent successfully:", response.data);
+      openSnackbar("Posudok úspešne odoslaný!", "success");
       onClose();
       setRefresh(!refresh);
     } catch (error) {
@@ -84,6 +87,7 @@ const ReviewModalZam: React.FC<ReviewModalProps> = ({ open, onClose, employeeGoa
       });
   
       console.log("Description updated successfully:", response.data);
+      openSnackbar("Posudok úspešne uložený!", "success");
       onClose();
       setRefresh(!refresh);
     } catch (error) {

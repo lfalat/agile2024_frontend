@@ -76,6 +76,7 @@ const EditSuccession: React.FC = () => {
     const [successionData, setSuccessionData] = useState<SuccessionData | null>(null);
 
 
+
     
     
    const {
@@ -104,20 +105,20 @@ const EditSuccession: React.FC = () => {
             setLeaveTypesOptions(res.data.map((x: any) => ({ id: x.id, label: x.description })));
         }).catch(err => {
             console.error(err);
-            openSnackbar("Nepodarilo sa načítať údaje o leave types.", "error");
+            openSnackbar("Nepodarilo sa načítať údaje o type odchodu.", "error");
           });
         api.get(`/Succession/GetReadyStatuses/`).then(res => {
             setReadyStatusesOptions(res.data.map((x: any) => ({ id: x.id, label: x.description })));
             console.log("readystatuses ids:", readyStatusesOptions);
         }).catch(err => {
             console.error(err);
-            openSnackbar("Nepodarilo sa načítať údaje o statuses.", "error");
+            openSnackbar("Nepodarilo sa načítať údaje o statusoch.", "error");
           });
         api.get(`/EmployeeCard/GetEmployeesWithouSuperiors/`).then(res => {
             setSuccessorOptions(res.data);
         }).catch(err => {
             console.error(err);
-            openSnackbar("Nepodarilo sa načítať údaje o employees.", "error");
+            openSnackbar("Nepodarilo sa načítať údaje o zamestnancoch.", "error");
           });
         
         

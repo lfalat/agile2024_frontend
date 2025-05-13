@@ -130,7 +130,8 @@ const UpdateAdaptation: React.FC = () => {
                 nav('/manageAdaptations');
             })
             .catch((err) => {
-                setError(err.response.data.title);
+                openSnackbar("Nastala chyba s vytváraním adaptácie", "error");
+                //setError(err.response.data.title);
                 console.error("Error creating:", err);
             });
     };

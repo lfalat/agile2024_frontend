@@ -580,11 +580,13 @@ const ManageSuccessions: React.FC = () => {
                         ),
                     }))
                 );
-                setSnackbarOpen(true);
+                openSnackbar("Nástupníctvo bolo úspešne vymazané.", "success");
+                //setSnackbarOpen(true);
             } catch (err: any) {
                 if (err.response && err.response.status === 400) {
                     setErrorMessage(err.response.data.message);
-                    setSnackbarOpen(true);
+                    //setSnackbarOpen(true);
+                    openSnackbar("Nastal problém s vymazaním nástupníctva.", "error");
                 } else {
                     console.error("Error deleting plan:", err);
                 }
@@ -602,11 +604,13 @@ const ManageSuccessions: React.FC = () => {
                 setPersonalizedPlans((prevPlans) =>
                     prevPlans.filter((plan) => plan.goalId !== selectedPersonalizedPlanId.goalId)
                 );
-                setSnackbarOpen(true);
+                openSnackbar("Personalizovaný plán bol úspešne vymazaný.", "success");
+                //setSnackbarOpen(true);
         } catch (err: any) {
             if (err.response && err.response.status === 400) {
                 setErrorMessage(err.response.data.message);
-                setSnackbarOpen(true);
+                //setSnackbarOpen(true);
+                openSnackbar("Nastal problém s vymazaním personalizovaného plánu.", "error");
             } else {
                 console.error("Error deleting plan:", err);
             }
@@ -737,6 +741,7 @@ const ManageSuccessions: React.FC = () => {
                             errors = {errors}
                             reset={reset}
                             isSuperior={userProfile?.role == Roles.Veduci}
+                            setError={ setError}
                         />                   
                         
                     <DeleteDialog
@@ -754,7 +759,7 @@ const ManageSuccessions: React.FC = () => {
                     </>
                 )}
 
-                <Snackbar
+                {/*<Snackbar
                     open={isSnackbarOpen}
                     autoHideDuration={6000}
                     onClose={() => setSnackbarOpen(false)}
@@ -767,7 +772,7 @@ const ManageSuccessions: React.FC = () => {
                     >
                         {errorMessage || "Položka bola úspešne vymazaná."}
                     </Alert>
-                </Snackbar>
+                </Snackbar>*/}
                 </Box>
                 )}
             </Box>
