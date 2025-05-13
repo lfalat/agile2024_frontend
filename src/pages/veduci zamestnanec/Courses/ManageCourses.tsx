@@ -405,7 +405,7 @@ const ManageCourses: React.FC = () => {
           </Button>
 
           <Box display="flex" gap={2}>
-          {( !isVeducko && !selectedEmployeeCourse?.completedDate ) && (
+          {( !isVeducko && !selectedEmployeeCourse?.completedDate && selectedEmployeeCourse?.courseState !== "Nesplnený" )   && (
             <>  
               <Button
                 variant="contained"
