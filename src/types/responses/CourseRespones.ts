@@ -7,11 +7,11 @@ export type CourseResponse = {
     CreatedUserId: string
     Employees: string[]
     Type: string
-    Files: FilePath[]
+    Files: FileRequest[]
     Version: number
-    ExpirationDate: Dayjs
+    ExpirationDate: string
 };
-export type FilePath = {
+export type FileRequest = {
     Description: string
     FilePath: string
 };

@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { useProfile } from "../../../hooks/ProfileProvider";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { useSnackbar } from "../../../hooks/SnackBarContext";
+import InfoIcon from '@mui/icons-material/Info';
 
 const ManageCourses: React.FC = () => {
   const [courseEmployees, setCourseEmployees] = useState<any[]>([]);
@@ -45,6 +46,7 @@ const ManageCourses: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
+    api.post('/Courses/SetCoursesAfterDate');
     api.get('/employeeCard/GetCurrentSuperiorDepartmentTeam')
       .then((response) => {
         setEmployees(response.data);
@@ -104,20 +106,38 @@ const ManageCourses: React.FC = () => {
         openSnackbar("Nepodarilo sa uzavrieť kurz.","error");
     });
   };
-  const handleDownloadFile = async (courseEmployeeId: string) => {
+
+  const parseDate = (dateString: string | null) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("sk-SK", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  }
+
+  const handleDownloadFile = async (courseId: string, employeeId: string) => {
+    console.log("Downloading file for course ID:", courseId);
+    console.log("Downloading file for employee ID:", employeeId);
     try {
-      const response = await api.get(`/courses/DownloadFile/${courseEmployeeId}`, {
-        responseType: 'blob',
-      });
-  
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-  
-      link.download = "kurz.pdf";
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const response = await api.get(`/Courses/GetCourseFiles?CourseID=${courseId}`);
+      console.log("Response data:", response.data);
+      for (const file of response.data ) {
+        //const blob = new Blob([file.FilePath]);
+        console.log("Blob link:",file);
+        //const url = window.URL.createObjectURL(file.FilePath);
+        const link = document.createElement('a');
+        link.href = file.filePath;
+    
+        link.download = file.description || 'downloaded_file';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        //window.URL.revokeObjectURL(url);
+      }
+      await api.post(`/Courses/StartCourseEmployee/${courseId}`);
+      openSnackbar("Súbor bol úspešne stiahnutý.","success");
     } catch (err) {
       console.error("Chyba pri sťahovaní súboru:", err);
     }
@@ -241,8 +261,8 @@ const ManageCourses: React.FC = () => {
                             <em>{item.department || "-"}</em>
                           </TableCell>
                           <TableCell>
-                            {expires || "-"}<br />
-                            {remainingDays !== null && (
+                            {parseDate(expires) || "-"}<br />
+                            {remainingDays !== null && !item.completedDate && (
                               <small style={{ color: "gray" }}>ostáva {remainingDays} dní</small>
                             )}
                           </TableCell>
@@ -252,9 +272,14 @@ const ManageCourses: React.FC = () => {
                               color={stateColors[item.courseState] || "default"}
                             />
                           </TableCell>
-                          <TableCell>{item.completedDate || "-"}</TableCell>
+                          <TableCell>{parseDate(item.completedDate) || "-"}</TableCell>
                           <TableCell>
-                            <IconButton color="warning"><Edit /></IconButton>
+                          <IconButton color="warning" onClick={() => {
+                              setSelectedEmployeeCourse(item);
+                              setOpenCourseDetailModal(true);
+                              console.log("Item:", item); 
+                            }}>
+                          {isVeducko ? <InfoIcon /> : <Edit />}</IconButton>
                              {isVeducko &&
                               <IconButton color="error" onClick={() => deleteCourse(item.id)}>
                                 <Delete />
@@ -333,51 +358,74 @@ const ManageCourses: React.FC = () => {
       </Dialog>
 
       <Dialog open={openCourseDetailModal} onClose={() => setOpenCourseDetailModal(false)} maxWidth="md" fullWidth>
-  <DialogTitle>Detail kurzu</DialogTitle>
-  <DialogContent>
-    {selectedEmployeeCourse && (
-      <Box display="flex" flexDirection="column" gap={2}>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Typography variant="body1"><strong>Typ:</strong> {selectedEmployeeCourse.courseType}</Typography>
-            <Typography variant="body1"><strong>Dátum expirácie:</strong> {selectedEmployeeCourse.expirationDate}</Typography>
-            <Typography variant="body1"><strong>ID:</strong> {selectedEmployeeCourse.id}</Typography>
-            <Typography variant="body1"><strong>Autor kurzu:</strong> {selectedEmployeeCourse.createdBy}</Typography>
-            <Typography variant="body1"><strong>Verzia:</strong> {selectedEmployeeCourse.version}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="h6">{selectedEmployeeCourse.courseName}</Typography>
-          </Grid>
-        </Grid>
-        <Paper elevation={1} sx={{ p: 2, background: "#fff5f5" }}>
-          <Typography>{selectedEmployeeCourse.detailDescription}</Typography>
-        </Paper>
-      </Box>
-    )}
-  </DialogContent>
-  <DialogActions sx={{ justifyContent: "space-between" }}>
-    <Button onClick={() => setOpenCourseDetailModal(false)} color="inherit">
-      Zavrieť
-    </Button>
+        <DialogTitle>Detail kurzu</DialogTitle>
+        <DialogContent>
+          {selectedEmployeeCourse && (
+            <Box display="flex" flexDirection="column" gap={2}>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body1"><strong>Typ:</strong> {selectedEmployeeCourse.courseType}</Typography>
+                  <Typography variant="body1"><strong>Dátum expirácie:</strong> {parseDate(selectedEmployeeCourse.expirationDate)} 
+                          {!selectedEmployeeCourse.completedDate && ( <small>ostáva {Math.ceil((new Date(selectedEmployeeCourse.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dní </small> )}
+                  </Typography>
+                  <Typography variant="body1"><strong>Autor kurzu:</strong> {selectedEmployeeCourse.createdBy}</Typography>
+                  <Typography variant="body1"><strong>Verzia:</strong> {selectedEmployeeCourse.version}</Typography>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Typography variant="body1"><strong>Status:</strong></Typography>
+                    <Button
+                      variant="contained"
+                      color={
+                        selectedEmployeeCourse.courseState === "Splnený"
+                          ? "success"
+                          : selectedEmployeeCourse.courseState === "Prebiehajúci"
+                          ? "warning"
+                          : selectedEmployeeCourse.courseState === "Nesplnený"
+                          ? "error"
+                          : "inherit"
+                      }
+                      size="small"
+                    >
+                      {selectedEmployeeCourse.courseState || "Neznámy"}
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="h6">{selectedEmployeeCourse.courseName}</Typography>
+                </Grid>
+              </Grid>
+              <Paper elevation={1} sx={{  p: 2 }}>
+                <Typography>{selectedEmployeeCourse.detailDescription}</Typography>
+              </Paper>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "space-between" }}>
+          <Button onClick={() => setOpenCourseDetailModal(false)} color="inherit">
+            Zavrieť
+          </Button>
 
-    <Box display="flex" gap={2}>
-      <Button
-        variant="contained"
-        color="error"
-        onClick={() => handleCloseCourse(selectedEmployeeCourse.id)}
-      >
-        Uzavrieť kurz
-      </Button>
-      <Button
-        variant="contained"
-        color="warning"
-        onClick={() => handleDownloadFile(selectedEmployeeCourse.id)}
-      >
-        Spustiť
-      </Button>
-    </Box>
-  </DialogActions>
-</Dialog>
+          <Box display="flex" gap={2}>
+          {( !isVeducko && !selectedEmployeeCourse?.completedDate ) && (
+            <>  
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => handleCloseCourse(selectedEmployeeCourse.id)}
+              >
+                Uzavrieť kurz
+              </Button>
+              <Button
+                variant="contained"
+                color="warning"
+                onClick={() => handleDownloadFile(selectedEmployeeCourse.id, profile.userProfile?.id || '')}
+              >
+                Spustiť
+              </Button>
+            </>
+          )}
+          </Box>
+        </DialogActions>
+      </Dialog>
 
     </Layout>
   );
