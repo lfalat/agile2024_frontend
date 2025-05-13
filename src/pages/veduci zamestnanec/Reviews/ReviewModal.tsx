@@ -148,7 +148,7 @@ const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${rev
             }}
             onClick={() => setShowQuestions(false)}
           >
-            Posudzovany Ciel
+            Posudzovaný cieľ
           </Button>
           <Button
             variant="contained"
@@ -160,7 +160,7 @@ const response = await api.put(`/Review/SendDescription/${userProfile?.id}/${rev
             }}
             onClick={handleToggleQuestions}
           >
-            Dodatocne Otazky
+            Dodatočné otázky
           </Button>
         </Box>
         {!showQuestions ? (<Typography variant="body1" fontWeight="bold" sx={{ mb: 2 }}>
